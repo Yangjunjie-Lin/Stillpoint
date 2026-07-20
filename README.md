@@ -2,7 +2,7 @@
 
 > Hold the center. Break the swarm.
 
-Stillpoint is a top-down survival shooter. The **supported runtime** is **Godot 4.7.x** with the **Compatibility (gl_compatibility)** renderer. Version **0.4.1** is a stability / architecture hardening release focused on movement, temporary weapon buffs, Continue/New Game, full run restore, bounds, and CI.
+Stillpoint is a top-down survival shooter. The **supported runtime** is **Godot 4.7.x** with the **Compatibility (gl_compatibility)** renderer. Version **0.4.2** hardens save validation, Continue semantics, multi-level restore, camera resize, and regression tests on top of the 0.4.1 gameplay base.
 
 The earlier Python + Tkinter build is archived as a historical prototype and is not required to play.
 
@@ -31,7 +31,7 @@ The earlier Python + Tkinter build is archived as a historical prototype and is 
 
 | Button | Behaviour |
 | --- | --- |
-| **Continue** | Enabled only for a valid, non-expired, non-game-over run save. Restores the run. Does **not** clear the save. |
+| **Continue** | Enabled only for a valid, non-expired, non-game-over run save with a known `level_id`. Restores the **saved player name** (menu input is ignored). Does **not** clear the save. |
 | **New Game** | If a valid run exists, shows an in-game confirm panel. Clears the old run only after confirm. |
 | **Settings** | Applies master / music / SFX bus volumes and fullscreen. |
 | **Quit** | Exits. |
@@ -64,7 +64,9 @@ Godot writes under `user://` (OS app data for Stillpoint):
 | `settings.json` | Display / audio |
 | `leaderboard.json` | Local high scores |
 
-Run saves restore player, enemies, pickups, timers, difficulty, score, XP, HP, position, and status remaining times. **Projectiles are not saved** and are cleared on restore.
+Run saves restore player, enemies, pickups, timers, difficulty, score, XP, HP, position, status remaining times, and **`level_id`** (loads the matching `LevelDefinition` before spawning). Dead or `queue_free()` enemies/pickups are **not** saved. Saves from a **newer game version** or with an **unknown level** cannot be continued.
+
+**Projectiles are not saved** and are cleared on restore.
 
 Old Python `~/.stillpoint/` saves are **not** loaded.
 
@@ -110,17 +112,15 @@ ruff check .
 pytest
 ```
 
-## Stability status (0.4.1)
+## Stability status (0.4.2)
 
-Core loop is intended to be a stable base for later story / level content:
+Pre-story stable base:
 
-- Movement decelerates correctly when input is released
-- Temporary weapon buffs refresh duration and do not permanently mutate `WeaponDefinition`
-- Continue / New Game semantics are explicit
-- Run restore covers player, enemies, pickups, and buffs
-- Camera and actors respect world bounds; level has four physical walls
-- Items spawn from `ItemDefinition` pools
-- Audio buses receive settings volumes; `AudioManager` uses a small player pool
+- Death / queued enemies and pickups filtered from saves; old dead enemies skipped on restore
+- Continue restores saved player name and level (`level_id`)
+- Strict save validation (finite numbers, required fields, future versions rejected)
+- Camera limits recalculate on viewport resize
+- Expanded headless tests (bad saves, atomic write failure, pause clocks, smoke restore)
 
 ## License / contributing
 

@@ -29,19 +29,55 @@ var _world_bounds: Rect2 = Rect2()
 
 func _ready() -> void:
 	_rng.randomize()
+	_initialize_signals()
+
+	var restore_data: Dictionary = {}
+	if GameManager.resume_requested:
+		restore_data = SaveService.load_run()
+
+	_resolve_level_definition(restore_data)
+	_initialize_world()
+	_spawn_level_visuals()
+	_configure_camera()
+
+	if restore_data.is_empty():
+		_start_new_run()
+	else:
+		_restore_run(restore_data)
+
+
+func _initialize_signals() -> void:
 	pause_menu.visible = false
 	game_over_screen.visible = false
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.enemy_defeated.connect(_on_enemy_defeated)
+
+
+func _resolve_level_definition(data: Dictionary) -> void:
+	if not data.is_empty():
+		var saved_level_id := StringName(str(data.get("level_id", "prototype")))
+		var saved_level := GameManager.registry.get_level(saved_level_id)
+		if saved_level != null:
+			level_def = saved_level
+			return
+		push_warning(
+			"GameplayController: missing saved level '%s'" % String(saved_level_id)
+		)
+
+	if level_def == null:
+		level_def = GameManager.registry.get_level(&"prototype")
 	if level_def == null:
 		level_def = load("res://resources/levels/prototype_level.tres") as LevelDefinition
+
+
+func _initialize_world() -> void:
 	_world_bounds = Rect2(Vector2.ZERO, level_def.world_size)
-	_spawn_level_visuals()
+	if not get_viewport().size_changed.is_connected(_on_viewport_size_changed):
+		get_viewport().size_changed.connect(_on_viewport_size_changed)
+
+
+func _on_viewport_size_changed() -> void:
 	_configure_camera()
-	if GameManager.resume_requested:
-		_restore_run(SaveService.load_run())
-	else:
-		_start_new_run()
 
 
 func _start_new_run() -> void:
@@ -71,19 +107,18 @@ func _spawn_player(spawn_pos: Vector2) -> void:
 
 
 func _configure_camera() -> void:
+	if level_def == null or camera == null:
+		return
 	camera.make_current()
 	camera.position_smoothing_enabled = true
-	camera.limit_left = 0
-	camera.limit_top = 0
-	camera.limit_right = int(level_def.world_size.x)
-	camera.limit_bottom = int(level_def.world_size.y)
-	var viewport_size := get_viewport_rect().size
-	if viewport_size.x >= level_def.world_size.x:
-		camera.limit_left = int((level_def.world_size.x - viewport_size.x) * 0.5)
-		camera.limit_right = int(camera.limit_left + viewport_size.x)
-	if viewport_size.y >= level_def.world_size.y:
-		camera.limit_top = int((level_def.world_size.y - viewport_size.y) * 0.5)
-		camera.limit_bottom = int(camera.limit_top + viewport_size.y)
+	var limits := CameraLimits.calculate_camera_limits(
+		level_def.world_size,
+		get_viewport_rect().size,
+	)
+	camera.limit_left = limits.position.x
+	camera.limit_top = limits.position.y
+	camera.limit_right = limits.position.x + limits.size.x
+	camera.limit_bottom = limits.position.y + limits.size.y
 
 
 func _process(delta: float) -> void:
@@ -141,18 +176,38 @@ func quit_to_menu() -> void:
 	GameManager.return_to_menu()
 
 
+func _active_enemy_count() -> int:
+	var count := 0
+	for child in enemies_root.get_children():
+		if child is EnemyController:
+			var enemy := child as EnemyController
+			if enemy.is_saveable():
+				count += 1
+	return count
+
+
+func _active_pickup_count() -> int:
+	var count := 0
+	for child in pickups.get_children():
+		if child is PickupItem:
+			var pickup := child as PickupItem
+			if pickup.is_saveable():
+				count += 1
+	return count
+
+
 func _ensure_population() -> void:
 	if level_def == null or enemy_scene == null:
 		return
 	var target := mini(level_def.max_enemy_count, int(float(level_def.base_enemy_count) * difficulty_scale))
-	while enemies_root.get_child_count() < target:
+	while _active_enemy_count() < target:
 		_spawn_enemy()
 
 
 func _spawn_enemy() -> void:
 	if player == null or level_def.enemy_pool.is_empty():
 		return
-	var def: EnemyDefinition = level_def.enemy_pool[_rng.randi_range(0, level_def.enemy_pool.size() - 1)] as EnemyDefinition
+	var def: EnemyDefinition = level_def.enemy_pool[_rng.randi_range(0, level_def.enemy_pool.size() - 1)]
 	if def == null:
 		return
 	var enemy := enemy_scene.instantiate() as EnemyController
@@ -165,7 +220,7 @@ func _spawn_enemy() -> void:
 func _spawn_item() -> void:
 	if item_scene == null or player == null or level_def == null:
 		return
-	if pickups.get_child_count() >= level_def.max_active_items:
+	if _active_pickup_count() >= level_def.max_active_items:
 		return
 	var def := ItemSelection.choose_weighted_item(level_def.item_pool, player.experience.level, _rng)
 	if def == null:
@@ -214,8 +269,8 @@ func _on_player_died(stats: Dictionary) -> void:
 	SaveService.record_score(GameManager.player_name, int(stats.get("score", 0)))
 	SaveService.mark_game_over()
 	game_over_screen.visible = true
-	if game_over_screen.has_method("show_stats"):
-		game_over_screen.call("show_stats", stats)
+	if game_over_screen is GameOverScreen:
+		(game_over_screen as GameOverScreen).show_stats(stats)
 
 
 func _save_run() -> void:
@@ -223,12 +278,22 @@ func _save_run() -> void:
 		return
 	var enemies: Array = []
 	for child in enemies_root.get_children():
-		if child is EnemyController:
-			enemies.append((child as EnemyController).to_dict())
+		if not is_instance_valid(child):
+			continue
+		if not child is EnemyController:
+			continue
+		var enemy := child as EnemyController
+		if enemy.is_saveable():
+			enemies.append(enemy.to_dict())
 	var pickup_entries: Array = []
 	for child in pickups.get_children():
-		if child is PickupItem:
-			pickup_entries.append((child as PickupItem).to_dict())
+		if not is_instance_valid(child):
+			continue
+		if not child is PickupItem:
+			continue
+		var pickup := child as PickupItem
+		if pickup.is_saveable():
+			pickup_entries.append(pickup.to_dict())
 	# Projectiles are intentionally omitted from run saves.
 	SaveService.save_run({
 		"player_name": GameManager.player_name,
@@ -246,6 +311,7 @@ func _restore_run(data: Dictionary) -> void:
 	if data.is_empty():
 		_start_new_run()
 		return
+	GameManager.player_name = str(data.get("player_name", GameManager.player_name))
 	difficulty_scale = float(data.get("difficulty_scale", 1.0))
 	_restore_run_timers(data)
 	var player_data: Dictionary = data.get("player", {})
@@ -273,13 +339,19 @@ func _restore_enemies(entries: Array) -> void:
 			push_warning("GameplayController: skipping corrupt enemy entry")
 			continue
 		var data: Dictionary = entry
+		var health_data: Dictionary = data.get("health", {})
+		if bool(health_data.get("death_recorded", false)):
+			push_warning("GameplayController: skipping dead enemy from old save")
+			continue
+		if float(health_data.get("current_health", 0.0)) <= 0.0:
+			push_warning("GameplayController: skipping zero-health enemy from old save")
+			continue
 		var def_id := StringName(str(data.get("definition_id", "")))
 		var def: EnemyDefinition = GameManager.registry.get_enemy(def_id)
 		if def == null:
 			for pooled in level_def.enemy_pool:
-				var candidate := pooled as EnemyDefinition
-				if candidate != null and candidate.id == def_id:
-					def = candidate
+				if pooled != null and pooled.id == def_id:
+					def = pooled
 					break
 		if def == null:
 			push_warning("GameplayController: missing enemy definition '%s'" % String(def_id))
@@ -288,10 +360,11 @@ func _restore_enemies(entries: Array) -> void:
 		enemies_root.add_child(enemy)
 		enemy.world_bounds = _world_bounds
 		enemy.setup(def, 1.0, player, _world_bounds)
-		# Apply baked runtime stats from save (do not re-scale by current difficulty).
 		enemy.from_dict(data, player)
 		if def.texture != null and enemy.sprite != null:
 			enemy.sprite.texture = def.texture
+		if not enemy.is_saveable():
+			enemy.queue_free()
 
 
 func _restore_pickups(entries: Array) -> void:
@@ -304,9 +377,8 @@ func _restore_pickups(entries: Array) -> void:
 		var def: ItemDefinition = GameManager.registry.get_item(def_id)
 		if def == null:
 			for pooled in level_def.item_pool:
-				var candidate := pooled as ItemDefinition
-				if candidate != null and candidate.id == def_id:
-					def = candidate
+				if pooled != null and pooled.id == def_id:
+					def = pooled
 					break
 		if def == null:
 			push_warning("GameplayController: missing item definition '%s'" % String(def_id))

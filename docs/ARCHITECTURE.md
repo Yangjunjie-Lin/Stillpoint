@@ -1,4 +1,4 @@
-# Architecture (Godot 0.4.1)
+# Architecture (Godot 0.4.2)
 
 Stillpoint’s supported runtime is **Godot 4.7** with the **Compatibility** renderer (`gl_compatibility`). Scene / Node / Resource ownership replaces the archived Tkinter loop.
 
@@ -7,83 +7,80 @@ Stillpoint’s supported runtime is **Godot 4.7** with the **Compatibility** ren
 | Autoload | Responsibility |
 | --- | --- |
 | `EventBus` | Cross-system signals only |
-| `GameManager` | Run metadata, `start_new_run` / `continue_run`, `ResourceRegistry` |
+| `GameManager` | Run metadata, `start_new_run` / `continue_run`, `ResourceRegistry`, resumable-run checks |
 | `SceneRouter` | Swap `Main/CurrentScene` |
-| `SaveService` | JSON under `user://`, atomic writes, migration, settings → audio buses |
+| `SaveService` | JSON under `user://`, atomic writes, migration, validation, settings → audio buses |
 | `AudioManager` | SFX pool + music player (headless-safe no-op play) |
 
 Actors, bullets, and levels are **not** autoloads. Autoloads must not become God Objects for combat state.
 
+## Save validation pipeline
+
+1. Read JSON from `user://run_save.json`
+2. `migrate_payload()` — deep copy, version steps v0→v1→v2 (reject version &lt; 0 or &gt; `SAVE_VERSION`)
+3. `validate_run_payload()` → `SaveValidationResult` (required fields, finite numbers, alive player health)
+4. `inspect_run()` — game over / expiry checks → `RunSaveSummary`
+5. `GameManager.inspect_resumable_run()` — additionally requires `level_id` exists in `ResourceRegistry`
+
+**Future save policy:** version &gt; `SAVE_VERSION` → `future_version`, Continue disabled, no auto-downgrade, no overwrite.
+
+## Continue vs New Game
+
+- **Continue** — `GameManager.continue_run()` sets `player_name` from the save summary (menu `LineEdit` ignored). Never clears the run file.
+- **New Game** — uses menu name; confirms before `SaveService.clear_run()`.
+
+## Multi-level restore
+
+`GameplayController._ready()` loads restore data first, then `_resolve_level_definition()` picks `LevelDefinition` from saved `level_id` via registry before world bounds, visuals, and camera are built.
+
+Unknown `level_id` → `inspect_resumable_run()` invalid (`unknown_level`); do not silently fall back to prototype during Continue.
+
+## Enemy / pickup saveability
+
+`queue_free()` is deferred to end-of-frame. Autosave must skip:
+
+- `is_queued_for_deletion()`
+- dead enemies (`health.is_dead()`, `_reward_granted`)
+- pickups without `definition_id`
+
+`EnemyController.is_saveable()` / `PickupItem.is_saveable()` centralize this. `_active_enemy_count()` drives spawn targets (not raw child count).
+
+Restore skips legacy dead enemy entries and `queue_free()` any enemy that fails `is_saveable()` after `from_dict()`.
+
 ## MovementComponent
 
-Returns **world velocity in pixels per second**.
-
-| Field | Role |
-| --- | --- |
-| `max_speed` | Cap (px/s) |
-| `acceleration` | Toward target when input present |
-| `deceleration` | Toward zero when input released |
-
-Callers assign `velocity = movement.compute_velocity(...)` and must **not** multiply by speed again. Speed buffs use `speed_multiplier` only.
+Returns **world velocity in pixels per second**. Callers must **not** rescale the result. Speed buffs use `speed_multiplier` only.
 
 ## Weapons: definition vs runtime
 
-- `WeaponDefinition` — static `.tres`. Never mutated at runtime.
-- `WeaponRuntimeStats` — built per shot from base definition + level modifiers + `StatusEffectComponent`.
+`WeaponDefinition` is static; `WeaponRuntimeStats` is built per shot. Buff re-pickup uses **RESET_DURATION**.
 
-Temporary buffs (`double`, `pierce`, `large`, `rapid_fire`) apply only inside `WeaponComponent.build_runtime_stats`. Re-picking the same buff uses **RESET_DURATION** (refresh from now; no stacking multipliers).
+## Camera resize
 
-## Status effects
-
-`StatusEffectComponent.RefreshPolicy`:
-
-- `RESET_DURATION` (default) — re-pickup restarts the timer
-- `EXTEND_DURATION` — adds time from the later of now / current end
-- `KEEP_LONGEST` — keeps the farther end time
-
-Combat timing uses **game clock** (`player.game_time`), not `Time.get_ticks_msec()`. Pause freezes that clock with the scene tree.
-
-Signals: `effect_added`, `effect_refreshed`, `effect_removed`, `effects_changed`. HUD listens via `EventBus.player_status_changed`.
-
-## Items
-
-`ItemDefinition` resources live in `resources/items/`. `LevelDefinition.item_pool` + `ItemSelection.choose_weighted_item` drive spawns (weight, `minimum_level`). Colors / durations are not hardcoded in `GameplayController`.
-
-## ResourceRegistry
-
-`GameManager.registry` indexes Enemy / Item / Weapon / Level definitions by `id` at startup. Duplicate ids error. Saves store **ids**, not file paths or full static blobs.
-
-## Camera and bounds
-
-Camera2D limits follow `LevelDefinition.world_size` (with viewport-centering when the map is smaller than the view). Players and enemies clamp with collision-radius insets. Prototype level ships **Left / Right / Top / Bottom** static bodies.
+`CameraLimits.calculate_camera_limits(world_size, viewport_size)` is pure math. `GameplayController` listens to `Viewport.size_changed` and reapplies limits (safe to call repeatedly).
 
 ## Saves
 
 | Kind | Path | Notes |
 | --- | --- | --- |
-| Run | `user://run_save.json` | `SAVE_VERSION = 2`, migrate v0→v1→v2 |
-| Settings | `user://settings.json` | Volumes applied to Master / Music / SFX |
-| Leaderboard | `user://leaderboard.json` | Profile-ish, separate from run |
+| Run | `user://run_save.json` | `SAVE_VERSION = 2` |
+| Settings | `user://settings.json` | Master / Music / SFX |
+| Leaderboard | `user://leaderboard.json` | Profile-ish |
 
-**Run restore covers:** player (HP, XP, score, position, status remaining), enemies (id, definition, HP, baked combat stats, position), pickups, autosave/item timers, difficulty.
+**Restored:** player, enemies, pickups, timers, difficulty, `level_id`, buff remaining times.
 
-**Not saved:** active projectiles (documented; cleared on restore).
+**Not saved:** projectiles.
 
-Atomic write: `.tmp` → rename current to `.bak` → promote `.tmp` → delete `.bak` (restore `.bak` on failure).
+Atomic write: `.tmp` → `.bak` → promote; restore `.bak` on replace failure (`_rename_absolute` hook for tests).
 
-`has_valid_run` / `inspect_run` reject missing, corrupt, expired, or `is_game_over` payloads. New Game clears only after menu confirm; Continue never clears.
+## Health restore
 
-## Profile vs run
+`HealthComponent.from_dict()` clamps max ≥ 1, current ∈ [0, max], defense ≥ 0. Non-finite values become safe defaults. Dead enemies are not spawned from saves.
 
-Session combat level lives on `ExperienceComponent` for the current run. Future profile / meta progression must stay separate from that session level.
+## Extension points (not in 0.4.2)
 
-## Extension points (not in 0.4.1)
-
-- Story chapters / dialogue / objectives (`ChapterDefinition`, etc. stubs)
-- Boss encounters and multi-level routing
-- Equipment and skill trees (compose beside `WeaponComponent`; keep UI read-only via signals)
-- Obstacle-aware spawn queries (API reserved via spawn helpers)
+Story chapters, bosses, equipment/skills, obstacle-aware spawn queries.
 
 ## Pause
 
-`get_tree().paused` freezes gameplay. Pause UI uses `PROCESS_MODE_WHEN_PAUSED`. Autosave runs on pause.
+`get_tree().paused` freezes gameplay nodes using default process modes. Combat clocks (`player.game_time`, buff expiry via `update_clock`) only advance in `_physics_process` while unpaused.

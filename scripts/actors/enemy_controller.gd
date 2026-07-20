@@ -131,6 +131,20 @@ func _on_health_changed(current: float, maximum: float) -> void:
 		(health_bar as EnemyHealthBar).set_ratio(CombatMath.health_ratio(current, maximum))
 
 
+func is_reward_granted() -> bool:
+	return _reward_granted
+
+
+func is_saveable() -> bool:
+	if not is_instance_valid(self) or is_queued_for_deletion():
+		return false
+	if health == null:
+		return false
+	if health.is_dead() or _reward_granted:
+		return false
+	return true
+
+
 func _on_died(_source: Node) -> void:
 	if _reward_granted:
 		queue_free()

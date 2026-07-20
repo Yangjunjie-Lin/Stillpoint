@@ -1,3 +1,4 @@
+class_name GameOverScreen
 extends Control
 
 @onready var stats_label: Label = %StatsLabel

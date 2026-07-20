@@ -104,8 +104,14 @@ func to_dict() -> Dictionary:
 
 
 func from_dict(data: Dictionary) -> void:
-	max_health = float(data.get("max_health", max_health))
-	current_health = float(data.get("current_health", current_health))
-	defense = float(data.get("defense", defense))
+	var loaded_max := float(data.get("max_health", max_health))
+	var loaded_current := float(data.get("current_health", current_health))
+	var loaded_defense := float(data.get("defense", defense))
 	death_recorded = bool(data.get("death_recorded", false))
+	max_health = maxf(1.0, loaded_max)
+	if is_finite(loaded_current):
+		current_health = clampf(loaded_current, 0.0, max_health)
+	else:
+		current_health = 0.0
+	defense = maxf(0.0, loaded_defense)
 	health_changed.emit(current_health, max_health)

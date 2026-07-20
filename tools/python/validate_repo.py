@@ -19,6 +19,37 @@ README_REQUIRED_PATHS = [
     "tests/test_runner.gd",
 ]
 
+RUNTIME_SAVE_NAMES = {
+    "run_save.json",
+    "settings.json",
+    "leaderboard.json",
+    "autosave.json",
+}
+
+FORBIDDEN_PREFIXES = (
+    ".godot/",
+    "builds/",
+    "export/",
+)
+
+FORBIDDEN_SUFFIXES = (
+    ".tmp",
+    ".bak",
+)
+
+FORBIDDEN_BUILD_SUFFIXES = (
+    ".exe",
+    ".x86_64",
+    ".pck",
+)
+
+
+def is_runtime_save(path: str) -> bool:
+    normalized = path.replace("\\", "/")
+    if normalized.startswith("legacy/python-tkinter/"):
+        return False
+    return Path(normalized).name in RUNTIME_SAVE_NAMES
+
 
 def git_ls_files() -> list[str]:
     result = subprocess.run(
@@ -36,18 +67,24 @@ def main() -> int:
     tracked = git_ls_files()
 
     for rel in tracked:
-        if rel.startswith(".godot/") or rel == ".godot":
-            errors.append(f"Tracked .godot path: {rel}")
-        if rel.startswith("builds/") or rel.startswith("export/"):
-            errors.append(f"Tracked build artifact: {rel}")
-        if rel.endswith(".tmp") or rel.endswith(".bak"):
-            errors.append(f"Tracked temp/backup file: {rel}")
-        if "run_save.json" in rel or rel.endswith("leaderboard.json") and "legacy" not in rel:
-            if "user" in rel or rel.startswith("autosave"):
-                errors.append(f"Tracked runtime save: {rel}")
+        normalized = rel.replace("\\", "/")
+        for prefix in FORBIDDEN_PREFIXES:
+            if normalized.startswith(prefix):
+                errors.append(f"Tracked forbidden path: {rel}")
+        for suffix in FORBIDDEN_SUFFIXES:
+            if normalized.endswith(suffix):
+                errors.append(f"Tracked forbidden artifact: {rel}")
+        if normalized.startswith("builds/") or normalized.startswith("export/"):
+            for suffix in FORBIDDEN_BUILD_SUFFIXES:
+                if normalized.endswith(suffix):
+                    errors.append(f"Tracked build artifact: {rel}")
+        if is_runtime_save(normalized):
+            errors.append(f"Tracked runtime save file: {rel}")
 
     abs_path = re.compile(r"[A-Za-z]:\\Users\\|C:/Users/")
     for rel in tracked:
+        if rel.replace("\\", "/") == "tools/python/validate_repo.py":
+            continue
         path = ROOT / rel
         if path.suffix.lower() not in {".gd", ".tscn", ".tres", ".md", ".yml", ".yaml", ".cfg", ".py", ".txt"}:
             continue

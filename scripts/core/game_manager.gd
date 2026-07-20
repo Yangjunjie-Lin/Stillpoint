@@ -23,16 +23,28 @@ func start_new_run(requested_name: String = "Player") -> void:
 
 
 func continue_run() -> void:
-	if not SaveService.has_valid_run():
-		push_warning("GameManager: no resumable run")
+	var summary := inspect_resumable_run()
+	if not summary.valid:
+		push_warning("GameManager: no resumable run (%s)" % summary.reason)
 		return
+	player_name = summary.player_name
 	run_active = true
 	resume_requested = true
 	SceneRouter.go_to_gameplay()
 
 
 func has_resumable_run() -> bool:
-	return SaveService.has_valid_run()
+	return inspect_resumable_run().valid
+
+
+func inspect_resumable_run(max_age_seconds: float = SaveService.DEFAULT_MAX_AGE) -> RunSaveSummary:
+	var summary := SaveService.inspect_run(max_age_seconds)
+	if not summary.valid:
+		return summary
+	if registry.get_level(summary.level_id) == null:
+		summary.valid = false
+		summary.reason = "unknown_level"
+	return summary
 
 
 func return_to_menu() -> void:

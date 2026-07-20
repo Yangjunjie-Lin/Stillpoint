@@ -31,28 +31,44 @@ func _load_settings_widgets() -> void:
 
 
 func _refresh_continue() -> void:
-	var summary := SaveService.inspect_run()
+	var summary := GameManager.inspect_resumable_run()
 	continue_button.disabled = not summary.valid
 	if summary.valid:
 		var minutes := int(summary.survival_seconds) / 60
 		var seconds := int(summary.survival_seconds) % 60
-		continue_summary.text = "Level %d · Score %s · %02d:%02d" % [
+		continue_summary.text = "Continue as %s\nLevel %d · Score %s · %02d:%02d" % [
+			summary.player_name,
 			summary.combat_level,
 			_format_int(summary.score),
 			minutes,
 			seconds,
 		]
 	else:
-		continue_summary.text = "No resumable run"
+		continue_summary.text = _continue_unavailable_text(summary.reason)
+
+
+func _continue_unavailable_text(reason: String) -> String:
+	match reason:
+		"future_version":
+			return "Save created by a newer version"
+		"unknown_level":
+			return "Save level is no longer available"
+		"game_over":
+			return "Previous run ended"
+		"expired":
+			return "Save expired"
+		"missing":
+			return "No resumable run"
+		_:
+			return "No resumable run"
 
 
 func _on_continue_pressed() -> void:
-	GameManager.player_name = name_edit.text.strip_edges()
 	GameManager.continue_run()
 
 
 func _on_start_pressed() -> void:
-	if SaveService.has_valid_run():
+	if GameManager.has_resumable_run():
 		confirm_panel.visible = true
 		return
 	_begin_new_game()

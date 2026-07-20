@@ -35,6 +35,10 @@ func _on_body_entered(body: Node) -> void:
 	queue_free()
 
 
+func is_saveable() -> bool:
+	return not is_queued_for_deletion() and definition_id != &""
+
+
 func to_dict() -> Dictionary:
 	return {
 		"definition_id": String(definition_id),
