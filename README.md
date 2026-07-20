@@ -2,93 +2,69 @@
 
 > Hold the center. Break the swarm.
 
-Stillpoint is a score-driven top-down survival shooter built with Python, Tkinter, and Pillow. Move with WASD, aim with the mouse, and survive increasingly dense enemy waves while collecting temporary weapon and movement upgrades.
-
-## Highlights
-
-- 360° mouse-directed shooting
-- Three enemy behaviours: chase, avoid, and orbit
-- Dynamic difficulty based on the current score
-- Six temporary power-ups and weapon modifiers
-- Safe JSON autosaves and a persistent local leaderboard
-- Fullscreen, pause, diagnostics, and boss-screen modes
-- Headless gameplay engine separated from Tkinter rendering
-- Automated tests and GitHub Actions CI
+Stillpoint is a top-down survival shooter. The **supported runtime** is **Godot 4.7.x**. The earlier Python + Tkinter build is archived as a historical prototype and is no longer the primary development target.
 
 ## Requirements
 
-- Python 3.11 or newer
-- Tkinter, normally included with standard Python desktop installations
+- [Godot 4.7.1 Stable](https://godotengine.org/download/archive/4.7.1-stable/) (or any 4.7.x stable)
+- No Python runtime is required to play or export the Godot game
 
-## Run from source
+## Run (Godot)
 
-```bash
-python -m venv .venv
-```
+1. Install Godot 4.7.x Stable.
+2. Open this repository folder in the Godot Project Manager.
+3. Press **F5** (main scene: `scenes/bootstrap/main.tscn`).
 
-Activate the environment, then install and launch:
+### Controls (InputMap)
 
-```bash
-python -m pip install -e .
-python -m stillpoint
-```
-
-On Linux, install the operating-system Tk package when necessary, such as `python3-tk` on Debian or Ubuntu.
-
-## Controls
-
-| Input | Action |
+| Action | Default |
 | --- | --- |
-| W / A / S / D | Move |
-| Left click | Shoot toward the cursor |
-| Escape | Pause or resume |
-| B | Toggle the boss screen |
-| F10 | Toggle diagnostics |
-| F11 | Toggle fullscreen |
-
-## Power-ups
-
-| Colour | Effect | Duration |
-| --- | --- | --- |
-| Green | Shield | 10 seconds |
-| Cyan | Speed boost | 5 seconds |
-| Pink | Double score | 8 seconds |
-| Orange | Double shot | 8 seconds |
-| Red | Piercing shot | 8 seconds |
-| Purple | Large shot | 8 seconds |
+| Move | WASD |
+| Shoot | Left mouse |
+| Pause | Escape |
+| Fullscreen | F11 |
+| Diagnostics | F10 |
 
 ## Project layout
 
 ```text
 Stillpoint/
-├── src/stillpoint/
-│   ├── assets/             # Packaged game artwork
-│   ├── engine.py           # Headless gameplay rules and state
-│   ├── game.py             # Tkinter session controller
-│   ├── render.py           # Camera and Canvas rendering
-│   ├── menu.py             # Application shell and menu windows
-│   ├── models.py           # Typed domain models
-│   └── storage.py          # Safe JSON persistence
-├── tests/                  # Headless unit tests
+├── project.godot
+├── assets/                 # Art, audio, fonts
+├── scenes/                 # Bootstrap, gameplay, actors, UI, levels
+├── scripts/                # Typed GDScript (core, components, actors, UI)
+├── resources/              # Data-driven .tres definitions
+├── tests/                  # Headless GDScript tests
+├── tools/python/           # Offline helpers only (not a game dependency)
 ├── docs/                   # Architecture notes
-├── legacy/                 # Archived monolithic implementation
-├── .github/workflows/      # Continuous integration
-├── pyproject.toml          # Packaging and tool configuration
-└── run.py                  # Development convenience entry point
+└── legacy/python-tkinter/  # Frozen Python prototype (reference only)
 ```
 
-Runtime saves are stored outside the repository in `~/.stillpoint/`. Set `STILLPOINT_DATA_DIR` to override that directory.
-
-## Development
+## Headless tests
 
 ```bash
-python -m pip install -e ".[dev]"
-ruff check .
-pytest
+godot --headless --path . --editor --quit-after 3
+godot --headless --path . --script res://tests/test_runner.gd
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the design and extension points.
+## Legacy Python prototype
 
-## Legacy version
+Tag: `v0.3-python-prototype`
 
-The original final single-file implementation remains available at `legacy/game_solution.py` for reference. Earlier prototypes remain accessible through Git history rather than cluttering the maintained source tree.
+Location: `legacy/python-tkinter/`
+
+That tree is kept for behaviour reference and course-history continuity. It is **not** linked to the Godot runtime (no Python subprocess, RPC, or bindings). See `legacy/python-tkinter/README.md`.
+
+Old `~/.stillpoint/` JSON saves are **not** loaded by Godot. Start a new run, or use `tools/python/` offline converters if you later need a one-shot migration.
+
+## Saves
+
+Godot writes to `user://`:
+
+- `run_save.json` — current run
+- `settings.json` — display / audio settings
+- `leaderboard.json` — local high scores
+
+## License / contributing
+
+See repository root history and `legacy/python-tkinter/CONTRIBUTING.md` for the prototype-era notes. Godot contributions should follow the scene/component boundaries in `docs/ARCHITECTURE.md`.

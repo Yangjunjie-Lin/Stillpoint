@@ -1,25 +1,37 @@
-# Python
+# Godot
+.godot/
+*.translation
+export/
+builds/
+*.apk
+*.aab
+*.ipa
+*.pck
+*.zip
+*.exe
+*.x86_64
+*.app
+.import/
+
+# Python legacy tooling caches (when run from archive)
 __pycache__/
 *.py[cod]
 *.egg-info/
-build/
-dist/
 .venv/
 venv/
-
-# Tooling
 .pytest_cache/
 .ruff_cache/
 .coverage
 htmlcov/
 
-# Editors and operating systems
+# Editors / OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 
-# Stillpoint runtime data
+# Runtime user data must never be committed
 autosave.json
 leaderboard.json
 .stillpoint/
+*.tmp

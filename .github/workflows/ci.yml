@@ -8,16 +8,74 @@ on:
 permissions:
   contents: read
 
+env:
+  GODOT_VERSION: "4.7.1"
+
 jobs:
-  quality:
+  godot:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: godot/
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p godot
+          curl -L -o godot.zip \
+            "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -o godot.zip -d godot
+          chmod +x godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
+
+      - name: Import project
+        run: |
+          GODOT=godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
+          "$GODOT" --headless --path . --editor --quit-after 5
+
+      - name: Unit tests
+        run: |
+          GODOT=godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
+          "$GODOT" --headless --path . --script res://tests/test_runner.gd
+
+      - name: Download Linux export templates
+        run: |
+          mkdir -p "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          curl -L -o templates.tpz \
+            "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -o templates.tpz -d templates_out
+          cp -r templates_out/templates/* "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable/"
+
+      - name: Linux debug export
+        run: |
+          mkdir -p builds
+          GODOT=godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
+          "$GODOT" --headless --path . --export-debug "Linux" builds/stillpoint_linux.x86_64
+
+      - name: Upload Linux build
+        uses: actions/upload-artifact@v4
+        with:
+          name: stillpoint-linux-debug
+          path: builds/stillpoint_linux.x86_64
+          if-no-files-found: warn
+
+  legacy-python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: legacy/python-tkinter
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-      - name: Install
+      - name: Install legacy prototype (reference only)
         run: python -m pip install -e ".[dev]"
       - name: Lint
         run: ruff check .

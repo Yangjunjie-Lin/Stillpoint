@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="LevelDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/level_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/levels/prototype_level.tscn" id="2"]
+[ext_resource type="Texture2D" path="res://assets/environments/background.png" id="3"]
+[ext_resource type="Resource" path="res://resources/enemies/chase.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/enemies/avoid.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/enemies/circle.tres" id="6"]
+
+[resource]
+script = ExtResource("1")
+id = &"prototype"
+display_name = "Prototype Level"
+scene = ExtResource("2")
+world_size = Vector2(3840, 2400)
+base_enemy_count = 10
+max_enemy_count = 60
+score_threshold = 200
+enemy_pool = [ExtResource("4"), ExtResource("5"), ExtResource("6")]
+background = ExtResource("3")

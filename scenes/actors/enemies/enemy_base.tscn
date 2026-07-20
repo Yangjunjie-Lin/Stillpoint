@@ -1,0 +1,72 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/enemy_controller.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/combat/hurtbox.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/ui/enemy_health_bar.gd" id="5"]
+[ext_resource type="Texture2D" path="res://assets/enemies/chase.png" id="6"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 18.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_box"]
+radius = 20.0
+
+[node name="EnemyBase" type="CharacterBody2D"]
+collision_layer = 4
+collision_mask = 1
+script = ExtResource("1")
+health_bar = NodePath("HealthBar")
+sprite = NodePath("Sprite2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("6")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2")
+max_health = 30.0
+invulnerability_duration = 0.0
+
+[node name="Hitbox" type="Area2D" parent="."]
+collision_layer = 64
+collision_mask = 32
+script = ExtResource("3")
+team = &"enemy"
+use_game_clock = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("CircleShape2D_box")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 32
+collision_mask = 8
+script = ExtResource("4")
+team = &"enemy"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+shape = SubResource("CircleShape2D_box")
+
+[node name="HealthBar" type="Control" parent="."]
+anchors_preset = 0
+offset_left = -20.0
+offset_top = -30.0
+offset_right = 20.0
+offset_bottom = -24.0
+script = ExtResource("5")
+
+[node name="Background" type="ColorRect" parent="HealthBar"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 6.0
+color = Color(0.1, 0.12, 0.17, 1)
+
+[node name="Fill" type="ColorRect" parent="HealthBar"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 6.0
+pivot_offset = Vector2(0, 0)
+color = Color(0.25, 0.91, 0.42, 1)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ExperienceCurve" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/experience_curve.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+base = 100.0
+exponent = 1.35
+health_gain_per_level = 10.0
+health_restore_on_level_up = 20.0
+damage_gain_per_level = 1.0

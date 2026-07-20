@@ -1,0 +1,53 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/gameplay_controller.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/actors/player/player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/actors/enemies/enemy_base.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/combat/floating_text.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/combat/pickup_item.tscn" id="5"]
+[ext_resource type="Resource" path="res://resources/levels/prototype_level.tres" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/gameplay_hud.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="9"]
+
+[node name="Gameplay" type="Node2D" groups=["gameplay"]]
+script = ExtResource("1")
+level_def = ExtResource("6")
+player_scene = ExtResource("2")
+enemy_scene = ExtResource("3")
+floating_text_scene = ExtResource("4")
+item_scene = ExtResource("5")
+
+[node name="LevelSlot" type="Node2D" parent="."]
+
+[node name="Actors" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="Enemies" type="Node2D" parent="Actors"]
+unique_name_in_owner = true
+
+[node name="Projectiles" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="Pickups" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="Effects" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="Camera2D" type="Camera2D" parent="."]
+unique_name_in_owner = true
+position_smoothing_enabled = true
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+
+[node name="GameplayHUD" parent="HUDLayer" instance=ExtResource("7")]
+
+[node name="PauseMenu" parent="HUDLayer" instance=ExtResource("8")]
+unique_name_in_owner = true
+visible = false
+
+[node name="GameOverScreen" parent="HUDLayer" instance=ExtResource("9")]
+unique_name_in_owner = true
+visible = false

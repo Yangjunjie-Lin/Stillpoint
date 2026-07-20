@@ -1,0 +1,2 @@
+# Ignore downloaded engine binaries used for local verification
+tools/godot/

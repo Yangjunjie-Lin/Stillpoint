@@ -1,0 +1,59 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/player_controller.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/components/experience_component.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/components/weapon_component.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/components/status_effect_component.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/combat/hurtbox.gd" id="7"]
+[ext_resource type="Texture2D" path="res://assets/characters/player_up.png" id="8"]
+[ext_resource type="Resource" path="res://resources/weapons/basic_blaster.tres" id="9"]
+[ext_resource type="Resource" path="res://resources/progression/default_experience_curve.tres" id="10"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 18.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hurt"]
+radius = 20.0
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1")
+sprite = NodePath("Sprite2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 32
+collision_mask = 64
+script = ExtResource("7")
+team = &"player"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+shape = SubResource("CircleShape2D_hurt")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2")
+max_health = 100.0
+invulnerability_duration = 0.75
+
+[node name="ExperienceComponent" type="Node" parent="."]
+script = ExtResource("3")
+curve = ExtResource("10")
+
+[node name="WeaponComponent" type="Node" parent="."]
+script = ExtResource("4")
+weapon = ExtResource("9")
+
+[node name="MovementComponent" type="Node" parent="."]
+script = ExtResource("5")
+speed = 420.0
+
+[node name="StatusEffectComponent" type="Node" parent="."]
+script = ExtResource("6")

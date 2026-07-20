@@ -1,44 +1,39 @@
-# Architecture
+# Architecture (Godot)
 
-Stillpoint separates rules, presentation, storage, and application lifecycle instead of keeping every concern in one stateful script.
+Stillpoint’s supported runtime is Godot 4.7. Scene / Node / Resource ownership replaces the old Tkinter Canvas loop.
 
-## Layers
+## Autoloads
 
-- `menu.py` owns the application root and non-gameplay windows.
-- `game.py` coordinates one session, input events, pause/boss overlays, autosaving, and the Tk frame schedule.
-- `engine.py` contains the headless gameplay state, movement, collisions, spawning, scoring, effects, and snapshots.
-- `render.py` translates world state into Tkinter Canvas drawing operations and camera coordinates.
-- `models.py` contains typed domain objects and serialization boundaries.
-- `storage.py` is the only module that reads or writes player data.
-- `assets.py` loads and resizes artwork while providing drawing fallbacks.
-- `config.py` centralizes balancing and rendering constants.
-- `paths.py` makes packaged assets and writable data independent of the current working directory.
+| Autoload | Responsibility |
+| --- | --- |
+| `EventBus` | Cross-system signals only |
+| `GameManager` | Run metadata, return-to-menu |
+| `SceneRouter` | Swap `Main/CurrentScene` |
+| `SaveService` | JSON under `user://`, atomic writes |
+| `AudioManager` | Future SFX/music hooks |
 
-## Runtime flow
+Actors, bullets, and levels are **not** autoloads.
 
-```text
-MainMenu
-   └── GameWindow
-         ├── input events
-         ├── fixed-cadence tick
-         │     └── GameState.tick
-         │           ├── movement and effects
-         │           ├── enemies and bullets
-         │           ├── pickups and collisions
-         │           └── dynamic difficulty
-         ├── GameRenderer.draw
-         └── periodic JSON snapshot
-```
+## Components
 
-Tkinter keeps a single application `mainloop()`. Game sessions schedule frames with `after()` instead of creating nested loops.
+- `HealthComponent` — HP, invulnerability, death
+- `ExperienceComponent` — **session combat level** / XP (not profile level)
+- `WeaponComponent` — fires from `WeaponDefinition` without mutating shared resources in place
+- `StatusEffectComponent` — timed buffs
+- `MovementComponent` — WASD velocity helper
+- `Hitbox` / `Hurtbox` — damage protocol via `DamageInfo`
 
-## Persistence
+## Data vs runtime
 
-Autosaves and leaderboard entries use JSON and atomic replacement. Persisted content is never executed as Python code. Runtime data defaults to `~/.stillpoint/`, keeping Git status clean and allowing the project to run from any working directory.
+`EnemyDefinition` / `WeaponDefinition` / `LevelDefinition` are static `.tres` resources. Instance HP and cooldowns live on nodes/components.
 
 ## Extension points
 
-- Add enemy types through `ObstacleBehavior`, engine movement dispatch, and renderer artwork mapping.
-- Add power-ups through `ItemType`, `GameState.activate_item`, and the HUD colour map.
-- Change balancing through `GameConfig` without editing the window controller.
-- Replace Tkinter later while retaining `engine.py`, `models.py`, and `storage.py`.
+- Story: `ChapterDefinition`, `DialogueDefinition`, `ObjectiveDefinition`, `EncounterDefinition`
+- Enemies: new `.tres` + optional inherited enemy scenes / AI scripts
+- Equipment / skills: add components beside `WeaponComponent`; keep UI on signals
+- Profile progression: separate from `ExperienceComponent.level` (session combat level)
+
+## Pause
+
+`get_tree().paused` freezes gameplay nodes. Pause UI uses `PROCESS_MODE_WHEN_PAUSED`.
