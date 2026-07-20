@@ -23,12 +23,14 @@ def test_leaderboard_is_sorted_and_limited(tmp_path: Path) -> None:
 
 def test_autosave_round_trip(tmp_path: Path) -> None:
     storage = GameStorage(tmp_path)
-    storage.save_autosave({"version": 2, "score": 42})
+    storage.save_autosave({"version": 3, "score": 42, "combat": {"level": 2}})
 
     restored = storage.load_autosave(max_age_seconds=60)
     assert restored is not None
     assert restored["score"] == 42
+    assert restored["combat"]["level"] == 2
     assert restored["is_game_over"] is False
+    assert restored["version"] == 3
 
 
 def test_expired_or_corrupt_autosave_is_ignored(tmp_path: Path) -> None:

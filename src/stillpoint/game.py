@@ -48,9 +48,17 @@ class GameWindow:
         self.height = max(600, root.winfo_screenheight())
         self.canvas = tk.Canvas(root, width=self.width, height=self.height, bg="#05070b", highlightthickness=0, cursor="crosshair")
         self.canvas.pack(fill=tk.BOTH, expand=True)
-        assets = AssetCatalog(root, config.player_size, config.obstacle_size, self.width, self.height).load()
-        self.renderer = GameRenderer(self.canvas, assets, self.width, self.height)
-        self.state = GameState(config, max(config.base_map_size, self.width * 2, self.height * 2), player_name)
+        world_width, world_height = self._resolve_world_size(self.width, self.height)
+        self.assets = AssetCatalog(
+            root,
+            config.player_size,
+            config.obstacle_size,
+            world_width,
+            world_height,
+            config.background_scale_mode,
+        ).load()
+        self.renderer = GameRenderer(self.canvas, self.assets, self.width, self.height)
+        self.state = GameState(config, float(world_width), float(world_height), player_name)
         self.running = True
         self.paused = False
         self.boss_mode = False
@@ -66,15 +74,50 @@ class GameWindow:
         self._bind()
         self._offer_resume()
 
+    def _resolve_world_size(self, view_width: int, view_height: int) -> tuple[int, int]:
+        world_width = max(self.config.base_world_width, view_width * 2)
+        world_height = max(self.config.base_world_height, view_height * 2)
+        return world_width, world_height
+
+    def _sync_viewport(self, view_width: int, view_height: int) -> None:
+        """Update view size and grow/rebuild the world background when needed."""
+        if view_width < 2 or view_height < 2:
+            return
+        self.width = view_width
+        self.height = view_height
+        self.renderer.width = view_width
+        self.renderer.height = view_height
+        needed_w, needed_h = self._resolve_world_size(view_width, view_height)
+        grew = needed_w > self.state.world_width or needed_h > self.state.world_height
+        if grew:
+            self.state.world_width = float(max(self.state.world_width, needed_w))
+            self.state.world_height = float(max(self.state.world_height, needed_h))
+        if grew or self.assets.world_width != int(self.state.world_width) or self.assets.world_height != int(
+            self.state.world_height
+        ):
+            self.assets.rebuild_world_background(
+                int(self.state.world_width),
+                int(self.state.world_height),
+                self.config.background_scale_mode,
+            )
+
     def _bind(self) -> None:
         self.root.bind("<KeyPress>", self._key_press)
         self.root.bind("<KeyRelease>", self._key_release)
         self.canvas.bind("<Button-1>", self._shoot)
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
         self.root.bind("<Escape>", self._toggle_pause)
         self.root.bind("<F10>", self._toggle_diagnostics)
         self.root.bind("<F11>", self._toggle_fullscreen)
         self.root.bind("b", self._toggle_boss)
         self.root.focus_force()
+
+    def _on_canvas_configure(self, event: tk.Event[Any]) -> None:
+        if event.widget is not self.canvas:
+            return
+        if event.width == self.width and event.height == self.height:
+            return
+        self._sync_viewport(int(event.width), int(event.height))
 
     def start(self) -> None:
         self.last_frame_at = time.monotonic()
@@ -86,7 +129,12 @@ class GameWindow:
             return
         if messagebox.askyesno("Resume game", "A recent autosave was found. Resume it?", parent=self.root):
             try:
-                self.state.restore(snapshot, time.monotonic())
+                self.state.restore(snapshot)
+                self.assets.rebuild_world_background(
+                    int(self.state.world_width),
+                    int(self.state.world_height),
+                    self.config.background_scale_mode,
+                )
                 self._show_notice("Autosave restored")
             except (KeyError, TypeError, ValueError):
                 self.storage.clear_autosave()
@@ -103,7 +151,7 @@ class GameWindow:
             for phrase, action in CHEAT_CODES.items():
                 if self.cheat_input.endswith(phrase):
                     self.cheat_input = ""
-                    self._show_notice(self.state.apply_cheat(action, time.monotonic()))
+                    self._show_notice(self.state.apply_cheat(action, self.state.game_time))
                     break
 
     def _key_release(self, event: tk.Event[Any]) -> None:
@@ -113,7 +161,7 @@ class GameWindow:
         if self.paused or self.boss_mode:
             return
         target = self.renderer.screen_to_world(float(event.x), float(event.y))
-        self.state.shoot(target, time.monotonic())
+        self.state.shoot(target, self.state.game_time)
 
     def _tick(self) -> None:
         if not self.running or not self.root.winfo_exists():
@@ -129,17 +177,19 @@ class GameWindow:
                 self._save()
                 self.last_autosave_at = now
         notice = self.notice if now < self.notice_until else ""
-        self.renderer.draw(self.state, now, self.diagnostics, notice)
+        self.renderer.draw(self.state, self.state.game_time, self.diagnostics, notice)
         self.root.after(self.config.frame_delay_ms, self._tick)
 
     def _save(self) -> None:
         try:
-            self.storage.save_autosave(self.state.to_snapshot(time.monotonic()))
+            self.storage.save_autosave(self.state.to_snapshot(self.state.game_time))
         except StorageError:
             self._show_notice("Autosave failed")
 
     def _toggle_fullscreen(self, _event: tk.Event[Any] | None = None) -> None:
         self.root.attributes("-fullscreen", not bool(self.root.attributes("-fullscreen")))
+        self.root.update_idletasks()
+        self._sync_viewport(max(2, self.canvas.winfo_width()), max(2, self.canvas.winfo_height()))
 
     def _toggle_diagnostics(self, _event: tk.Event[Any] | None = None) -> None:
         self.diagnostics = not self.diagnostics
@@ -219,18 +269,30 @@ class GameWindow:
         self.notice_until = time.monotonic() + 2
 
     def _game_over(self) -> None:
+        if not self.running:
+            return
         self.running = False
+        self.state.mark_dead()
         score = self.state.total_score
+        combat = self.state.combat
         try:
             self.storage.record_score(self.state.player_name, score)
             self.storage.mark_game_over()
         except StorageError:
             pass
-        self.renderer.draw(self.state, time.monotonic(), self.diagnostics)
-        self.canvas.create_rectangle(self.width / 2 - 310, self.height / 2 - 120, self.width / 2 + 310, self.height / 2 + 120, fill="#05070b", outline="#ff4d5a", width=3)
-        self.canvas.create_text(self.width / 2, self.height / 2 - 45, text="GAME OVER", fill="#ff4d5a", font=("Arial", 36, "bold"))
-        self.canvas.create_text(self.width / 2, self.height / 2 + 20, text=f"Final score  {score:,}", fill="#f4f7fb", font=("Arial", 22))
-        self.root.after(2200, self._finish_game_over)
+        self.renderer.draw(self.state, self.state.game_time, self.diagnostics)
+        cx, cy = self.width / 2, self.height / 2
+        self.canvas.create_rectangle(cx - 320, cy - 150, cx + 320, cy + 150, fill="#05070b", outline="#ff4d5a", width=3)
+        self.canvas.create_text(cx, cy - 100, text="GAME OVER", fill="#ff4d5a", font=("Arial", 36, "bold"))
+        lines = (
+            f"Final Score  {score:,}",
+            f"Level Reached  {combat.level}",
+            f"Enemies Defeated  {combat.enemies_defeated}",
+            f"Survival Time  {int(self.state.survival_seconds)}s",
+        )
+        for index, line in enumerate(lines):
+            self.canvas.create_text(cx, cy - 40 + index * 32, text=line, fill="#f4f7fb", font=("Arial", 18))
+        self.root.after(2800, self._finish_game_over)
 
     def _finish_game_over(self) -> None:
         if self.root.winfo_exists():

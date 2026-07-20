@@ -7,6 +7,7 @@ from pathlib import Path
 import time
 from typing import Any, Mapping
 
+from .config import SAVE_VERSION
 from .models import LeaderboardEntry
 from .paths import default_data_dir
 
@@ -16,11 +17,14 @@ class StorageError(RuntimeError):
 
 
 class GameStorage:
+    """Persists autosaves and leaderboards. Combat fields live in engine snapshots."""
+
     def __init__(self, data_dir: Path | None = None, leaderboard_size: int = 10):
         self.data_dir = (data_dir or default_data_dir()).expanduser()
         self.leaderboard_size = leaderboard_size
         self.autosave_path = self.data_dir / "autosave.json"
         self.leaderboard_path = self.data_dir / "leaderboard.json"
+        self.save_version = SAVE_VERSION
 
     def _ensure_dir(self) -> None:
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -47,6 +51,7 @@ class GameStorage:
 
     def save_autosave(self, snapshot: Mapping[str, Any]) -> None:
         payload = dict(snapshot)
+        payload.setdefault("version", self.save_version)
         payload["saved_at"] = time.time()
         payload["is_game_over"] = False
         self._write_json(self.autosave_path, payload)
