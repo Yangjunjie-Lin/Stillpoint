@@ -1,12 +1,21 @@
 class_name WeaponComponent
 extends Node
-## Spawns projectiles from a WeaponDefinition. Does not aim itself.
+## Fires from a static base WeaponDefinition. Temporary buffs never mutate the .tres.
 
 signal fired(bullet: Node)
 
-@export var weapon: WeaponDefinition
+@export var base_weapon: WeaponDefinition
 @export var bullet_container_path: NodePath
 @export var muzzle: Node2D
+@export var minimum_cooldown: float = 0.18
+@export var rapid_fire_cooldown: float = 0.05
+
+## Backward-compatible alias used by existing scenes.
+@export var weapon: WeaponDefinition:
+	get:
+		return base_weapon
+	set(value):
+		base_weapon = value
 
 var _cooldown_until: float = -1.0
 var damage_multiplier: float = 1.0
@@ -14,18 +23,38 @@ var cooldown_reduction: float = 0.0
 
 
 func can_fire(game_time: float) -> bool:
-	return game_time >= _cooldown_until and weapon != null and weapon.bullet_scene != null
+	return (
+		game_time >= _cooldown_until
+		and base_weapon != null
+		and base_weapon.bullet_scene != null
+	)
 
 
-func get_cooldown(game_time: float = 0.0) -> float:
-	if weapon == null:
-		return 0.5
-	if has_meta("rapid_fire") and bool(get_meta("rapid_fire")):
-		return 0.05
-	return maxf(0.18, weapon.cooldown - cooldown_reduction)
+func build_runtime_stats(status: StatusEffectComponent, game_time: float) -> WeaponRuntimeStats:
+	var stats := WeaponRuntimeStats.from_definition(base_weapon)
+	stats.damage *= damage_multiplier
+	stats.cooldown = maxf(minimum_cooldown, stats.cooldown - cooldown_reduction)
+
+	if status != null and status.has_effect(&"rapid_fire", game_time):
+		stats.cooldown = rapid_fire_cooldown
+	if status != null and status.has_effect(&"double", game_time):
+		stats.projectile_count = maxi(stats.projectile_count, 2)
+		stats.spread_degrees = maxf(stats.spread_degrees, 12.0)
+	if status != null and status.has_effect(&"pierce", game_time):
+		stats.piercing = true
+	if status != null and status.has_effect(&"large", game_time):
+		stats.projectile_scale *= 1.8
+		stats.damage *= 1.5
+	return stats
 
 
-func try_fire(origin: Vector2, direction: Vector2, game_time: float, owner_actor: Node) -> bool:
+func try_fire(
+	origin: Vector2,
+	direction: Vector2,
+	game_time: float,
+	owner_actor: Node,
+	status: StatusEffectComponent = null,
+) -> bool:
 	if not can_fire(game_time):
 		return false
 	var dir := direction.normalized()
@@ -34,29 +63,33 @@ func try_fire(origin: Vector2, direction: Vector2, game_time: float, owner_actor
 	var container := _resolve_container()
 	if container == null:
 		return false
-	var count: int = maxi(1, weapon.projectile_count)
-	var spread: float = weapon.spread_degrees
+
+	var stats := build_runtime_stats(status, game_time)
+	if stats.bullet_scene == null:
+		return false
+
+	var count: int = maxi(1, stats.projectile_count)
 	for i in count:
 		var angle_offset := 0.0
 		if count > 1:
-			angle_offset = lerpf(-spread * 0.5, spread * 0.5, float(i) / float(count - 1))
+			angle_offset = lerpf(-stats.spread_degrees * 0.5, stats.spread_degrees * 0.5, float(i) / float(count - 1))
 		var shot_dir := dir.rotated(deg_to_rad(angle_offset))
-		var bullet := weapon.bullet_scene.instantiate()
+		var bullet := stats.bullet_scene.instantiate()
 		container.add_child(bullet)
-		if bullet.has_method("setup"):
-			bullet.call(
-				"setup",
+		if bullet is Bullet:
+			(bullet as Bullet).setup(
 				origin,
 				shot_dir,
-				weapon.damage * damage_multiplier,
-				weapon.projectile_speed,
-				weapon.projectile_lifetime,
-				weapon.piercing,
-				weapon.projectile_scale,
+				stats.damage,
+				stats.projectile_speed,
+				stats.projectile_lifetime,
+				stats.piercing,
+				stats.projectile_scale,
 				owner_actor
 			)
 		fired.emit(bullet)
-	_cooldown_until = game_time + get_cooldown(game_time)
+
+	_cooldown_until = game_time + stats.cooldown
 	return true
 
 

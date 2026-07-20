@@ -57,10 +57,14 @@ func _on_area_entered(area: Area2D) -> void:
 
 
 func _try_hit(node: Node) -> void:
+	if node == null:
+		return
 	var enemy := node as EnemyController
-	if enemy == null:
-		enemy = node.get_parent() as EnemyController if node.get_parent() else null
-	if enemy == null or enemy.health.is_dead():
+	if enemy == null and is_instance_valid(node):
+		var parent := node.get_parent()
+		if parent != null:
+			enemy = parent as EnemyController
+	if enemy == null or enemy.health == null or enemy.health.is_dead():
 		return
 	if _hit_ids.has(enemy.enemy_id):
 		return

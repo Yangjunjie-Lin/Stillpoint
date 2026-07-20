@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelDefinition" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="LevelDefinition" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/level_definition.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/levels/prototype_level.tscn" id="2"]
@@ -6,6 +6,12 @@
 [ext_resource type="Resource" path="res://resources/enemies/chase.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/enemies/avoid.tres" id="5"]
 [ext_resource type="Resource" path="res://resources/enemies/circle.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/items/shield.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/items/speed.tres" id="8"]
+[ext_resource type="Resource" path="res://resources/items/points.tres" id="9"]
+[ext_resource type="Resource" path="res://resources/items/double.tres" id="10"]
+[ext_resource type="Resource" path="res://resources/items/pierce.tres" id="11"]
+[ext_resource type="Resource" path="res://resources/items/large.tres" id="12"]
 
 [resource]
 script = ExtResource("1")
@@ -17,4 +23,7 @@ base_enemy_count = 10
 max_enemy_count = 60
 score_threshold = 200
 enemy_pool = [ExtResource("4"), ExtResource("5"), ExtResource("6")]
+item_pool = [ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11"), ExtResource("12")]
+item_spawn_interval = 4.0
+max_active_items = 20
 background = ExtResource("3")

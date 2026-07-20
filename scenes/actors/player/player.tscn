@@ -53,7 +53,9 @@ weapon = ExtResource("9")
 
 [node name="MovementComponent" type="Node" parent="."]
 script = ExtResource("5")
-speed = 420.0
+max_speed = 420.0
+acceleration = 2200.0
+deceleration = 2600.0
 
 [node name="StatusEffectComponent" type="Node" parent="."]
 script = ExtResource("6")

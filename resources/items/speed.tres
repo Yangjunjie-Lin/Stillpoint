@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/combat/pickup_item.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"speed"
+display_name = "Speed Boost"
+effect_kind = &"speed"
+duration = 5.0
+color = Color(0.2, 0.85, 1, 1)
+scene = ExtResource("2")
+spawn_weight = 1.0
+minimum_level = 1
+score_bonus = 10

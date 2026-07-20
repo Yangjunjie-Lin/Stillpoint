@@ -17,7 +17,9 @@ func _ready() -> void:
 	EventBus.player_experience_changed.connect(_on_exp)
 	EventBus.score_changed.connect(_on_score)
 	EventBus.notice_requested.connect(_on_notice)
+	EventBus.player_status_changed.connect(_on_status)
 	notice_label.text = ""
+	effects_label.text = ""
 
 
 func _process(_delta: float) -> void:
@@ -46,6 +48,10 @@ func _on_score(total_score: int, _combat_score: int) -> void:
 func _on_notice(text: String) -> void:
 	notice_label.text = text
 	_notice_until = Time.get_ticks_msec() / 1000.0 + 2.0
+
+
+func _on_status(text: String) -> void:
+	effects_label.text = text
 
 
 func _format_int(value: int) -> String:

@@ -12,6 +12,7 @@ builds/
 *.x86_64
 *.app
 .import/
+*.import
 
 # Python legacy tooling caches (when run from archive)
 __pycache__/

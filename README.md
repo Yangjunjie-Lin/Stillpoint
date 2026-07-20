@@ -2,7 +2,9 @@
 
 > Hold the center. Break the swarm.
 
-Stillpoint is a top-down survival shooter. The **supported runtime** is **Godot 4.7.x**. The earlier Python + Tkinter build is archived as a historical prototype and is no longer the primary development target.
+Stillpoint is a top-down survival shooter. The **supported runtime** is **Godot 4.7.x** with the **Compatibility (gl_compatibility)** renderer. Version **0.4.1** is a stability / architecture hardening release focused on movement, temporary weapon buffs, Continue/New Game, full run restore, bounds, and CI.
+
+The earlier Python + Tkinter build is archived as a historical prototype and is not required to play.
 
 ## Requirements
 
@@ -25,46 +27,101 @@ Stillpoint is a top-down survival shooter. The **supported runtime** is **Godot 
 | Fullscreen | F11 |
 | Diagnostics | F10 |
 
+### Main menu
+
+| Button | Behaviour |
+| --- | --- |
+| **Continue** | Enabled only for a valid, non-expired, non-game-over run save. Restores the run. Does **not** clear the save. |
+| **New Game** | If a valid run exists, shows an in-game confirm panel. Clears the old run only after confirm. |
+| **Settings** | Applies master / music / SFX bus volumes and fullscreen. |
+| **Quit** | Exits. |
+
+Leaderboard entries are listed on the menu.
+
 ## Project layout
 
 ```text
 Stillpoint/
 ├── project.godot
-├── assets/                 # Art, audio, fonts
-├── scenes/                 # Bootstrap, gameplay, actors, UI, levels
-├── scripts/                # Typed GDScript (core, components, actors, UI)
-├── resources/              # Data-driven .tres definitions
-├── tests/                  # Headless GDScript tests
-├── tools/python/           # Offline helpers only (not a game dependency)
-├── docs/                   # Architecture notes
+├── default_bus_layout.tres # Master / Music / SFX
+├── assets/
+├── scenes/
+├── scripts/
+├── resources/              # Enemy / Item / Weapon / Level .tres
+├── tests/                  # Headless GDScript tests (auto-scanned)
+├── tools/python/           # Offline helpers + repo validation
+├── docs/ARCHITECTURE.md
 └── legacy/python-tkinter/  # Frozen Python prototype (reference only)
 ```
+
+## Saves
+
+Godot writes under `user://` (OS app data for Stillpoint):
+
+| File | Purpose |
+| --- | --- |
+| `run_save.json` | Current run (SAVE_VERSION **2**) |
+| `settings.json` | Display / audio |
+| `leaderboard.json` | Local high scores |
+
+Run saves restore player, enemies, pickups, timers, difficulty, score, XP, HP, position, and status remaining times. **Projectiles are not saved** and are cleared on restore.
+
+Old Python `~/.stillpoint/` saves are **not** loaded.
 
 ## Headless tests
 
 ```bash
-godot --headless --path . --editor --quit-after 3
+godot --headless --path . --editor --quit
 godot --headless --path . --script res://tests/test_runner.gd
 ```
 
+## Export
+
+```bash
+godot --headless --path . --export-debug "Linux" builds/stillpoint_linux.x86_64
+godot --headless --path . --export-debug "Windows Desktop" builds/stillpoint_windows.exe
+```
+
+CI fails if either artifact is missing (`if-no-files-found: error`).
+
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`):
+
+1. Godot import
+2. Headless tests
+3. Linux debug export + artifact
+4. Windows debug export + artifact
+5. Legacy Python prototype tests (**reference only**)
+6. Repository validation (`tools/python/validate_repo.py`)
+
 ## Legacy Python prototype
 
-Tag: `v0.3-python-prototype`
+Annotated tag: **`v0.3-python-prototype`** → commit `41d92ef9d1377cfd3764b7b8fba0aaebbc6d4d7c` (final Python/Tkinter tree before Godot migration).
 
 Location: `legacy/python-tkinter/`
 
-That tree is kept for behaviour reference and course-history continuity. It is **not** linked to the Godot runtime (no Python subprocess, RPC, or bindings). See `legacy/python-tkinter/README.md`.
+Not linked to the Godot runtime (no Python subprocess, RPC, or bindings). See `legacy/python-tkinter/README.md`.
 
-Old `~/.stillpoint/` JSON saves are **not** loaded by Godot. Start a new run, or use `tools/python/` offline converters if you later need a one-shot migration.
+```bash
+cd legacy/python-tkinter
+python -m pip install -e ".[dev]"
+ruff check .
+pytest
+```
 
-## Saves
+## Stability status (0.4.1)
 
-Godot writes to `user://`:
+Core loop is intended to be a stable base for later story / level content:
 
-- `run_save.json` — current run
-- `settings.json` — display / audio settings
-- `leaderboard.json` — local high scores
+- Movement decelerates correctly when input is released
+- Temporary weapon buffs refresh duration and do not permanently mutate `WeaponDefinition`
+- Continue / New Game semantics are explicit
+- Run restore covers player, enemies, pickups, and buffs
+- Camera and actors respect world bounds; level has four physical walls
+- Items spawn from `ItemDefinition` pools
+- Audio buses receive settings volumes; `AudioManager` uses a small player pool
 
 ## License / contributing
 
-See repository root history and `legacy/python-tkinter/CONTRIBUTING.md` for the prototype-era notes. Godot contributions should follow the scene/component boundaries in `docs/ARCHITECTURE.md`.
+See repository history and `legacy/python-tkinter/CONTRIBUTING.md` for prototype-era notes. Godot work should follow `docs/ARCHITECTURE.md`.

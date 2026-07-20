@@ -3,6 +3,7 @@ extends CharacterBody2D
 ## High-level player input and orchestration. Stats live in components.
 
 @export var world_bounds: Rect2 = Rect2(Vector2.ZERO, Vector2(3840, 2400))
+@export var collision_radius: float = 18.0
 @export var sprite: Sprite2D
 @export var textures: Dictionary = {}
 
@@ -26,8 +27,10 @@ func _ready() -> void:
 	health.died.connect(_on_died)
 	experience.experience_changed.connect(_on_experience_changed)
 	experience.leveled_up.connect(_on_leveled_up)
+	status.effects_changed.connect(_on_effects_changed)
 	_on_health_changed(health.current_health, health.max_health)
 	_on_experience_changed(experience.current_experience, experience.experience_to_next_level, experience.level)
+	_on_effects_changed()
 
 
 func _load_facing_textures() -> void:
@@ -47,33 +50,31 @@ func _physics_process(delta: float) -> void:
 	game_time += delta
 	survival_seconds += delta
 	status.update_clock(game_time)
-	weapon.damage_multiplier = 1.0
+	_emit_status_hud()
 	weapon.cooldown_reduction = experience.cooldown_reduction
-	if status.has_effect(&"rapid_fire", game_time):
-		weapon.set_meta("rapid_fire", true)
-	else:
-		weapon.set_meta("rapid_fire", false)
+	weapon.damage_multiplier = 1.0 + (
+		experience.bullet_damage_bonus / maxf(1.0, weapon.base_weapon.damage if weapon.base_weapon else 12.0)
+	)
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var speed_mult := 1.5 if status.has_effect(&"speed", game_time) else 1.0
-	velocity = movement.compute_velocity(velocity, input_dir, delta) * movement.speed * speed_mult
+	velocity = movement.compute_velocity(velocity, input_dir, delta, speed_mult)
 	move_and_slide()
-	global_position = global_position.clamp(world_bounds.position, world_bounds.end)
+	_clamp_to_world()
 	_update_facing(input_dir)
 
 	if Input.is_action_pressed("shoot"):
 		var mouse := get_global_mouse_position()
-		var dir := (mouse - global_position)
-		var damage_bonus := experience.bullet_damage_bonus
-		if weapon.weapon != null:
-			# Temporary mutate via multiplier rather than shared resource fields.
-			weapon.damage_multiplier = 1.0 + (damage_bonus / maxf(1.0, weapon.weapon.damage))
-			if status.has_effect(&"large", game_time):
-				weapon.damage_multiplier *= 1.5
-		weapon.try_fire(global_position, dir, game_time, self)
+		weapon.try_fire(global_position, mouse - global_position, game_time, self, status)
 
 
-func apply_item(effect_kind: StringName, duration: float) -> void:
+func _clamp_to_world() -> void:
+	var inset := collision_radius
+	global_position.x = clampf(global_position.x, world_bounds.position.x + inset, world_bounds.end.x - inset)
+	global_position.y = clampf(global_position.y, world_bounds.position.y + inset, world_bounds.end.y - inset)
+
+
+func apply_item(effect_kind: StringName, duration: float, score_bonus: int = 10) -> void:
 	match effect_kind:
 		&"shield":
 			status.apply(&"shield", duration, game_time)
@@ -83,32 +84,15 @@ func apply_item(effect_kind: StringName, duration: float) -> void:
 			status.apply(&"double_score", duration, game_time)
 		&"double":
 			status.apply(&"double", duration, game_time)
-			_apply_weapon_modifier(&"double")
 		&"pierce":
 			status.apply(&"pierce", duration, game_time)
-			_apply_weapon_modifier(&"pierce")
 		&"large":
 			status.apply(&"large", duration, game_time)
-			_apply_weapon_modifier(&"large")
-	combat_score += 10 * (2 if status.has_effect(&"double_score", game_time) else 1)
+		&"rapid_fire":
+			status.apply(&"rapid_fire", duration, game_time)
+	var mult := 2 if status.has_effect(&"double_score", game_time) else 1
+	combat_score += score_bonus * mult
 	EventBus.score_changed.emit(get_total_score(), combat_score)
-
-
-func _apply_weapon_modifier(kind: StringName) -> void:
-	if weapon.weapon == null:
-		return
-	# Clone definition so we never mutate shared .tres resources.
-	var clone: WeaponDefinition = weapon.weapon.duplicate(true) as WeaponDefinition
-	match kind:
-		&"double":
-			clone.projectile_count = 2
-			clone.spread_degrees = 12.0
-		&"pierce":
-			clone.piercing = true
-		&"large":
-			clone.projectile_scale = 1.8
-			clone.damage *= 1.5
-	weapon.weapon = clone
 
 
 func receive_contact_damage(amount: float, source: Node) -> float:
@@ -140,7 +124,9 @@ func _update_facing(input_dir: Vector2) -> void:
 		vertical = "up"
 	elif input_dir.y > 0.25:
 		vertical = "down"
-	var key := vertical if horizontal.is_empty() else ("%s_%s" % [vertical, horizontal] if not vertical.is_empty() else horizontal)
+	var key := vertical if horizontal.is_empty() else (
+		"%s_%s" % [vertical, horizontal] if not vertical.is_empty() else horizontal
+	)
 	if key.is_empty():
 		key = "up"
 	facing = StringName(key)
@@ -158,6 +144,22 @@ func _on_experience_changed(current: int, to_next: int, lvl: int) -> void:
 
 func _on_leveled_up(new_level: int) -> void:
 	EventBus.notice_requested.emit("LEVEL UP! Level %d" % new_level)
+
+
+func _on_effects_changed() -> void:
+	_emit_status_hud()
+	EventBus.score_changed.emit(get_total_score(), combat_score)
+
+
+func _emit_status_hud() -> void:
+	var parts: PackedStringArray = PackedStringArray()
+	for effect_id in status.active_ids(game_time):
+		var rem := status.remaining(effect_id, game_time)
+		if is_inf(rem):
+			parts.append("%s ACTIVE" % String(effect_id).to_upper())
+		else:
+			parts.append("%s %.1fs" % [String(effect_id).to_upper(), rem])
+	EventBus.player_status_changed.emit("  ·  ".join(parts))
 
 
 func _on_died(_source: Node) -> void:
@@ -190,3 +192,5 @@ func from_dict(data: Dictionary) -> void:
 	health.from_dict(data.get("health", {}))
 	experience.from_dict(data.get("experience", {}))
 	status.from_dict(data.get("status", {}), game_time)
+	_clamp_to_world()
+	EventBus.score_changed.emit(get_total_score(), combat_score)
