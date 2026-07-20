@@ -1,5 +1,5 @@
 extends Control
-## Main menu: Continue, New Game, Leaderboard, Settings, Quit.
+## Main menu: Adventure (2.5D) + legacy Survival prototype.
 
 @onready var name_edit: LineEdit = %NameEdit
 @onready var leaderboard_list: ItemList = %LeaderboardList
@@ -31,12 +31,16 @@ func _load_settings_widgets() -> void:
 
 
 func _refresh_continue() -> void:
+	if GameManager.has_resumable_adventure():
+		continue_button.disabled = false
+		continue_summary.text = "Continue adventure as %s" % GameManager.player_name
+		return
 	var summary := GameManager.inspect_resumable_run()
 	continue_button.disabled = not summary.valid
 	if summary.valid:
 		var minutes := int(summary.survival_seconds) / 60
 		var seconds := int(summary.survival_seconds) % 60
-		continue_summary.text = "Continue as %s\nLevel %d · Score %s · %02d:%02d" % [
+		continue_summary.text = "Continue survival as %s\nLevel %d · Score %s · %02d:%02d" % [
 			summary.player_name,
 			summary.combat_level,
 			_format_int(summary.score),
@@ -58,33 +62,40 @@ func _continue_unavailable_text(reason: String) -> String:
 		"expired":
 			return "Save expired"
 		"missing":
-			return "No resumable run"
+			return "No resumable save"
 		_:
-			return "No resumable run"
+			return "No resumable save"
 
 
 func _on_continue_pressed() -> void:
-	GameManager.continue_run()
+	if GameManager.has_resumable_adventure():
+		GameManager.continue_adventure()
+	else:
+		GameManager.continue_run()
 
 
 func _on_start_pressed() -> void:
-	if GameManager.has_resumable_run():
+	if GameManager.has_resumable_adventure() or GameManager.has_resumable_run():
 		confirm_panel.visible = true
 		return
-	_begin_new_game()
+	_begin_new_adventure()
+
+
+func _on_survival_pressed() -> void:
+	GameManager.start_new_run(name_edit.text)
 
 
 func _on_confirm_new_game() -> void:
 	confirm_panel.visible = false
-	_begin_new_game()
+	_begin_new_adventure()
 
 
 func _on_cancel_new_game() -> void:
 	confirm_panel.visible = false
 
 
-func _begin_new_game() -> void:
-	GameManager.start_new_run(name_edit.text)
+func _begin_new_adventure() -> void:
+	GameManager.start_new_adventure(name_edit.text)
 
 
 func _on_settings_pressed() -> void:

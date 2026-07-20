@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/dialogue_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_choice.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_node.gd" id="3"]
+
+[sub_resource type="Resource" id="choice_a"]
+script = ExtResource("2")
+text = "You seem kind. I'd like to help."
+next_node_id = &"thanks"
+affinity_delta = 8.0
+requires_not_hostile = true
+quest_effect = &"demo_errand"
+
+[sub_resource type="Resource" id="choice_b"]
+script = ExtResource("2")
+text = "I'm just passing through."
+next_node_id = &"cold"
+affinity_delta = -2.0
+requires_not_hostile = true
+
+[sub_resource type="Resource" id="node_start"]
+script = ExtResource("3")
+id = &"start"
+speaker = "Mira"
+lines = PackedStringArray("Welcome to Stillpoint!", "Could you run a small errand for me?")
+choices = Array[ExtResource("2")]([SubResource("choice_a"), SubResource("choice_b")])
+requires_not_attacked = true
+
+[sub_resource type="Resource" id="node_thanks"]
+script = ExtResource("3")
+id = &"thanks"
+speaker = "Mira"
+lines = PackedStringArray("Thank you! Please bring me a forest herb.")
+
+[sub_resource type="Resource" id="node_cold"]
+script = ExtResource("3")
+id = &"cold"
+speaker = "Mira"
+lines = PackedStringArray("I see. The road can be lonely.")
+
+[resource]
+script = ExtResource("1")
+id = &"mira_intro"
+start_node_id = &"start"
+nodes = Array[ExtResource("3")]([SubResource("node_start"), SubResource("node_thanks"), SubResource("node_cold")])

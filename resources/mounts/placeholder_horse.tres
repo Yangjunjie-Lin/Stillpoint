@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="MountDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/mount_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"placeholder_horse"
+display_name = "Bramble"
+species = &"horse"
+walk_speed = 5.0
+run_speed = 10.0
+jump_power = 5.0
+terrain_tags = Array[StringName]([&"road", &"grass"])

@@ -1,86 +1,115 @@
-# Architecture (Godot 0.4.2)
+# Architecture (Godot 0.5.0)
 
-Stillpoint’s supported runtime is **Godot 4.7** with the **Compatibility** renderer (`gl_compatibility`). Scene / Node / Resource ownership replaces the archived Tkinter loop.
+Stillpoint is an **isekai life-sim RPG foundation** on Godot 4.7 (Compatibility renderer). A legacy **2D survival shooter** remains under `scenes/gameplay/` for reference.
 
-## Autoloads
+## Autoloads (RPG)
 
 | Autoload | Responsibility |
 | --- | --- |
-| `EventBus` | Cross-system signals only |
-| `GameManager` | Run metadata, `start_new_run` / `continue_run`, `ResourceRegistry`, resumable-run checks |
-| `SceneRouter` | Swap `Main/CurrentScene` |
-| `SaveService` | JSON under `user://`, atomic writes, migration, validation, settings → audio buses |
-| `AudioManager` | SFX pool + music player (headless-safe no-op play) |
+| `EventBus` | Cross-system signals |
+| `ResourceRegistry` | Static `.tres` index (characters, NPCs, items, quests, regions, …) |
+| `InputBindingService` | Rebindable InputMap → `user://input_bindings.json` |
+| `WorldTimeService` | In-game clock (day/hour/minute) |
+| `RelationshipService` | Persistent player↔NPC affinity |
+| `QuestManager` | Active quest runtime state |
+| `GameManager` | Adventure / survival entry points |
+| `SceneRouter` | Scene transitions |
+| `SaveService` | Legacy survival run saves (v2) + settings |
+| `WorldSaveService` | Partitioned world save (v3) |
+| `AudioManager` | SFX / music |
 
-Actors, bullets, and levels are **not** autoloads. Autoloads must not become God Objects for combat state.
+Runtime actors (player, NPCs, pets, mounts) live in scenes — **not** autoloads.
 
-## Save validation pipeline
+## Character architecture
 
-1. Read JSON from `user://run_save.json`
-2. `migrate_payload()` — deep copy, version steps v0→v1→v2 (reject version &lt; 0 or &gt; `SAVE_VERSION`)
-3. `validate_run_payload()` → `SaveValidationResult` (required fields, finite numbers, alive player health)
-4. `inspect_run()` — game over / expiry checks → `RunSaveSummary`
-5. `GameManager.inspect_resumable_run()` — additionally requires `level_id` exists in `ResourceRegistry`
+`CharacterController` (3D) composes:
 
-**Future save policy:** version &gt; `SAVE_VERSION` → `future_version`, Continue disabled, no auto-downgrade, no overwrite.
+- `HealthComponent`, `EnergyComponent`, `CombatComponent`, `SkillComponent`
+- `RelationshipComponent`, `FactionComponent`, `InteractionComponent`
+- `StatusEffectComponent`, optional `ScheduleComponent`
 
-## Continue vs New Game
+`PlayerController3D` adds movement states (walk/run toggle, jump, crouch, guard, attack). `NPCController` adds AI states and **attack consequence** handling.
 
-- **Continue** — `GameManager.continue_run()` sets `player_name` from the save summary (menu `LineEdit` ignored). Never clears the run file.
-- **New Game** — uses menu name; confirms before `SaveService.clear_run()`.
+## Interaction system
 
-## Multi-level restore
+`Interactable` (Node3D) + `InteractionResolver` select targets by distance and priority. HUD prompts use `InputBindingService.get_display_text()` — never hard-coded keys.
 
-`GameplayController._ready()` loads restore data first, then `_resolve_level_definition()` picks `LevelDefinition` from saved `level_id` via registry before world bounds, visuals, and camera are built.
+## Relationship & combat consequences
 
-Unknown `level_id` → `inspect_resumable_run()` invalid (`unknown_level`); do not silently fall back to prototype during Continue.
+- **Affinity** (−100…100) stored in `RelationshipService`
+- **Disposition:** Friendly ≥ 50, Hostile ≤ −20, else Neutral
+- Attacking friendly NPCs reduces affinity; attacking neutral NPCs flips to hostile
+- Combat uses `Hitbox3D` / `Hurtbox3D` with windup/active/recovery phases
 
-## Enemy / pickup saveability
+## World & regions
 
-`queue_free()` is deferred to end-of-frame. Autosave must skip:
+`WorldManager` owns region visibility, player spawn, save/load. `TransitionPortal` switches `town` / `wilderness` / `dungeon` regions in the vertical slice.
 
-- `is_queued_for_deletion()`
-- dead enemies (`health.is_dead()`, `_reward_granted`)
-- pickups without `definition_id`
+## Save schemas
 
-`EnemyController.is_saveable()` / `PickupItem.is_saveable()` centralize this. `_active_enemy_count()` drives spawn targets (not raw child count).
+### World save v3 (`WorldSaveService`)
 
-Restore skips legacy dead enemy entries and `queue_free()` any enemy that fails `is_saveable()` after `from_dict()`.
+```json
+{
+  "version": 3,
+  "profile": {},
+  "player": {},
+  "world": {},
+  "relationships": {},
+  "quests": {},
+  "inventory": {},
+  "pets": {},
+  "mounts": {},
+  "regions": {}
+}
+```
 
-## MovementComponent
+### Legacy run save v2 (`SaveService`)
 
-Returns **world velocity in pixels per second**. Callers must **not** rescale the result. Speed buffs use `speed_multiplier` only.
+Still used by the survival prototype. See 0.4.2 notes below.
 
-## Weapons: definition vs runtime
+## Dialogue & quests
 
-`WeaponDefinition` is static; `WeaponRuntimeStats` is built per shot. Buff re-pickup uses **RESET_DURATION**.
+- `DialogueDefinition` → nodes + choices with affinity / quest effects
+- `QuestDefinition` → objectives (talk, collect, deliver, …)
+- `DialogueRunner` / `QuestManager` process data — no hard-coded NPC scripts
 
-## Camera resize
+## Queue-free saveability (survival legacy)
 
-`CameraLimits.calculate_camera_limits(world_size, viewport_size)` is pure math. `GameplayController` listens to `Viewport.size_changed` and reapplies limits (safe to call repeatedly).
+`EnemyController.is_saveable()` / `PickupItem.is_saveable()` filter deferred `queue_free()` objects from run saves.
 
-## Saves
+## Camera resize (survival legacy)
 
-| Kind | Path | Notes |
-| --- | --- | --- |
-| Run | `user://run_save.json` | `SAVE_VERSION = 2` |
-| Settings | `user://settings.json` | Master / Music / SFX |
-| Leaderboard | `user://leaderboard.json` | Profile-ish |
+`CameraLimits.calculate_camera_limits()` + `Viewport.size_changed` in 2D gameplay.
 
-**Restored:** player, enemies, pickups, timers, difficulty, `level_id`, buff remaining times.
+## Future save policy
 
-**Not saved:** projectiles.
+Saves with `version > SAVE_VERSION` are rejected (`future_version`). No auto-downgrade.
 
-Atomic write: `.tmp` → `.bak` → promote; restore `.bak` on replace failure (`_rename_absolute` hook for tests).
+## Directory map
 
-## Health restore
+```text
+scripts/
+├── characters/     # PlayerController3D, NPCController, MovementMotor
+├── components/     # Health, Energy, Combat, Inventory, …
+├── interaction/    # Interactable, resolver, prompts
+├── relationships/  # RelationshipService
+├── dialogue/       # DialogueRunner
+├── quests/         # QuestManager
+├── world/          # WorldManager, portals, camera
+├── pets/ mounts/   # PetController, MountController
+├── time/           # WorldTimeService, ScheduleRunner
+└── prototypes/     # Survival legacy scripts reference
+```
 
-`HealthComponent.from_dict()` clamps max ≥ 1, current ∈ [0, max], defense ≥ 0. Non-finite values become safe defaults. Dead enemies are not spawned from saves.
+## Vertical slice entry
 
-## Extension points (not in 0.4.2)
+`SceneRouter.VERTICAL_SLICE` → `scenes/world/vertical_slice.tscn`
 
-Story chapters, bosses, equipment/skills, obstacle-aware spawn queries.
+## Reserved extension points
 
-## Pause
-
-`get_tree().paused` freezes gameplay nodes using default process modes. Combat clocks (`player.game_time`, buff expiry via `update_clock`) only advance in `_physics_process` while unpaused.
+- Witness / crime / bounty systems (FactionDefinition.crime_rules)
+- Agriculture, housing, festivals, marriage
+- Skill trees, equipment visuals, AnimationTree
+- Streaming open world (RegionDefinition.scene per region)
+- U/I/O/L action slots

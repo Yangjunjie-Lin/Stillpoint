@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RegionDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/region_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"dungeon"
+display_name = "Old Mine"
+region_type = &"dungeon"
+default_spawn_id = &"spawn"

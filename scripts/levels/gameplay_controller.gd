@@ -56,7 +56,7 @@ func _initialize_signals() -> void:
 func _resolve_level_definition(data: Dictionary) -> void:
 	if not data.is_empty():
 		var saved_level_id := StringName(str(data.get("level_id", "prototype")))
-		var saved_level := GameManager.registry.get_level(saved_level_id)
+		var saved_level := ResourceRegistry.get_level(saved_level_id)
 		if saved_level != null:
 			level_def = saved_level
 			return
@@ -65,7 +65,7 @@ func _resolve_level_definition(data: Dictionary) -> void:
 		)
 
 	if level_def == null:
-		level_def = GameManager.registry.get_level(&"prototype")
+		level_def = ResourceRegistry.get_level(&"prototype")
 	if level_def == null:
 		level_def = load("res://resources/levels/prototype_level.tres") as LevelDefinition
 
@@ -347,7 +347,7 @@ func _restore_enemies(entries: Array) -> void:
 			push_warning("GameplayController: skipping zero-health enemy from old save")
 			continue
 		var def_id := StringName(str(data.get("definition_id", "")))
-		var def: EnemyDefinition = GameManager.registry.get_enemy(def_id)
+		var def: EnemyDefinition = ResourceRegistry.get_enemy(def_id)
 		if def == null:
 			for pooled in level_def.enemy_pool:
 				if pooled != null and pooled.id == def_id:
@@ -374,7 +374,7 @@ func _restore_pickups(entries: Array) -> void:
 			continue
 		var data: Dictionary = entry
 		var def_id := StringName(str(data.get("definition_id", "")))
-		var def: ItemDefinition = GameManager.registry.get_item(def_id)
+		var def: ItemDefinition = ResourceRegistry.get_item(def_id)
 		if def == null:
 			for pooled in level_def.item_pool:
 				if pooled != null and pooled.id == def_id:

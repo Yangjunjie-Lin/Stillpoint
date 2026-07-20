@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"gift_box"
+display_name = "Gift Box"
+item_type = 5
+max_stack = 5
+description = "A small reward from Mira."

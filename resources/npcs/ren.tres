@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/npc_definition.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/dialogues/ren_intro.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"ren"
+display_name = "Ren"
+faction_id = &"townfolk"
+default_disposition = &"neutral"
+max_health = 90.0
+max_energy = 70.0
+walk_speed = 3.5
+run_speed = 6.5
+default_dialogue = ExtResource("2")
+can_be_attacked = true
+can_be_killed = false
+npc_role = &"guard"

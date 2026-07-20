@@ -5,11 +5,33 @@ var player_name: String = "Player"
 var diagnostics_enabled: bool = false
 var run_active: bool = false
 var resume_requested: bool = false
-var registry: ResourceRegistry = ResourceRegistry.new()
 
 
 func _ready() -> void:
-	registry.load_defaults()
+	pass
+
+
+func start_new_adventure(requested_name: String = "Traveler") -> void:
+	player_name = requested_name.strip_edges().substr(0, 24)
+	if player_name.is_empty():
+		player_name = "Traveler"
+	run_active = true
+	resume_requested = false
+	WorldSaveService.clear_world()
+	SceneRouter.go_to_vertical_slice()
+
+
+func continue_adventure() -> void:
+	if not WorldSaveService.has_world_save():
+		push_warning("GameManager: no world save to continue")
+		return
+	run_active = true
+	resume_requested = true
+	SceneRouter.go_to_vertical_slice()
+
+
+func has_resumable_adventure() -> bool:
+	return WorldSaveService.has_world_save()
 
 
 func start_new_run(requested_name: String = "Player") -> void:
@@ -41,7 +63,7 @@ func inspect_resumable_run(max_age_seconds: float = SaveService.DEFAULT_MAX_AGE)
 	var summary := SaveService.inspect_run(max_age_seconds)
 	if not summary.valid:
 		return summary
-	if registry.get_level(summary.level_id) == null:
+	if ResourceRegistry.get_level(summary.level_id) == null:
 		summary.valid = false
 		summary.reason = "unknown_level"
 	return summary

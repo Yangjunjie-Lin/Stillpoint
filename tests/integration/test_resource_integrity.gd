@@ -9,6 +9,8 @@ func run() -> bool:
 	var item_ids: Dictionary = {}
 	var weapon_ids: Dictionary = {}
 	var level_ids: Dictionary = {}
+	var region_ids: Dictionary = {}
+	var npc_ids: Dictionary = {}
 
 	for path in resources:
 		var res: Resource = load(path)
@@ -53,19 +55,37 @@ func run() -> bool:
 			if level.scene == null:
 				push_error("Level missing scene: %s" % path)
 				ok = false
+		elif res is RegionDefinition:
+			var region := res as RegionDefinition
+			if region_ids.has(region.id):
+				push_error("Duplicate region id: %s" % String(region.id))
+				ok = false
+			region_ids[region.id] = path
+		elif res is NPCDefinition:
+			var npc := res as NPCDefinition
+			if npc_ids.has(npc.id):
+				push_error("Duplicate npc id: %s" % String(npc.id))
+				ok = false
+			npc_ids[npc.id] = path
 
 	ok = ok and not enemy_ids.is_empty()
 	ok = ok and not item_ids.is_empty()
 	ok = ok and enemy_ids.has(&"chase")
 	ok = ok and item_ids.has(&"shield")
+	ok = ok and region_ids.has(&"town")
+	ok = ok and npc_ids.has(&"mira")
 
-	var registry := ResourceRegistry.new()
-	registry.load_defaults()
-	if registry.get_enemy(&"chase") == null:
+	if ResourceRegistry.get_enemy(&"chase") == null:
 		push_error("ResourceRegistry missing chase")
 		ok = false
-	if registry.get_item(&"shield") == null:
+	if ResourceRegistry.get_item(&"shield") == null:
 		push_error("ResourceRegistry missing shield")
+		ok = false
+	if ResourceRegistry.get_region(&"town") == null:
+		push_error("ResourceRegistry missing town region")
+		ok = false
+	if ResourceRegistry.get_npc(&"mira") == null:
+		push_error("ResourceRegistry missing mira npc")
 		ok = false
 
 	if not ok:

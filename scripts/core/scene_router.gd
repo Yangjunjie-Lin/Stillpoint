@@ -3,6 +3,8 @@ extends Node
 
 const MAIN_MENU := "res://scenes/ui/main_menu.tscn"
 const GAMEPLAY := "res://scenes/gameplay/gameplay.tscn"
+const VERTICAL_SLICE := "res://scenes/world/vertical_slice.tscn"
+const SURVIVAL_PROTOTYPE := "res://scenes/gameplay/gameplay.tscn"
 
 var _current_scene: Node = null
 
@@ -13,6 +15,14 @@ func go_to_main_menu() -> void:
 
 func go_to_gameplay() -> void:
 	change_scene(GAMEPLAY)
+
+
+func go_to_vertical_slice() -> void:
+	change_scene(VERTICAL_SLICE)
+
+
+func go_to_survival_prototype() -> void:
+	change_scene(SURVIVAL_PROTOTYPE)
 
 
 func change_scene(scene_path: String) -> void:

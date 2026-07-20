@@ -1,0 +1,88 @@
+[gd_scene load_steps=16 format=3 uid="uid://player3d001"]
+
+[ext_resource type="Script" path="res://scripts/characters/player_controller_3d.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/components/energy_component.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/components/faction_component.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/components/relationship_component.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/components/interaction_component.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/components/combat_component.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/components/skill_component.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/components/status_effect_component.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/components/inventory_component.gd" id="10"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox_3d.gd" id="11"]
+[ext_resource type="Script" path="res://scripts/combat/hurtbox_3d.gd" id="12"]
+[ext_resource type="Resource" path="res://resources/characters/player.tres" id="13"]
+[ext_resource type="Resource" path="res://resources/attacks/basic_melee.tres" id="14"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2"]
+radius = 0.5
+height = 1.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+size = Vector3(0.8, 1.6, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.2, 0.6, 1, 1)
+
+[node name="Player3D" type="CharacterBody3D" groups=["player"]]
+script = ExtResource("1")
+definition = ExtResource("13")
+camera_rig_path = NodePath("../CameraRig")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+mesh = SubResource("BoxMesh_1")
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2")
+
+[node name="EnergyComponent" type="Node" parent="."]
+script = ExtResource("3")
+
+[node name="FactionComponent" type="Node" parent="."]
+script = ExtResource("4")
+
+[node name="RelationshipComponent" type="Node" parent="."]
+script = ExtResource("5")
+
+[node name="InteractionComponent" type="Node" parent="."]
+script = ExtResource("6")
+
+[node name="CombatComponent" type="Node" parent="."]
+script = ExtResource("7")
+attack = ExtResource("14")
+
+[node name="SkillComponent" type="Node" parent="."]
+script = ExtResource("8")
+
+[node name="StatusEffectComponent" type="Node" parent="."]
+script = ExtResource("9")
+
+[node name="InventoryComponent" type="Node" parent="."]
+script = ExtResource("10")
+
+[node name="Hurtbox3D" type="Area3D" parent="."]
+script = ExtResource("12")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_2")
+
+[node name="HitboxRoot" type="Node3D" parent="."]
+
+[node name="Hitbox3D" type="Area3D" parent="HitboxRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1)
+script = ExtResource("11")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitboxRoot/Hitbox3D"]
+shape = SubResource("CapsuleShape3D_2")

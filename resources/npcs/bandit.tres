@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/npc_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"bandit"
+display_name = "Bandit"
+faction_id = &"bandits"
+default_disposition = &"hostile"
+max_health = 70.0
+max_energy = 50.0
+walk_speed = 4.0
+run_speed = 7.0
+can_be_attacked = true
+can_be_killed = true
+npc_role = &"enemy"

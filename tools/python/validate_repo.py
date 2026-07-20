@@ -99,11 +99,13 @@ def main() -> int:
         if not (ROOT / required).exists():
             errors.append(f"Required path missing on disk: {required}")
 
-    id_re = re.compile(r'^id = &"([^"]+)"', re.M)
     seen: dict[str, str] = {}
     for path in (ROOT / "resources").rglob("*.tres"):
         text = path.read_text(encoding="utf-8", errors="ignore")
-        match = id_re.search(text)
+        parts = text.split("[resource]")
+        if len(parts) < 2:
+            continue
+        match = re.search(r'^id = &"([^"]+)"', parts[-1], re.M)
         if not match:
             continue
         rid = match.group(1)

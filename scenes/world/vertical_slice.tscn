@@ -1,0 +1,352 @@
+[gd_scene load_steps=20 format=3 uid="uid://verticalslice001"]
+
+[ext_resource type="Script" path="res://scripts/world/world_manager.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/world/camera_controller.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/characters/npc_controller.gd" id="4"]
+[ext_resource type="Resource" path="res://resources/npcs/mira.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/npcs/ren.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/npcs/bandit.tres" id="7"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/components/energy_component.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/components/faction_component.gd" id="10"]
+[ext_resource type="Script" path="res://scripts/components/relationship_component.gd" id="11"]
+[ext_resource type="Script" path="res://scripts/components/interaction_component.gd" id="12"]
+[ext_resource type="Script" path="res://scripts/components/combat_component.gd" id="13"]
+[ext_resource type="Script" path="res://scripts/components/skill_component.gd" id="14"]
+[ext_resource type="Script" path="res://scripts/components/status_effect_component.gd" id="15"]
+[ext_resource type="Script" path="res://scripts/components/schedule_component.gd" id="16"]
+[ext_resource type="Resource" path="res://resources/schedules/mira_schedule.tres" id="17"]
+[ext_resource type="Script" path="res://scripts/combat/hurtbox_3d.gd" id="18"]
+[ext_resource type="Script" path="res://scripts/interaction/npc_interactable.gd" id="19"]
+[ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="20"]
+[ext_resource type="Script" path="res://scripts/interaction/pickup_interactable_3d.gd" id="21"]
+[ext_resource type="Script" path="res://scripts/interaction/chest_interactable_3d.gd" id="22"]
+[ext_resource type="Script" path="res://scripts/pets/pet_controller.gd" id="23"]
+[ext_resource type="Script" path="res://scripts/interaction/pet_interactable.gd" id="24"]
+[ext_resource type="Script" path="res://scripts/mounts/mount_controller.gd" id="25"]
+[ext_resource type="Script" path="res://scripts/interaction/mount_interactable.gd" id="26"]
+[ext_resource type="Script" path="res://scripts/ui/rpg/hud_controller.gd" id="27"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="StandardMaterial3D" id="Mat_town"]
+albedo_color = Color(0.55, 0.7, 0.45, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wild"]
+albedo_color = Color(0.2, 0.45, 0.25, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_dungeon"]
+albedo_color = Color(0.35, 0.32, 0.38, 1)
+
+[sub_resource type="CapsuleShape3D" id="Capsule_npc"]
+radius = 0.4
+height = 1.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_npc"]
+size = Vector3(0.7, 1.5, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat_mira"]
+albedo_color = Color(0.9, 0.5, 0.7, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ren"]
+albedo_color = Color(0.5, 0.6, 0.9, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_bandit"]
+albedo_color = Color(0.7, 0.3, 0.2, 1)
+
+[node name="VerticalSlice" type="Node3D"]
+script = ExtResource("1")
+player_scene = ExtResource("2")
+initial_region_id = &"town"
+
+[node name="CameraRig" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 12)
+script = ExtResource("3")
+target_path = NodePath("../Actors/Player3D")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+current = true
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+
+[node name="Regions" type="Node3D" parent="."]
+
+[node name="town" type="Node3D" parent="Regions"]
+
+[node name="Floor" type="MeshInstance3D" parent="Regions/town"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("Mat_town")
+
+[node name="spawn" type="Marker3D" parent="Regions/town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="shop" type="Marker3D" parent="Regions/town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.5, 3)
+
+[node name="wilderness" type="Node3D" parent="Regions"]
+visible = false
+
+[node name="Floor" type="MeshInstance3D" parent="Regions/wilderness"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("Mat_wild")
+
+[node name="spawn" type="Marker3D" parent="Regions/wilderness"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="dungeon" type="Node3D" parent="Regions"]
+visible = false
+
+[node name="Floor" type="MeshInstance3D" parent="Regions/dungeon"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("Mat_dungeon")
+
+[node name="spawn" type="Marker3D" parent="Regions/dungeon"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="Actors" type="Node3D" parent="."]
+
+[node name="Mira" type="CharacterBody3D" parent="Actors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 2)
+script = ExtResource("4")
+npc_definition = ExtResource("5")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Mira"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_npc")
+
+[node name="Visual" type="MeshInstance3D" parent="Actors/Mira"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("BoxMesh_npc")
+surface_material_override/0 = SubResource("Mat_mira")
+
+[node name="HealthComponent" type="Node" parent="Actors/Mira"]
+script = ExtResource("8")
+
+[node name="EnergyComponent" type="Node" parent="Actors/Mira"]
+script = ExtResource("9")
+
+[node name="FactionComponent" type="Node" parent="Actors/Mira"]
+script = ExtResource("10")
+
+[node name="RelationshipComponent" type="Node" parent="Actors/Mira"]
+script = ExtResource("11")
+
+[node name="InteractionComponent" type="Node" parent="Actors/Mira"]
+script = ExtResource("12")
+
+[node name="CombatComponent" type="Node" parent="Actors/Mira"]
+script = ExtResource("13")
+
+[node name="SkillComponent" type="Node" parent="Actors/Mira"]
+script = ExtResource("14")
+
+[node name="StatusEffectComponent" type="Node" parent="Actors/Mira"]
+script = ExtResource("15")
+
+[node name="ScheduleComponent" type="Node" parent="Actors/Mira"]
+script = ExtResource("16")
+schedule = ExtResource("17")
+
+[node name="Hurtbox3D" type="Area3D" parent="Actors/Mira"]
+script = ExtResource("18")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Mira/Hurtbox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_npc")
+
+[node name="Ren" type="CharacterBody3D" parent="Actors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 4)
+script = ExtResource("4")
+npc_definition = ExtResource("6")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Ren"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_npc")
+
+[node name="Visual" type="MeshInstance3D" parent="Actors/Ren"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("BoxMesh_npc")
+surface_material_override/0 = SubResource("Mat_ren")
+
+[node name="HealthComponent" type="Node" parent="Actors/Ren"]
+script = ExtResource("8")
+
+[node name="EnergyComponent" type="Node" parent="Actors/Ren"]
+script = ExtResource("9")
+
+[node name="FactionComponent" type="Node" parent="Actors/Ren"]
+script = ExtResource("10")
+
+[node name="RelationshipComponent" type="Node" parent="Actors/Ren"]
+script = ExtResource("11")
+
+[node name="InteractionComponent" type="Node" parent="Actors/Ren"]
+script = ExtResource("12")
+
+[node name="CombatComponent" type="Node" parent="Actors/Ren"]
+script = ExtResource("13")
+
+[node name="SkillComponent" type="Node" parent="Actors/Ren"]
+script = ExtResource("14")
+
+[node name="StatusEffectComponent" type="Node" parent="Actors/Ren"]
+script = ExtResource("15")
+
+[node name="Hurtbox3D" type="Area3D" parent="Actors/Ren"]
+script = ExtResource("18")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Ren/Hurtbox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_npc")
+
+[node name="Bandit" type="CharacterBody3D" parent="Actors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -5)
+visible = false
+script = ExtResource("4")
+npc_definition = ExtResource("7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Bandit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_npc")
+
+[node name="Visual" type="MeshInstance3D" parent="Actors/Bandit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("BoxMesh_npc")
+surface_material_override/0 = SubResource("Mat_bandit")
+
+[node name="HealthComponent" type="Node" parent="Actors/Bandit"]
+script = ExtResource("8")
+
+[node name="EnergyComponent" type="Node" parent="Actors/Bandit"]
+script = ExtResource("9")
+
+[node name="FactionComponent" type="Node" parent="Actors/Bandit"]
+script = ExtResource("10")
+
+[node name="RelationshipComponent" type="Node" parent="Actors/Bandit"]
+script = ExtResource("11")
+
+[node name="InteractionComponent" type="Node" parent="Actors/Bandit"]
+script = ExtResource("12")
+
+[node name="CombatComponent" type="Node" parent="Actors/Bandit"]
+script = ExtResource("13")
+
+[node name="SkillComponent" type="Node" parent="Actors/Bandit"]
+script = ExtResource("14")
+
+[node name="StatusEffectComponent" type="Node" parent="Actors/Bandit"]
+script = ExtResource("15")
+
+[node name="Hurtbox3D" type="Area3D" parent="Actors/Bandit"]
+script = ExtResource("18")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Bandit/Hurtbox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_npc")
+
+[node name="Pet" type="CharacterBody3D" parent="Actors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
+script = ExtResource("23")
+
+[node name="Visual" type="MeshInstance3D" parent="Actors/Pet"]
+mesh = SubResource("BoxMesh_npc")
+
+[node name="Mount" type="CharacterBody3D" parent="Actors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -2)
+script = ExtResource("25")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Mount"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_npc")
+
+[node name="Visual" type="MeshInstance3D" parent="Actors/Mount"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("BoxMesh_npc")
+
+[node name="Interactables" type="Node3D" parent="."]
+
+[node name="MiraTalk" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 2)
+script = ExtResource("19")
+npc_path = NodePath("../../Actors/Mira")
+
+[node name="RenTalk" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 4)
+script = ExtResource("19")
+npc_path = NodePath("../../Actors/Ren")
+
+[node name="ForestPortal" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
+script = ExtResource("20")
+target_region_id = &"wilderness"
+prompt_text = "Enter Forest"
+
+[node name="TownPortal" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+visible = false
+script = ExtResource("20")
+target_region_id = &"town"
+prompt_text = "Return to Town"
+
+[node name="DungeonPortal" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
+script = ExtResource("20")
+target_region_id = &"dungeon"
+prompt_text = "Enter Mine"
+
+[node name="HerbPickup" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 3)
+visible = false
+script = ExtResource("21")
+item_id = &"herb"
+
+[node name="Chest" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -3)
+script = ExtResource("22")
+
+[node name="PetInteract" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
+script = ExtResource("24")
+pet_path = NodePath("../../Actors/Pet")
+
+[node name="MountInteract" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -2)
+script = ExtResource("26")
+mount_path = NodePath("../../Actors/Mount")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("27")
+
+[node name="VBox" type="VBoxContainer" parent="HUD"]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 420.0
+offset_bottom = 220.0
+
+[node name="HealthLabel" type="Label" parent="HUD/VBox"]
+text = "HP: 100"
+
+[node name="EnergyLabel" type="Label" parent="HUD/VBox"]
+text = "EN: 100"
+
+[node name="TimeLabel" type="Label" parent="HUD/VBox"]
+text = "Day 1  08:00"
+
+[node name="RegionLabel" type="Label" parent="HUD/VBox"]
+text = "Region: Town"
+
+[node name="MoveLabel" type="Label" parent="HUD/VBox"]
+text = "Walk"
+
+[node name="InteractLabel" type="Label" parent="HUD/VBox"]
+text = ""
+
+[node name="QuestLabel" type="Label" parent="HUD/VBox"]
+text = "Quest: --"

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="FactionDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/faction_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"townfolk"
+display_name = "Townfolk"
+default_player_reputation = 10.0
