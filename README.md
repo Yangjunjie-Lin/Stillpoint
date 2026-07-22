@@ -2,82 +2,63 @@
 
 > An isekai life-sim RPG foundation — explore, live, relate, and fight when you choose to.
 
-Stillpoint **0.5.0** introduces a **2.5D / 3D** open-world life-simulation framework with relationships, quests, pets, mounts, and light action combat. The legacy **2D survival shooter** remains available as a separate prototype mode.
+Stillpoint **0.5.1** is a **runnable Vertical Slice** on Godot 4.7 (Compatibility renderer): Town → dialogue → quest → wilderness gather → deliver, plus combat consequences, pet/mount, region travel, and world save/continue.
 
-**Runtime:** Godot 4.7.x · **Compatibility (gl_compatibility)** renderer · Headless CI
+## Modes
 
-## Requirements
-
-- [Godot 4.7.1 Stable](https://godotengine.org/download/archive/4.7.1-stable/)
-- No Python required to play or export
-
-## Run
-
-1. Open the repo in Godot Project Manager.
-2. Press **F5** (`scenes/bootstrap/main.tscn`).
-
-### Main menu
-
-| Button | Behaviour |
+| Menu | Scene |
 | --- | --- |
-| **New Adventure** | Starts the 2.5D vertical slice (`scenes/world/vertical_slice.tscn`) |
-| **Continue** | Resumes world save (`user://world_save.json`) or legacy survival run |
-| **Survival Prototype** | Legacy 2D shooter (`scenes/gameplay/gameplay.tscn`) |
+| **New Adventure / Continue** | `scenes/world/vertical_slice.tscn` (2.5D RPG) |
+| **Survival Prototype** | `scenes/gameplay/gameplay.tscn` (legacy 2D shooter) |
 
-### Default controls (rebindable via `InputBindingService`)
+## Controls (rebindable in Settings)
 
-| Action | Key |
+| Action | Default |
 | --- | --- |
 | Move | WASD |
 | Interact | F |
-| Walk / Run toggle | Space |
+| Walk/Run toggle | Space |
 | Attack | J |
 | Jump | K |
 | Guard | Shift |
 | Crouch | Ctrl |
-| Hotbar prev / next | Q / E |
+| Hotbar | Q / E |
 | Pause / Menu / Map | Esc / Tab / M |
 
-UI shows the **current bound key** — never hard-coded labels.
+## Vertical Slice checklist
 
-## Architecture (0.5.0)
+1. Stand on Town ground; move, jump, crouch, walk/run.
+2. Talk to Mira; accept errand.
+3. Portal to Wilderness; pick up Herb.
+4. Return; deliver to Mira; reward + affinity.
+5. Attack Mira (affinity drop / flee); attack Ren (hostile).
+6. Enter Dungeon; Bandit is hostile.
+7. Guard reduces frontal damage.
+8. Pet Follow/Stay; Mount ride/dismount.
+9. Autosave / return to menu; Continue restores state.
 
-- **3D world:** `CharacterBody3D`, `Area3D`, `NavigationAgent3D`, `Camera3D`
-- **Components:** Health, Energy, Combat, Skills, Interaction, Relationship, Faction, Inventory, Schedule
-- **Systems:** Dialogue, Quests, World time, Regions, Pets, Mounts
-- **Saves:** Partitioned world save schema **v3** (`profile`, `player`, `world`, `relationships`, `quests`, `inventory`, `pets`, `mounts`, `regions`)
-- **Data-driven:** NPCs, items, dialogues, quests, regions, factions via `ResourceRegistry` autoload
+## Saves
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for full design notes.
+| File | Purpose |
+| --- | --- |
+| `user://world_save.json` | Adventure world save (schema **v3**) |
+| `user://input_bindings.json` | Key bindings |
+| `user://run_save.json` | Legacy survival run (v2) |
 
-## Vertical slice
+## Placeholder / not yet implemented
 
-`scenes/world/vertical_slice.tscn` includes:
+- Formal art & AnimationTree
+- Agriculture, housing, festivals, marriage
+- Full crime/witness/bounty
+- Streaming open world
+- Complex skill trees
 
-- Town, wilderness, and dungeon test regions
-- NPCs Mira (friendly) and Ren (neutral), plus a hostile bandit
-- Pet (follow/stay), mount (ride/dismount), chest, herb pickup
-- Demo quest **Mira's Errand** (talk → collect → deliver)
-- NPC attack consequences (affinity / disposition changes)
-
-## Legacy survival prototype
-
-Preserved at `scenes/gameplay/` and documented in `scenes/prototypes/survival/README.md`. Not mixed with RPG runtime state.
-
-## Tests & CI
+## Tests
 
 ```bash
 godot --headless --path . --editor --quit
 godot --headless --path . --script res://tests/test_runner.gd
-godot --headless --path . --export-debug "Linux" builds/stillpoint_linux.x86_64
-godot --headless --path . --export-debug "Windows Desktop" builds/stillpoint_windows.exe
 python tools/python/validate_repo.py
 ```
 
-## Version history
-
-| Version | Focus |
-| --- | --- |
-| **0.5.0** | 2.5D RPG framework + vertical slice |
-| **0.4.2** | Save validation, Continue, multi-level restore (survival) |
-| **0.4.x** | 2D survival shooter prototype |
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

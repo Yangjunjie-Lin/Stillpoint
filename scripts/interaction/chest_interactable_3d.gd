@@ -7,8 +7,8 @@ extends Interactable
 var _opened: bool = false
 
 
-func can_interact(actor: CharacterController, _context: InteractionContext) -> bool:
-	return not _opened and actor is PlayerController3D
+func can_interact(actor: CharacterController, context: InteractionContext) -> bool:
+	return not _opened and super.can_interact(actor, context) and actor is PlayerController3D
 
 
 func get_interaction_text(_actor: CharacterController) -> String:
@@ -23,3 +23,13 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 		return
 	player.inventory.add_item(item_id, quantity)
 	_opened = true
+	interaction_enabled = false
+
+
+func to_dict() -> Dictionary:
+	return {"opened": _opened}
+
+
+func from_dict(data: Dictionary) -> void:
+	_opened = bool(data.get("opened", false))
+	interaction_enabled = not _opened
