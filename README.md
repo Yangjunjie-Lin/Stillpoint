@@ -2,13 +2,13 @@
 
 > An isekai life-sim RPG foundation — explore, live, relate, and fight when you choose to.
 
-Stillpoint **0.6.0** adds **Jolt Physics** combat feedback on top of the **0.5.1 Vertical Slice**: animation-event attack windows, melee sweep, knockback, local hit stop, guard reactions, physics props, and **Combat Lab**.
+Stillpoint **0.7.0** hardens world architecture: dynamic region loading, persistent entity IDs, event-driven quests, Save v4, and data-driven dialogue/effects — on top of **0.6.0** Jolt combat and the **0.5.1** vertical slice.
 
 ## Modes
 
 | Menu | Scene |
 | --- | --- |
-| **New Adventure / Continue** | `scenes/world/vertical_slice.tscn` (2.5D RPG) |
+| **New Adventure / Continue** | `scenes/world/world_session.tscn` (2.5D RPG) |
 | **Combat Lab** | `scenes/combat/combat_lab.tscn` (combat sandbox) |
 | **Survival Prototype** | `scenes/gameplay/gameplay.tscn` (legacy 2D shooter) |
 
@@ -46,7 +46,7 @@ Town → Mira quest → wilderness herb → deliver; relationships, pets, mounts
 - Production character art & mocap animation
 - Full AnimationTree blend trees per asset
 - Agriculture, housing, festivals, marriage
-- Streaming open world
+- Streaming open world (regions load one at a time; see [docs/WORLD_ARCHITECTURE.md](docs/WORLD_ARCHITECTURE.md))
 
 ## Tests
 

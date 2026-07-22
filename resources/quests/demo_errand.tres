@@ -1,7 +1,9 @@
-[gd_resource type="Resource" script_class="QuestDefinition" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="QuestDefinition" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/quest_definition.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/objective_definition.gd" id="2"]
+[ext_resource type="Resource" path="res://content/base/effects/reward_gift_box.tres" id="3"]
+[ext_resource type="Resource" path="res://content/base/effects/reward_mira_affinity.tres" id="4"]
 
 [sub_resource type="Resource" id="obj_talk"]
 script = ExtResource("2")
@@ -10,6 +12,8 @@ display_text = "Talk to Mira"
 objective_type = 0
 target_id = &"mira"
 required_count = 1
+event_type = &"npc_talked"
+target_definition_id = &"mira"
 
 [sub_resource type="Resource" id="obj_collect"]
 script = ExtResource("2")
@@ -18,7 +22,9 @@ display_text = "Collect a forest herb"
 objective_type = 2
 target_id = &"herb"
 required_count = 1
-region_id = &"wilderness"
+region_id = &"base:wilderness"
+event_type = &"item_collected"
+target_definition_id = &"herb"
 
 [sub_resource type="Resource" id="obj_deliver"]
 script = ExtResource("2")
@@ -27,7 +33,9 @@ display_text = "Return to Mira"
 objective_type = 3
 target_id = &"mira"
 required_count = 1
-region_id = &"town"
+region_id = &"base:town"
+event_type = &"item_delivered"
+target_definition_id = &"herb"
 
 [resource]
 script = ExtResource("1")
@@ -36,5 +44,4 @@ display_name = "Mira's Errand"
 description = "Help Mira gather a herb from the forest."
 giver_npc_id = &"mira"
 objectives = [SubResource("obj_talk"), SubResource("obj_collect"), SubResource("obj_deliver")]
-reward_affinity = {"mira": 15.0}
-reward_items = {"gift_box": 1}
+reward_effects = Array[ExtResource("3")]([ExtResource("3"), ExtResource("4")])

@@ -1,6 +1,6 @@
-# Architecture (Godot 0.6.0)
+# Architecture (Godot 0.7.0)
 
-Runnable **Vertical Slice** + **Combat Lab** on **Jolt Physics**. Legacy 2D survival remains under `scenes/gameplay/`.
+Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [docs/WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the 0.7.0 world service split, Save v4, and region dynamic loading.
 
 ## Jolt Physics Foundation
 

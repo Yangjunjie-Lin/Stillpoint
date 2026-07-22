@@ -1,0 +1,140 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/npc_controller.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/npcs/bandit.tres" id="2"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/components/energy_component.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/components/faction_component.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/components/relationship_component.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/components/interaction_component.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/components/combat_component.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/components/skill_component.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/components/status_effect_component.gd" id="10"]
+[ext_resource type="Script" path="res://scripts/combat/hurtbox_3d.gd" id="11"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox_3d.gd" id="12"]
+[ext_resource type="Resource" path="res://resources/attacks/basic_melee.tres" id="13"]
+[ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="14"]
+[ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="15"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="StandardMaterial3D" id="Mat_dungeon"]
+albedo_color = Color(0.35, 0.32, 0.38, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="CapsuleShape3D" id="Capsule_npc"]
+radius = 0.4
+height = 1.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_npc"]
+size = Vector3(0.7, 1.5, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat_bandit"]
+albedo_color = Color(0.7, 0.3, 0.2, 1)
+
+[node name="RegionRoot" type="Node3D"]
+
+[node name="Environment" type="Node3D" parent="."]
+
+[node name="Floor" type="MeshInstance3D" parent="Environment"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("Mat_dungeon")
+
+[node name="StaticPhysics" type="Node3D" parent="."]
+
+[node name="FloorBody" type="StaticBody3D" parent="StaticPhysics"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticPhysics/FloorBody"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Navigation" type="Node3D" parent="."]
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="spawn" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+
+[node name="EntitySpawns" type="Node3D" parent="."]
+
+[node name="StaticEntities" type="Node3D" parent="."]
+
+[node name="Bandit" type="CharacterBody3D" parent="StaticEntities"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.0, -5)
+script = ExtResource("1")
+npc_definition = ExtResource("2")
+
+[node name="WorldEntityIdentity" type="Node" parent="StaticEntities/Bandit"]
+script = ExtResource("14")
+persistent_id = &"base:dungeon/npc/bandit_0001"
+definition_id = &"bandit"
+region_id = &"base:dungeon"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticEntities/Bandit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_npc")
+
+[node name="Visual" type="MeshInstance3D" parent="StaticEntities/Bandit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("BoxMesh_npc")
+surface_material_override/0 = SubResource("Mat_bandit")
+
+[node name="HealthComponent" type="Node" parent="StaticEntities/Bandit"]
+script = ExtResource("3")
+
+[node name="EnergyComponent" type="Node" parent="StaticEntities/Bandit"]
+script = ExtResource("4")
+
+[node name="FactionComponent" type="Node" parent="StaticEntities/Bandit"]
+script = ExtResource("5")
+
+[node name="RelationshipComponent" type="Node" parent="StaticEntities/Bandit"]
+script = ExtResource("6")
+
+[node name="InteractionComponent" type="Node" parent="StaticEntities/Bandit"]
+script = ExtResource("7")
+
+[node name="CombatComponent" type="Node" parent="StaticEntities/Bandit"]
+script = ExtResource("8")
+attack = ExtResource("13")
+
+[node name="SkillComponent" type="Node" parent="StaticEntities/Bandit"]
+script = ExtResource("9")
+
+[node name="StatusEffectComponent" type="Node" parent="StaticEntities/Bandit"]
+script = ExtResource("10")
+
+[node name="HitboxRoot" type="Node3D" parent="StaticEntities/Bandit"]
+
+[node name="Hitbox3D" type="Area3D" parent="StaticEntities/Bandit/HitboxRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1)
+script = ExtResource("12")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticEntities/Bandit/HitboxRoot/Hitbox3D"]
+shape = SubResource("Capsule_npc")
+
+[node name="Hurtbox3D" type="Area3D" parent="StaticEntities/Bandit"]
+script = ExtResource("11")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticEntities/Bandit/Hurtbox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_npc")
+
+[node name="Interactables" type="Node3D" parent="."]
+
+[node name="TownPortal" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("15")
+region_id = &"base:dungeon"
+target_region_id = &"base:town"
+prompt_text = "Return to Town"
+
+[node name="LocalEffects" type="Node3D" parent="."]
+
+[node name="RegionServices" type="Node3D" parent="."]

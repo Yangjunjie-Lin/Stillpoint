@@ -1,0 +1,207 @@
+[gd_scene load_steps=20 format=3 uid="uid://worldsession001"]
+
+[ext_resource type="Script" path="res://scripts/world/session/world_session.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/world/camera_controller.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/world/entities/world_entity_repository.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/world/services/actor_factory.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/world/services/region_runtime_service.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/world/services/interaction_index.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/world/services/dialogue_coordinator.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/world/services/quest_event_router.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/world/save/world_save_coordinator.gd" id="10"]
+[ext_resource type="Script" path="res://scripts/world/services/world_simulation_service.gd" id="11"]
+[ext_resource type="Script" path="res://scripts/world/state/world_flag_service.gd" id="12"]
+[ext_resource type="Script" path="res://scripts/pets/pet_controller.gd" id="13"]
+[ext_resource type="Script" path="res://scripts/mounts/mount_controller.gd" id="14"]
+[ext_resource type="Script" path="res://scripts/components/energy_component.gd" id="15"]
+[ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="16"]
+[ext_resource type="Script" path="res://scripts/ui/rpg/hud_controller.gd" id="17"]
+[ext_resource type="Script" path="res://scripts/ui/rpg/dialogue_ui.gd" id="18"]
+[ext_resource type="Script" path="res://scripts/world/debug/world_architecture_debug_panel.gd" id="19"]
+
+[sub_resource type="CapsuleShape3D" id="Capsule_companion"]
+radius = 0.4
+height = 1.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_companion"]
+size = Vector3(0.7, 1.5, 0.7)
+
+[node name="WorldSession" type="Node3D"]
+script = ExtResource("1")
+player_scene = ExtResource("2")
+initial_region_id = &"base:town"
+
+[node name="PersistentRoot" type="Node3D" parent="."]
+
+[node name="PlayerRoot" type="Node3D" parent="PersistentRoot"]
+
+[node name="CompanionRoot" type="Node3D" parent="PersistentRoot"]
+
+[node name="Pet" type="CharacterBody3D" parent="PersistentRoot/CompanionRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, -1)
+script = ExtResource("13")
+
+[node name="WorldEntityIdentity" type="Node" parent="PersistentRoot/CompanionRoot/Pet"]
+script = ExtResource("16")
+persistent_id = &"base:town/companion/pet"
+definition_id = &"pet"
+persistence_policy = 3
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PersistentRoot/CompanionRoot/Pet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("Capsule_companion")
+
+[node name="Visual" type="MeshInstance3D" parent="PersistentRoot/CompanionRoot/Pet"]
+mesh = SubResource("BoxMesh_companion")
+
+[node name="Mount" type="CharacterBody3D" parent="PersistentRoot/CompanionRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.0, -2)
+script = ExtResource("14")
+
+[node name="WorldEntityIdentity" type="Node" parent="PersistentRoot/CompanionRoot/Mount"]
+script = ExtResource("16")
+persistent_id = &"base:town/companion/mount"
+definition_id = &"mount"
+persistence_policy = 3
+
+[node name="EnergyComponent" type="Node" parent="PersistentRoot/CompanionRoot/Mount"]
+script = ExtResource("15")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PersistentRoot/CompanionRoot/Mount"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("Capsule_companion")
+
+[node name="Visual" type="MeshInstance3D" parent="PersistentRoot/CompanionRoot/Mount"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("BoxMesh_companion")
+
+[node name="PersistentEffectsRoot" type="Node3D" parent="PersistentRoot"]
+
+[node name="ActiveRegionSlot" type="Node3D" parent="."]
+
+[node name="WorldServices" type="Node" parent="."]
+
+[node name="WorldEntityRepository" type="Node" parent="WorldServices"]
+script = ExtResource("4")
+
+[node name="ActorFactory" type="Node" parent="WorldServices"]
+script = ExtResource("5")
+
+[node name="RegionRuntimeService" type="Node" parent="WorldServices"]
+script = ExtResource("6")
+
+[node name="InteractionIndex" type="Node" parent="WorldServices"]
+script = ExtResource("7")
+
+[node name="DialogueCoordinator" type="Node" parent="WorldServices"]
+script = ExtResource("8")
+
+[node name="QuestEventRouter" type="Node" parent="WorldServices"]
+script = ExtResource("9")
+
+[node name="WorldSaveCoordinator" type="Node" parent="WorldServices"]
+script = ExtResource("10")
+
+[node name="WorldSimulationService" type="Node" parent="WorldServices"]
+script = ExtResource("11")
+
+[node name="WorldFlagService" type="Node" parent="WorldServices"]
+script = ExtResource("12")
+
+[node name="CameraRig" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 12)
+script = ExtResource("3")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+current = true
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+
+[node name="WorldUI" type="CanvasLayer" parent="."]
+script = ExtResource("17")
+
+[node name="VBox" type="VBoxContainer" parent="WorldUI"]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 420.0
+offset_bottom = 220.0
+
+[node name="HealthLabel" type="Label" parent="WorldUI/VBox"]
+text = "HP: 100"
+
+[node name="EnergyLabel" type="Label" parent="WorldUI/VBox"]
+text = "EN: 100"
+
+[node name="TimeLabel" type="Label" parent="WorldUI/VBox"]
+text = "Day 1  08:00"
+
+[node name="RegionLabel" type="Label" parent="WorldUI/VBox"]
+text = "Region: Town"
+
+[node name="MoveLabel" type="Label" parent="WorldUI/VBox"]
+text = "Walk"
+
+[node name="InteractLabel" type="Label" parent="WorldUI/VBox"]
+text = ""
+
+[node name="HotbarLabel" type="Label" parent="WorldUI/VBox"]
+text = "Hotbar: 1"
+
+[node name="TargetLabel" type="Label" parent="WorldUI/VBox"]
+text = ""
+
+[node name="QuestLabel" type="Label" parent="WorldUI/VBox"]
+text = "Quest: --"
+
+[node name="DialoguePanel" type="PanelContainer" parent="WorldUI"]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -280.0
+offset_top = -260.0
+offset_right = 280.0
+offset_bottom = -20.0
+script = ExtResource("18")
+
+[node name="Margin" type="MarginContainer" parent="WorldUI/DialoguePanel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="WorldUI/DialoguePanel/Margin"]
+
+[node name="SpeakerLabel" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+text = "Speaker"
+
+[node name="BodyLabel" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+autowrap_mode = 3
+text = "..."
+
+[node name="ChoicesContainer" type="VBoxContainer" parent="WorldUI/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+
+[node name="ContinueHint" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+text = "..."
+
+[node name="DebugTools" type="CanvasLayer" parent="."]
+visible = false
+script = ExtResource("19")
+
+[node name="Panel" type="PanelContainer" parent="DebugTools"]
+offset_left = 500.0
+offset_top = 12.0
+offset_right = 900.0
+offset_bottom = 300.0
+
+[node name="Label" type="Label" parent="DebugTools/Panel"]
+unique_name_in_owner = true
+text = "World Debug"

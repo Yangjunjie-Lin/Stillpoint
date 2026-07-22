@@ -3,7 +3,8 @@ extends Node
 
 const MAIN_MENU := "res://scenes/ui/main_menu.tscn"
 const GAMEPLAY := "res://scenes/gameplay/gameplay.tscn"
-const VERTICAL_SLICE := "res://scenes/world/vertical_slice.tscn"
+const VERTICAL_SLICE := "res://scenes/world/world_session.tscn"
+const WORLD_SESSION := "res://scenes/world/world_session.tscn"
 const COMBAT_LAB := "res://scenes/combat/combat_lab.tscn"
 const SURVIVAL_PROTOTYPE := "res://scenes/gameplay/gameplay.tscn"
 
@@ -19,7 +20,11 @@ func go_to_gameplay() -> void:
 
 
 func go_to_vertical_slice() -> void:
-	change_scene(VERTICAL_SLICE)
+	change_scene(WORLD_SESSION)
+
+
+func go_to_world_session() -> void:
+	change_scene(WORLD_SESSION)
 
 
 func go_to_combat_lab() -> void:

@@ -8,3 +8,6 @@ extends Resource
 @export var next_node_id: StringName = &""
 @export var affinity_requirement: float = -100.0
 @export var requires_not_attacked: bool = false
+@export var conditions: Array[WorldCondition] = []
+@export var enter_effects: Array[WorldEffect] = []
+@export var exit_effects: Array[WorldEffect] = []

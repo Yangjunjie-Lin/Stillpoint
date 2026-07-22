@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="HasItemCondition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/has_item_condition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+item_id = &"herb"
+min_count = 1

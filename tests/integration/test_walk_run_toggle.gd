@@ -3,10 +3,8 @@ extends RefCounted
 
 func run() -> bool:
 	var tree := Engine.get_main_loop() as SceneTree
-	var packed: PackedScene = load("res://scenes/world/vertical_slice.tscn") as PackedScene
-	var world := packed.instantiate() as WorldManager
-	tree.root.add_child(world)
-	await tree.physics_frame
+	var world := WorldTestHelper.boot_world(tree)
+	await WorldTestHelper.await_frames(tree)
 	var player := world.player
 	if player == null or player.energy == null:
 		world.free()

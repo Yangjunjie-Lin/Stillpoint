@@ -54,6 +54,15 @@ func register_quest(def: QuestDefinition) -> void:
 
 func register_region(def: RegionDefinition) -> void:
 	_put(_regions, def.id if def else &"", def, "region")
+	# Legacy alias registration for migration and tests.
+	if def != null:
+		match String(def.id):
+			"base:town":
+				_regions[&"town"] = def
+			"base:wilderness":
+				_regions[&"wilderness"] = def
+			"base:dungeon":
+				_regions[&"dungeon"] = def
 
 
 func register_pet(def: PetDefinition) -> void:
@@ -145,6 +154,7 @@ func get_level(id: StringName) -> LevelDefinition:
 
 
 func load_defaults() -> void:
+	_register_content_pack("res://content/base/")
 	_register_dir("res://resources/characters/", register_character)
 	_register_dir("res://resources/npcs/", register_npc)
 	_register_dir("res://resources/factions/", register_faction)
@@ -171,12 +181,25 @@ func _register_dir(dir_path: String, registrar: Callable) -> void:
 	dir.list_dir_begin()
 	var file_name := dir.get_next()
 	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".tres"):
+		if dir.current_is_dir() and not file_name.begins_with("."):
+			_register_dir(dir_path.path_join(file_name), registrar)
+		elif not dir.current_is_dir() and file_name.ends_with(".tres"):
 			var res: Resource = load(dir_path.path_join(file_name))
 			if res != null:
 				registrar.call(res)
 		file_name = dir.get_next()
 	dir.list_dir_end()
+
+
+func _register_content_pack(pack_path: String) -> void:
+	_register_dir(pack_path, _register_content_resource)
+
+
+func _register_content_resource(res: Resource) -> void:
+	if res is WorldEffect or res is WorldCondition:
+		pass  # Content pack resources loaded for editor reference; not indexed globally.
+	elif res is DialogueSelectorDefinition:
+		pass
 
 
 func _put(bucket: Dictionary, id: StringName, value: Resource, kind: String) -> void:
