@@ -7,6 +7,6 @@ extends WorldEffect
 
 func apply(context: WorldEffectContext) -> EffectResult:
 	if context.session_context == null or context.session_context.world_flags == null:
-		return EffectResult.failure("no world flags")
+		return EffectResult.fail("no world flags")
 	context.session_context.world_flags.set_value(flag_id, value)
-	return EffectResult.success()
+	return EffectResult.ok()

@@ -8,8 +8,8 @@ extends WorldEffect
 
 func apply(context: WorldEffectContext) -> EffectResult:
 	if context.session_context == null or context.session_context.quest_manager == null:
-		return EffectResult.failure("no quest manager")
+		return EffectResult.fail("no quest manager")
 	var ok: bool = context.session_context.quest_manager.call(
 		"advance_objective", quest_id, objective_id, amount,
 	)
-	return EffectResult.success() if ok else EffectResult.failure("advance failed")
+	return EffectResult.ok() if ok else EffectResult.fail("advance failed")

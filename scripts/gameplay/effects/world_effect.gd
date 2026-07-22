@@ -6,7 +6,7 @@ extends Resource
 
 
 func apply(_context: WorldEffectContext) -> EffectResult:
-	return EffectResult.success()
+	return EffectResult.ok()
 
 
 static func apply_sequence(
@@ -19,4 +19,4 @@ static func apply_sequence(
 		var result := effect.apply(context)
 		if effect.required_success and not result.success:
 			return result
-	return EffectResult.success()
+	return EffectResult.ok()

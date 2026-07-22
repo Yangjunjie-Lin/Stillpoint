@@ -9,10 +9,10 @@ extends WorldEffect
 
 func apply(context: WorldEffectContext) -> EffectResult:
 	if context.session_context == null or context.session_context.world_session == null:
-		return EffectResult.failure("no session")
+		return EffectResult.fail("no session")
 	var session := context.session_context.world_session as WorldSession
 	if session == null:
-		return EffectResult.failure("no session")
+		return EffectResult.fail("no session")
 	var ev := GameplayEvent.make(
 		event_type,
 		context.source_entity_id,
@@ -21,4 +21,4 @@ func apply(context: WorldEffectContext) -> EffectResult:
 		region_id if region_id != &"" else context.session_context.current_region_id,
 	)
 	session.event_bus.emit_event(ev)
-	return EffectResult.success()
+	return EffectResult.ok()

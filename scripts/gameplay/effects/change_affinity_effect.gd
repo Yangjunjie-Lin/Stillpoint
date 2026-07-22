@@ -8,6 +8,6 @@ extends WorldEffect
 
 func apply(_context: WorldEffectContext) -> EffectResult:
 	if npc_id == &"":
-		return EffectResult.failure("empty npc")
+		return EffectResult.fail("empty npc")
 	RelationshipService.change_affinity(npc_id, delta, reason)
-	return EffectResult.success()
+	return EffectResult.ok()

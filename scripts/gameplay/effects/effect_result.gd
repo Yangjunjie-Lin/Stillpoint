@@ -5,14 +5,14 @@ var success: bool = true
 var message: String = ""
 
 
-static func success(msg: String = "") -> EffectResult:
+static func ok(msg: String = "") -> EffectResult:
 	var r := EffectResult.new()
 	r.success = true
 	r.message = msg
 	return r
 
 
-static func failure(msg: String = "") -> EffectResult:
+static func fail(msg: String = "") -> EffectResult:
 	var r := EffectResult.new()
 	r.success = false
 	r.message = msg

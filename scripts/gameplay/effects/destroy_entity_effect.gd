@@ -6,7 +6,7 @@ extends WorldEffect
 
 func apply(context: WorldEffectContext) -> EffectResult:
 	if context.session_context == null or context.session_context.entity_repository == null:
-		return EffectResult.failure("no repository")
+		return EffectResult.fail("no repository")
 	var repo := context.session_context.entity_repository
 	var entity := repo.get_loaded_entity(persistent_id)
 	if entity != null:
@@ -18,4 +18,4 @@ func apply(context: WorldEffectContext) -> EffectResult:
 	snap.destroyed = true
 	repo.store_snapshot(snap)
 	repo.mark_dirty(persistent_id)
-	return EffectResult.success()
+	return EffectResult.ok()

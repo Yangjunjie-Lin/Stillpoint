@@ -7,4 +7,4 @@ extends WorldEffect
 func apply(_context: WorldEffectContext) -> EffectResult:
 	if message != "":
 		EventBus.notice_requested.emit(message)
-	return EffectResult.success()
+	return EffectResult.ok()
