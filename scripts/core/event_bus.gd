@@ -18,3 +18,6 @@ signal dialogue_finished
 signal request_world_save
 signal region_changed(region_id: StringName)
 signal affinity_changed_notice(npc_id: StringName, delta: float)
+signal combat_hit_confirmed(data: CombatHitResult)
+signal combat_block_confirmed(data: CombatHitResult)
+signal combat_guard_broken(data: CombatHitResult)

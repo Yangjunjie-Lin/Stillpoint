@@ -168,6 +168,7 @@ func from_dict(data: Dictionary) -> void:
 		float(pos.get("y", global_position.y)),
 		float(pos.get("z", global_position.z)),
 	)
+	reset_physics_interpolation()
 	if health != null:
 		health.from_dict(data.get("health", {}))
 	if energy != null:

@@ -1,6 +1,25 @@
-# Architecture (Godot 0.5.1)
+# Architecture (Godot 0.6.0)
 
-Runnable **Vertical Slice** for the isekai life-sim RPG foundation. Legacy 2D survival remains under `scenes/gameplay/`.
+Runnable **Vertical Slice** + **Combat Lab** on **Jolt Physics**. Legacy 2D survival remains under `scenes/gameplay/`.
+
+## Jolt Physics Foundation
+
+Project explicitly sets `physics/3d/physics_engine="Jolt Physics"`, 60 TPS, physics interpolation, single-threaded physics for deterministic tests. `PhysicsSettingsService` verifies backend at boot.
+
+Characters stay on `CharacterBody3D`; props use `RigidBody3D` / `StaticBody3D`.
+
+## Combat Animation Pipeline
+
+```text
+Input → CombatComponent.request_attack()
+→ CombatAnimationController (AnimationPlayer events)
+→ open/close attack & combo windows
+→ Hitbox3D + MeleeSweep3D
+→ unified damage pipeline
+→ KnockbackComponent / HitStopController / CombatFeedbackController
+```
+
+Attack timing is **animation-event driven**; timers are watchdog-only.
 
 ## Unified Damage Pipeline
 
@@ -52,4 +71,4 @@ Real PetController/MountController state serialized (bond, mode, position, regio
 
 ## Async Integration Tests
 
-`tests/test_runner.gd` awaits coroutines, resets autoload state between tests, and cleans world saves.
+`tests/test_runner.gd` awaits coroutines, resets autoload state between tests, and cleans world saves. **79** tests including Jolt, animation windows, sweep, knockback, hit stop, Combat Lab smoke, and life-sim regression.

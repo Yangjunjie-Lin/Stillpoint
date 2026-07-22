@@ -74,6 +74,11 @@ custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 text = "Survival Prototype"
 
+[node name="CombatLabButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+text = "Combat Lab"
+
 [node name="SettingsButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
@@ -214,6 +219,7 @@ text = "Save & Close"
 [connection signal="pressed" from="Center/VBox/ContinueButton" to="." method="_on_continue_pressed"]
 [connection signal="pressed" from="Center/VBox/StartButton" to="." method="_on_start_pressed"]
 [connection signal="pressed" from="Center/VBox/SurvivalButton" to="." method="_on_survival_pressed"]
+[connection signal="pressed" from="Center/VBox/CombatLabButton" to="." method="_on_combat_lab_pressed"]
 [connection signal="pressed" from="Center/VBox/SettingsButton" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="Center/VBox/QuitButton" to="." method="_on_quit_pressed"]
 [connection signal="pressed" from="ConfirmPanel/Panel/ConfirmYes" to="." method="_on_confirm_new_game"]

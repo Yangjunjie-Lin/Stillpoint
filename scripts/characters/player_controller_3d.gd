@@ -26,11 +26,19 @@ func _ready() -> void:
 	_collision_shape = get_node_or_null("CollisionShape3D") as CollisionShape3D
 	_resolve_camera()
 	if combat != null:
-		var hb := get_node_or_null("HitboxRoot/Hitbox3D") as Hitbox3D
+		var hb := get_node_or_null("CombatPivot/HitboxRoot/Hitbox3D") as Hitbox3D
+		if hb == null:
+			hb = get_node_or_null("HitboxRoot/Hitbox3D") as Hitbox3D
 		if hb != null:
 			combat.hitbox = hb
 			hb.source = self
 			hb.team = &"player"
+		var sweep := get_node_or_null("MeleeSweepRoot/MeleeSweep3D") as MeleeSweep3D
+		if sweep != null:
+			combat.melee_sweep = sweep
+			sweep.source = self
+			sweep.team = &"player"
+		combat.light_attack_ids = [&"attack_light_1", &"attack_light_2", &"attack_light_3"]
 	if definition != null:
 		_jump_velocity = definition.jump_velocity
 		_walk_speed = definition.walk_speed
@@ -39,18 +47,28 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	var knockback := get_node_or_null("KnockbackComponent") as KnockbackComponent
 	if not state.input_enabled:
 		velocity.y -= _gravity * delta
+		if knockback != null:
+			velocity += knockback.get_combined_horizontal()
+			knockback.tick(delta)
 		move_and_slide()
 		return
 	game_time += delta
 	if state.can_move():
-		_handle_movement(delta)
+		_handle_movement(delta, knockback)
 	else:
 		velocity.y -= _gravity * delta
+		if knockback != null:
+			velocity += knockback.get_combined_horizontal()
+			knockback.tick(delta)
 		move_and_slide()
 	if energy != null:
 		energy.tick(delta, state.is_running and is_on_floor(), combat.is_guarding if combat else false)
+	var anim := get_node_or_null("CombatAnimationController") as CombatAnimationController
+	if anim != null:
+		anim.set_locomotion(velocity, is_on_floor(), state.is_crouching)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -71,8 +89,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_stand()
 	elif event.is_action_pressed(&"normal_attack"):
 		if combat != null and state.can_attack():
-			if combat.try_attack(energy):
-				state.current = CharacterState.State.ATTACK
+			combat.request_attack(&"attack_light_1")
 	elif event.is_action_pressed(&"interact"):
 		_try_interact()
 	elif event.is_action_pressed(&"hotbar_next"):
@@ -84,7 +101,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		combat.set_guarding(Input.is_action_pressed(&"guard") and state.can_attack())
 
 
-func _handle_movement(delta: float) -> void:
+func _handle_movement(delta: float, knockback: KnockbackComponent = null) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	else:
@@ -100,6 +117,9 @@ func _handle_movement(delta: float) -> void:
 		self, camera_basis, input_dir, velocity, speed, acceleration, deceleration, delta
 	)
 	velocity = MovementMotor.clamp_diagonal_speed(velocity, speed)
+	if knockback != null:
+		velocity += knockback.get_combined_horizontal()
+		knockback.tick(delta)
 	if input_dir.length_squared() > 0.001:
 		var look := Vector3(velocity.x, 0.0, velocity.z).normalized()
 		if look.length_squared() > 0.001:

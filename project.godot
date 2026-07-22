@@ -7,7 +7,7 @@ config_version=5
 
 config/name="Stillpoint"
 config/description="An isekai life-sim RPG foundation with exploration, relationships, and light action."
-config/version="0.5.1"
+config/version="0.6.0"
 run/main_scene="res://scenes/bootstrap/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/characters/player_up.png"
@@ -24,6 +24,7 @@ GameManager="*res://scripts/core/game_manager.gd"
 SceneRouter="*res://scripts/core/scene_router.gd"
 SaveService="*res://scripts/core/save_service.gd"
 WorldSaveService="*res://scripts/core/world_save_service.gd"
+PhysicsSettingsService="*res://scripts/core/physics_settings_service.gd"
 AudioManager="*res://scripts/core/audio_manager.gd"
 
 [display]
@@ -173,6 +174,14 @@ shoot={
 3d_physics/layer_5="interactable"
 3d_physics/layer_6="hurtbox"
 3d_physics/layer_7="hitbox"
+3d_physics/layer_8="physics_prop"
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+common/physics_interpolation=true
+common/physics_ticks_per_second=60
+3d/run_on_separate_thread=false
 
 [audio]
 

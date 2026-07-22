@@ -92,6 +92,11 @@ func _on_survival_pressed() -> void:
 	GameManager.start_new_run(name_edit.text)
 
 
+func _on_combat_lab_pressed() -> void:
+	GameManager.player_name = name_edit.text
+	SceneRouter.go_to_combat_lab()
+
+
 func _on_confirm_new_game() -> void:
 	confirm_panel.visible = false
 	_begin_new_adventure()
