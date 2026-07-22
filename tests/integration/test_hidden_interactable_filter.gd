@@ -5,17 +5,16 @@ func run() -> bool:
 	var tree := Engine.get_main_loop() as SceneTree
 	var world := WorldTestHelper.boot_world(tree)
 	await WorldTestHelper.await_frames(tree)
-	world.transition_to(&"base:town")
-	await tree.process_frame
-	var herb := WorldTestHelper.find_pickup(world)
-	if herb == null:
-		world.free()
-		return false
-	var ok := not herb.is_interaction_enabled() or herb.region_id != &"base:wilderness"
+	# Herb only exists in wilderness region scene.
+	var herb_town := WorldTestHelper.find_pickup(world)
+	var ok := herb_town == null
 	world.transition_to(&"base:wilderness")
-	await tree.process_frame
+	await WorldTestHelper.await_frames(tree)
+	var herb := WorldTestHelper.find_pickup(world)
+	ok = ok and herb != null and herb.is_interaction_enabled()
+	world.transition_to(&"base:town")
+	await WorldTestHelper.await_frames(tree)
 	herb = WorldTestHelper.find_pickup(world)
-	ok = herb != null and herb.is_interaction_enabled()
-	ok = ok and herb.region_id == &"base:wilderness"
+	ok = ok and herb == null
 	world.free()
 	return ok

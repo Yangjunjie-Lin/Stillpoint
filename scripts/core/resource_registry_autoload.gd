@@ -154,13 +154,12 @@ func get_level(id: StringName) -> LevelDefinition:
 
 
 func load_defaults() -> void:
-	_register_content_pack("res://content/base/")
+	_register_dir("res://content/base/", _register_content_resource, true)
 	_register_dir("res://resources/characters/", register_character)
 	_register_dir("res://resources/npcs/", register_npc)
 	_register_dir("res://resources/factions/", register_faction)
 	_register_dir("res://resources/skills/", register_skill)
 	_register_dir("res://resources/items/", register_item)
-	_register_dir("res://resources/items/rpg/", register_item)
 	_register_dir("res://resources/dialogues/", register_dialogue)
 	_register_dir("res://resources/quests/", register_quest)
 	_register_dir("res://resources/regions/", register_region)
@@ -174,25 +173,21 @@ func load_defaults() -> void:
 	_register_dir("res://resources/levels/", register_level)
 
 
-func _register_dir(dir_path: String, registrar: Callable) -> void:
+func _register_dir(dir_path: String, registrar: Callable, recursive: bool = false) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
 		return
 	dir.list_dir_begin()
 	var file_name := dir.get_next()
 	while file_name != "":
-		if dir.current_is_dir() and not file_name.begins_with("."):
-			_register_dir(dir_path.path_join(file_name), registrar)
+		if recursive and dir.current_is_dir() and not file_name.begins_with("."):
+			_register_dir(dir_path.path_join(file_name), registrar, true)
 		elif not dir.current_is_dir() and file_name.ends_with(".tres"):
 			var res: Resource = load(dir_path.path_join(file_name))
 			if res != null:
 				registrar.call(res)
 		file_name = dir.get_next()
 	dir.list_dir_end()
-
-
-func _register_content_pack(pack_path: String) -> void:
-	_register_dir(pack_path, _register_content_resource)
 
 
 func _register_content_resource(res: Resource) -> void:
