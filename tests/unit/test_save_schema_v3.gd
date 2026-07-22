@@ -3,15 +3,20 @@ extends RefCounted
 
 func run() -> bool:
 	var payload := {
-		"profile": {},
-		"player": {},
-		"world": {},
+		"profile": {"player_name": "Tester"},
+		"player": {
+			"position": {"x": 0.0, "y": 1.0, "z": 0.0},
+			"health": {"max_health": 100.0, "current_health": 100.0},
+		},
+		"world": {"day": 1, "hour": 8, "minute": 0},
 		"relationships": {},
 		"quests": {},
 		"inventory": {},
 		"pets": {},
 		"mounts": {},
-		"regions": {},
+		"npcs": {},
+		"interactables": {},
+		"regions": {"current": "town", "discovered": ["town"]},
 	}
 	if not WorldSaveService.save_world(payload):
 		return false

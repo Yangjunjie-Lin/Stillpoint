@@ -27,6 +27,10 @@
 [ext_resource type="Script" path="res://scripts/mounts/mount_controller.gd" id="25"]
 [ext_resource type="Script" path="res://scripts/interaction/mount_interactable.gd" id="26"]
 [ext_resource type="Script" path="res://scripts/ui/rpg/hud_controller.gd" id="27"]
+[ext_resource type="Resource" path="res://resources/attacks/basic_melee.tres" id="28"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox_3d.gd" id="29"]
+[ext_resource type="Script" path="res://scripts/ui/rpg/dialogue_ui.gd" id="30"]
+[ext_resource type="Script" path="res://scripts/components/energy_component.gd" id="31"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -56,6 +60,10 @@ albedo_color = Color(0.5, 0.6, 0.9, 1)
 [sub_resource type="StandardMaterial3D" id="Mat_bandit"]
 albedo_color = Color(0.7, 0.3, 0.2, 1)
 
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(40, 0.2, 40)
+
 [node name="VerticalSlice" type="Node3D"]
 script = ExtResource("1")
 player_scene = ExtResource("2")
@@ -80,11 +88,21 @@ transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("Mat_town")
 
+[node name="FloorBody" type="StaticBody3D" parent="Regions/town"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Regions/town/FloorBody"]
+shape = SubResource("BoxShape3D_floor")
+
 [node name="spawn" type="Marker3D" parent="Regions/town"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 
 [node name="shop" type="Marker3D" parent="Regions/town"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.5, 3)
+
+[node name="plaza" type="Marker3D" parent="Regions/town"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.0, -3)
 
 [node name="wilderness" type="Node3D" parent="Regions"]
 visible = false
@@ -93,8 +111,15 @@ visible = false
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("Mat_wild")
 
+[node name="FloorBody" type="StaticBody3D" parent="Regions/wilderness"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Regions/wilderness/FloorBody"]
+shape = SubResource("BoxShape3D_floor")
+
 [node name="spawn" type="Marker3D" parent="Regions/wilderness"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 
 [node name="dungeon" type="Node3D" parent="Regions"]
 visible = false
@@ -103,13 +128,20 @@ visible = false
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("Mat_dungeon")
 
+[node name="FloorBody" type="StaticBody3D" parent="Regions/dungeon"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Regions/dungeon/FloorBody"]
+shape = SubResource("BoxShape3D_floor")
+
 [node name="spawn" type="Marker3D" parent="Regions/dungeon"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 
 [node name="Actors" type="Node3D" parent="."]
 
 [node name="Mira" type="CharacterBody3D" parent="Actors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1.0, 2)
 script = ExtResource("4")
 npc_definition = ExtResource("5")
 
@@ -139,6 +171,7 @@ script = ExtResource("12")
 
 [node name="CombatComponent" type="Node" parent="Actors/Mira"]
 script = ExtResource("13")
+attack = ExtResource("28")
 
 [node name="SkillComponent" type="Node" parent="Actors/Mira"]
 script = ExtResource("14")
@@ -150,6 +183,16 @@ script = ExtResource("15")
 script = ExtResource("16")
 schedule = ExtResource("17")
 
+[node name="HitboxRoot" type="Node3D" parent="Actors/Mira"]
+
+[node name="Hitbox3D" type="Area3D" parent="Actors/Mira/HitboxRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1)
+script = ExtResource("29")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Mira/HitboxRoot/Hitbox3D"]
+shape = SubResource("Capsule_npc")
+
 [node name="Hurtbox3D" type="Area3D" parent="Actors/Mira"]
 script = ExtResource("18")
 team = &"npc"
@@ -159,7 +202,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
 [node name="Ren" type="CharacterBody3D" parent="Actors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.0, 4)
 script = ExtResource("4")
 npc_definition = ExtResource("6")
 
@@ -189,12 +232,23 @@ script = ExtResource("12")
 
 [node name="CombatComponent" type="Node" parent="Actors/Ren"]
 script = ExtResource("13")
+attack = ExtResource("28")
 
 [node name="SkillComponent" type="Node" parent="Actors/Ren"]
 script = ExtResource("14")
 
 [node name="StatusEffectComponent" type="Node" parent="Actors/Ren"]
 script = ExtResource("15")
+
+[node name="HitboxRoot" type="Node3D" parent="Actors/Ren"]
+
+[node name="Hitbox3D" type="Area3D" parent="Actors/Ren/HitboxRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1)
+script = ExtResource("29")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Ren/HitboxRoot/Hitbox3D"]
+shape = SubResource("Capsule_npc")
 
 [node name="Hurtbox3D" type="Area3D" parent="Actors/Ren"]
 script = ExtResource("18")
@@ -205,7 +259,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
 [node name="Bandit" type="CharacterBody3D" parent="Actors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.0, -5)
 visible = false
 script = ExtResource("4")
 npc_definition = ExtResource("7")
@@ -236,12 +290,23 @@ script = ExtResource("12")
 
 [node name="CombatComponent" type="Node" parent="Actors/Bandit"]
 script = ExtResource("13")
+attack = ExtResource("28")
 
 [node name="SkillComponent" type="Node" parent="Actors/Bandit"]
 script = ExtResource("14")
 
 [node name="StatusEffectComponent" type="Node" parent="Actors/Bandit"]
 script = ExtResource("15")
+
+[node name="HitboxRoot" type="Node3D" parent="Actors/Bandit"]
+
+[node name="Hitbox3D" type="Area3D" parent="Actors/Bandit/HitboxRoot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -1)
+script = ExtResource("29")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Bandit/HitboxRoot/Hitbox3D"]
+shape = SubResource("Capsule_npc")
 
 [node name="Hurtbox3D" type="Area3D" parent="Actors/Bandit"]
 script = ExtResource("18")
@@ -252,15 +317,22 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
 [node name="Pet" type="CharacterBody3D" parent="Actors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, -1)
 script = ExtResource("23")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Pet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("Capsule_npc")
 
 [node name="Visual" type="MeshInstance3D" parent="Actors/Pet"]
 mesh = SubResource("BoxMesh_npc")
 
 [node name="Mount" type="CharacterBody3D" parent="Actors"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.0, -2)
 script = ExtResource("25")
+
+[node name="EnergyComponent" type="Node" parent="Actors/Mount"]
+script = ExtResource("31")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Mount"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
@@ -273,12 +345,12 @@ mesh = SubResource("BoxMesh_npc")
 [node name="Interactables" type="Node3D" parent="."]
 
 [node name="MiraTalk" type="Node3D" parent="Interactables"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1.0, 2)
 script = ExtResource("19")
 npc_path = NodePath("../../Actors/Mira")
 
 [node name="RenTalk" type="Node3D" parent="Interactables"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.0, 4)
 script = ExtResource("19")
 npc_path = NodePath("../../Actors/Ren")
 
@@ -312,12 +384,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -3)
 script = ExtResource("22")
 
 [node name="PetInteract" type="Node3D" parent="Interactables"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, -1)
 script = ExtResource("24")
 pet_path = NodePath("../../Actors/Pet")
 
 [node name="MountInteract" type="Node3D" parent="Interactables"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.0, -2)
 script = ExtResource("26")
 mount_path = NodePath("../../Actors/Mount")
 
@@ -348,5 +420,49 @@ text = "Walk"
 [node name="InteractLabel" type="Label" parent="HUD/VBox"]
 text = ""
 
+[node name="HotbarLabel" type="Label" parent="HUD/VBox"]
+text = "Hotbar: 1"
+
+[node name="TargetLabel" type="Label" parent="HUD/VBox"]
+text = ""
+
 [node name="QuestLabel" type="Label" parent="HUD/VBox"]
 text = "Quest: --"
+
+[node name="DialoguePanel" type="PanelContainer" parent="HUD"]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -280.0
+offset_top = -260.0
+offset_right = 280.0
+offset_bottom = -20.0
+script = ExtResource("30")
+
+[node name="Margin" type="MarginContainer" parent="HUD/DialoguePanel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="HUD/DialoguePanel/Margin"]
+
+[node name="SpeakerLabel" type="Label" parent="HUD/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+text = "Speaker"
+
+[node name="BodyLabel" type="Label" parent="HUD/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+autowrap_mode = 3
+text = "..."
+
+[node name="ChoicesContainer" type="VBoxContainer" parent="HUD/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+
+[node name="ContinueHint" type="Label" parent="HUD/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+text = "..."
+

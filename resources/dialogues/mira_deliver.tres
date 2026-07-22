@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/dialogue_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_choice.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_node.gd" id="3"]
+
+[sub_resource type="Resource" id="choice_ok"]
+script = ExtResource("2")
+text = "I have the herb."
+next_node_id = &"thanks"
+affinity_delta = 5.0
+requires_not_hostile = true
+quest_effect = &"deliver_herb"
+
+[sub_resource type="Resource" id="choice_wait"]
+script = ExtResource("2")
+text = "Not yet."
+next_node_id = &"later"
+affinity_delta = 0.0
+requires_not_hostile = true
+
+[sub_resource type="Resource" id="node_start"]
+script = ExtResource("3")
+id = &"start"
+speaker = "Mira"
+lines = PackedStringArray("Did you find the forest herb?")
+choices = Array[ExtResource("2")]([SubResource("choice_ok"), SubResource("choice_wait")])
+requires_not_attacked = true
+
+[sub_resource type="Resource" id="node_thanks"]
+script = ExtResource("3")
+id = &"thanks"
+speaker = "Mira"
+lines = PackedStringArray("Wonderful! Please take this gift.")
+
+[sub_resource type="Resource" id="node_later"]
+script = ExtResource("3")
+id = &"later"
+speaker = "Mira"
+lines = PackedStringArray("Come back when you have it.")
+
+[resource]
+script = ExtResource("1")
+id = &"mira_deliver"
+start_node_id = &"start"
+nodes = Array[ExtResource("3")]([SubResource("node_start"), SubResource("node_thanks"), SubResource("node_later")])

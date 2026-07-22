@@ -2,7 +2,9 @@ extends RefCounted
 
 
 func run() -> bool:
-	var rel := RelationshipComponent.new()
-	rel.change_affinity(&"player", 0.0, &"start")
-	rel._temporary_hostile[&"player"] = true
-	return rel.get_disposition(&"player") == RelationshipComponent.Disposition.HOSTILE
+	RelationshipService.reset_all()
+	RelationshipService.ensure_registered(&"ren", &"neutral")
+	RelationshipService.register_aggression(&"ren", 10.0, {})
+	return RelationshipService.is_temporarily_hostile(&"ren") or (
+		RelationshipService.get_disposition(&"ren") == RelationshipComponent.Disposition.HOSTILE
+	)

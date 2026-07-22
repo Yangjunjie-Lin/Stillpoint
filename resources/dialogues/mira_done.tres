@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/dialogue_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_node.gd" id="2"]
+
+[sub_resource type="Resource" id="node_start"]
+script = ExtResource("2")
+id = &"start"
+speaker = "Mira"
+lines = PackedStringArray("Thanks again for your help. Stillpoint is kinder with people like you.")
+requires_not_attacked = true
+
+[resource]
+script = ExtResource("1")
+id = &"mira_done"
+start_node_id = &"start"
+nodes = Array[ExtResource("2")]([SubResource("node_start")])

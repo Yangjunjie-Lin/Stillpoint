@@ -1,6 +1,8 @@
 extends SceneTree
-## Headless test runner. Scans res://tests/unit and res://tests/integration for test_*.gd
+## Headless test runner with sync and async (await) support.
 ## Usage: godot --headless --path . --script res://tests/test_runner.gd
+## Note: SceneTree entry scripts cannot reference Autoload identifiers at compile time;
+## access them via root.get_node("Name").
 
 const SCAN_DIRS: Array[String] = [
 	"res://tests/unit/",
@@ -9,7 +11,6 @@ const SCAN_DIRS: Array[String] = [
 
 
 func _initialize() -> void:
-	# Defer so node @onready/_ready flush correctly (add_child during _initialize is deferred).
 	call_deferred("_run_all")
 
 
@@ -24,7 +25,9 @@ func _run_all() -> void:
 		return
 
 	for path in paths:
-		var ok := _run_one(path)
+		_reset_global_state()
+		var ok := await _run_one(path)
+		_reset_global_state()
 		if ok:
 			print("PASS ", path)
 			passed += 1
@@ -62,10 +65,57 @@ func _run_one(path: String) -> bool:
 	if instance == null or not instance.has_method("run"):
 		push_error("Test missing run(): %s" % path)
 		return false
-	var result: Variant = instance.call("run")
+	# Always await: sync tests return immediately; async tests resume properly.
+	var result: Variant = await instance.call("run")
+	_free_instance(instance)
+	return bool(result)
+
+
+func _free_instance(instance: Variant) -> void:
 	if instance is Object and is_instance_valid(instance) and not (instance is RefCounted):
 		(instance as Object).free()
-	return bool(result)
+
+
+func _autoload(name: String) -> Node:
+	return root.get_node(name)
+
+
+func _reset_global_state() -> void:
+	paused = false
+	_autoload("WorldSaveService").call("clear_world")
+	_autoload("SaveService").call("clear_run")
+	_autoload("RelationshipService").call("reset_all")
+	_autoload("QuestManager").call("reset_all")
+	var time_svc: Node = _autoload("WorldTimeService")
+	time_svc.call("set_time", 1, 8, 0)
+	time_svc.set("paused", false)
+	time_svc.set("time_scale", 1.0)
+	var gm: Node = _autoload("GameManager")
+	gm.set("run_active", false)
+	gm.set("resume_requested", false)
+	gm.set("player_name", "Player")
+	# Remove leftover test scenes under root (never free Autoloads).
+	const AUTOLOADS := [
+		"EventBus", "ResourceRegistry", "InputBindingService", "WorldTimeService",
+		"RelationshipService", "QuestManager", "GameManager", "SceneRouter",
+		"SaveService", "WorldSaveService", "AudioManager",
+	]
+	var to_free: Array = []
+	for child in root.get_children():
+		var n := String(child.name)
+		if n in AUTOLOADS:
+			continue
+		if (
+			n.begins_with("Test")
+			or n == "VerticalSlice"
+			or n.begins_with("WorldRoot")
+			or child.is_in_group("world_manager")
+			or child.is_in_group("gameplay")
+		):
+			to_free.append(child)
+	for node in to_free:
+		if is_instance_valid(node):
+			node.free()
 
 
 func _cleanup_temp_user_files() -> void:
@@ -75,7 +125,12 @@ func _cleanup_temp_user_files() -> void:
 	dir.list_dir_begin()
 	var file_name := dir.get_next()
 	while file_name != "":
-		if file_name.begins_with("stillpoint_test") or file_name.begins_with("stillpoint_tmp"):
+		if (
+			file_name.begins_with("stillpoint_test")
+			or file_name.begins_with("stillpoint_tmp")
+			or file_name == "world_save.json"
+			or file_name == "input_bindings.json"
+		):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path("user://%s" % file_name))
 		file_name = dir.get_next()
 	dir.list_dir_end()

@@ -3,26 +3,27 @@ extends Area3D
 
 @export var team: StringName = &"npc"
 
-var _owner_health: HealthComponent
+var _owner_character: CharacterController
 
 
 func _ready() -> void:
-	_owner_health = _find_health()
+	monitoring = false
+	monitorable = true
+	_owner_character = _find_character()
 
 
-func receive_damage(amount: float, source: Node) -> float:
-	if _owner_health == null:
-		_owner_health = _find_health()
-	if _owner_health == null:
+func receive_damage(amount: float, source: Node, context: Dictionary = {}) -> float:
+	if _owner_character == null:
+		_owner_character = _find_character()
+	if _owner_character == null:
 		return 0.0
-	var info := DamageInfo.make(amount, source)
-	return _owner_health.apply_damage(info, false)
+	return _owner_character.receive_damage(amount, source, context)
 
 
-func _find_health() -> HealthComponent:
+func _find_character() -> CharacterController:
 	var parent := get_parent()
 	while parent != null:
 		if parent is CharacterController:
-			return (parent as CharacterController).health
+			return parent as CharacterController
 		parent = parent.get_parent()
 	return null

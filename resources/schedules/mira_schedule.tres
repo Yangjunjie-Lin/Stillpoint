@@ -1,12 +1,30 @@
-[gd_resource type="Resource" script_class="ScheduleDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ScheduleDefinition" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/schedule_definition.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/schedule_entry.gd" id="2"]
 
 [sub_resource type="Resource" id="entry_work"]
 script = ExtResource("2")
-start_hour = 9
-end_hour = 17
+start_hour = 8
+end_hour = 12
+region_id = &"town"
+target_marker_id = &"shop"
+activity_id = &"work"
+priority = 1
+
+[sub_resource type="Resource" id="entry_lunch"]
+script = ExtResource("2")
+start_hour = 12
+end_hour = 14
+region_id = &"town"
+target_marker_id = &"plaza"
+activity_id = &"eat"
+priority = 2
+
+[sub_resource type="Resource" id="entry_work2"]
+script = ExtResource("2")
+start_hour = 14
+end_hour = 19
 region_id = &"town"
 target_marker_id = &"shop"
 activity_id = &"work"
@@ -15,4 +33,4 @@ priority = 1
 [resource]
 script = ExtResource("1")
 id = &"mira_schedule"
-entries = [SubResource("entry_work")]
+entries = [SubResource("entry_work"), SubResource("entry_lunch"), SubResource("entry_work2")]

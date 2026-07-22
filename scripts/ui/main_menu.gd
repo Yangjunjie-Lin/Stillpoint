@@ -30,25 +30,39 @@ func _load_settings_widgets() -> void:
 	fullscreen_check.button_pressed = bool(SaveService.settings.get("fullscreen", true))
 
 
-func _refresh_continue() -> void:
+func _on_continue_pressed() -> void:
 	if GameManager.has_resumable_adventure():
+		GameManager.continue_adventure()
+	else:
+		GameManager.continue_run()
+
+
+func _refresh_continue() -> void:
+	var summary := WorldSaveService.inspect_summary()
+	if bool(summary.get("valid", false)):
 		continue_button.disabled = false
-		continue_summary.text = "Continue adventure as %s" % GameManager.player_name
+		continue_summary.text = "Continue adventure as %s\n%s · Day %d %02d:%02d" % [
+			str(summary.get("player_name", "Traveler")),
+			str(summary.get("region", "town")).capitalize(),
+			int(summary.get("day", 1)),
+			int(summary.get("hour", 8)),
+			int(summary.get("minute", 0)),
+		]
 		return
-	var summary := GameManager.inspect_resumable_run()
-	continue_button.disabled = not summary.valid
-	if summary.valid:
-		var minutes := int(summary.survival_seconds) / 60
-		var seconds := int(summary.survival_seconds) % 60
+	var run_summary := GameManager.inspect_resumable_run()
+	continue_button.disabled = not run_summary.valid
+	if run_summary.valid:
+		var minutes := int(run_summary.survival_seconds) / 60
+		var seconds := int(run_summary.survival_seconds) % 60
 		continue_summary.text = "Continue survival as %s\nLevel %d · Score %s · %02d:%02d" % [
-			summary.player_name,
-			summary.combat_level,
-			_format_int(summary.score),
+			run_summary.player_name,
+			run_summary.combat_level,
+			_format_int(run_summary.score),
 			minutes,
 			seconds,
 		]
 	else:
-		continue_summary.text = _continue_unavailable_text(summary.reason)
+		continue_summary.text = _continue_unavailable_text(run_summary.reason)
 
 
 func _continue_unavailable_text(reason: String) -> String:
@@ -65,13 +79,6 @@ func _continue_unavailable_text(reason: String) -> String:
 			return "No resumable save"
 		_:
 			return "No resumable save"
-
-
-func _on_continue_pressed() -> void:
-	if GameManager.has_resumable_adventure():
-		GameManager.continue_adventure()
-	else:
-		GameManager.continue_run()
 
 
 func _on_start_pressed() -> void:
@@ -101,6 +108,25 @@ func _begin_new_adventure() -> void:
 func _on_settings_pressed() -> void:
 	_load_settings_widgets()
 	settings_panel.visible = true
+	_ensure_controls_section()
+
+
+func _ensure_controls_section() -> void:
+	var panel := settings_panel.get_node_or_null("Panel") as VBoxContainer
+	if panel == null or panel.has_node("ControlsHint"):
+		return
+	var hint := Label.new()
+	hint.name = "ControlsHint"
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.text = "Bindings are edited via InputBindingService (user://input_bindings.json). Use in-game Actions list in future builds; Reset All restores defaults."
+	panel.add_child(hint)
+	var reset := Button.new()
+	reset.text = "Reset All Keybindings"
+	reset.pressed.connect(func() -> void:
+		InputBindingService.reset_all()
+		InputBindingService.save_bindings()
+	)
+	panel.add_child(reset)
 
 
 func _on_settings_close() -> void:

@@ -71,7 +71,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_stand()
 	elif event.is_action_pressed(&"normal_attack"):
 		if combat != null and state.can_attack():
-			combat.try_attack(energy)
+			if combat.try_attack(energy):
+				state.current = CharacterState.State.ATTACK
 	elif event.is_action_pressed(&"interact"):
 		_try_interact()
 	elif event.is_action_pressed(&"hotbar_next"):

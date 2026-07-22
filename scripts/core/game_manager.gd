@@ -70,6 +70,11 @@ func inspect_resumable_run(max_age_seconds: float = SaveService.DEFAULT_MAX_AGE)
 
 
 func return_to_menu() -> void:
+	var tree := get_tree()
+	if tree != null:
+		var world := tree.get_first_node_in_group("world_manager") as WorldManager
+		if world != null:
+			world.save_world_state()
 	run_active = false
 	resume_requested = false
 	get_tree().paused = false

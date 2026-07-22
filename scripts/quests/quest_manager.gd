@@ -1,13 +1,18 @@
 extends Node
-## Tracks active quest progress for the life-sim RPG.
+## Tracks active quest progress with ordered objectives.
 
 signal quest_state_changed(quest_id: StringName, state: int)
+signal objective_advanced(quest_id: StringName, objective_id: StringName)
 
 var _quests: Dictionary = {}
 
 
 func get_runtime(quest_id: StringName) -> QuestRuntime:
 	return _quests.get(quest_id) as QuestRuntime
+
+
+func reset_all() -> void:
+	_quests.clear()
 
 
 func start_quest(quest_id: StringName) -> bool:
@@ -19,7 +24,16 @@ func start_quest(quest_id: StringName) -> bool:
 		runtime = QuestRuntime.new()
 		runtime.quest_id = quest_id
 		_quests[quest_id] = runtime
+	if runtime.state == QuestDefinition.QuestState.COMPLETED:
+		return false
 	runtime.state = QuestDefinition.QuestState.ACTIVE
+	runtime.current_objective_index = 0
+	# Auto-complete talk objective when started via dialogue.
+	if not def.objectives.is_empty() and def.objectives[0] != null:
+		var first := def.objectives[0]
+		if first.objective_type == ObjectiveDefinition.ObjectiveType.TALK:
+			runtime.objective_progress[String(first.id)] = first.required_count
+			runtime.current_objective_index = 1
 	quest_state_changed.emit(quest_id, runtime.state)
 	return true
 
@@ -41,26 +55,39 @@ func complete_quest(quest_id: StringName) -> bool:
 	return true
 
 
-func advance_objective(quest_id: StringName, objective_id: StringName, amount: int = 1) -> void:
+func get_current_objective(quest_id: StringName) -> ObjectiveDefinition:
+	var def := ResourceRegistry.get_quest(quest_id)
 	var runtime := get_runtime(quest_id)
-	if runtime == null:
-		return
-	var key := String(objective_id)
-	var current := int(runtime.objective_progress.get(key, 0))
-	runtime.objective_progress[key] = current + amount
+	if def == null or runtime == null:
+		return null
+	if runtime.current_objective_index < 0 or runtime.current_objective_index >= def.objectives.size():
+		return null
+	return def.objectives[runtime.current_objective_index]
+
+
+func advance_objective(quest_id: StringName, objective_id: StringName, amount: int = 1) -> bool:
+	var runtime := get_runtime(quest_id)
+	if runtime == null or runtime.state != QuestDefinition.QuestState.ACTIVE:
+		return false
 	var def := ResourceRegistry.get_quest(quest_id)
 	if def == null:
-		return
-	var all_done := true
-	for objective in def.objectives:
-		if objective == null:
-			continue
-		var progress := int(runtime.objective_progress.get(String(objective.id), 0))
-		if progress < objective.required_count:
-			all_done = false
-			break
-	if all_done:
-		complete_quest(quest_id)
+		return false
+	var current := get_current_objective(quest_id)
+	if current == null:
+		return false
+	# Only allow advancing the current objective (ordered).
+	if current.id != objective_id:
+		return false
+	var key := String(objective_id)
+	var progress := int(runtime.objective_progress.get(key, 0)) + amount
+	runtime.objective_progress[key] = progress
+	objective_advanced.emit(quest_id, objective_id)
+	if progress >= current.required_count:
+		runtime.current_objective_index += 1
+		if runtime.current_objective_index >= def.objectives.size():
+			complete_quest(quest_id)
+			return true
+	return true
 
 
 func to_dict() -> Dictionary:

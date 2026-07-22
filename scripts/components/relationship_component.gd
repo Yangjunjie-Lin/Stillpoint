@@ -1,6 +1,6 @@
 class_name RelationshipComponent
 extends Node
-## Per-actor affinity and disposition toward other character ids.
+## Facade over RelationshipService for the owning character. No private affinity store.
 
 signal affinity_changed(target_id: StringName, old_value: float, new_value: float)
 signal disposition_changed(target_id: StringName, old_disposition: int, new_disposition: int)
@@ -14,69 +14,71 @@ enum Disposition {
 const FRIENDLY_THRESHOLD := 50.0
 const HOSTILE_THRESHOLD := -20.0
 
-var _affinity: Dictionary = {}
-var _temporary_hostile: Dictionary = {}
+var _owner: CharacterController
 
 
-func get_affinity(target_id: StringName) -> float:
-	return float(_affinity.get(target_id, 0.0))
+func bind_owner(owner_character: CharacterController) -> void:
+	_owner = owner_character
+	if _owner != null:
+		RelationshipService.ensure_registered(
+			_owner.character_id,
+			_owner.definition.default_disposition if _owner.definition else &"neutral",
+		)
 
 
-func change_affinity(target_id: StringName, amount: float, _reason: StringName = &"") -> void:
-	var old := get_affinity(target_id)
-	var new_value := clampf(old + amount, -100.0, 100.0)
-	_affinity[target_id] = new_value
-	affinity_changed.emit(target_id, old, new_value)
-	var old_disp := get_disposition(target_id)
-	_update_disposition_signal(target_id, old_disp)
+func _owner_id() -> StringName:
+	if _owner != null:
+		return _owner.character_id
+	var parent := get_parent()
+	if parent is CharacterController:
+		_owner = parent as CharacterController
+		return _owner.character_id
+	return &""
 
 
-func get_disposition(target_id: StringName) -> Disposition:
-	if bool(_temporary_hostile.get(target_id, false)):
-		return Disposition.HOSTILE
-	var affinity := get_affinity(target_id)
-	if affinity >= FRIENDLY_THRESHOLD:
-		return Disposition.FRIENDLY
-	if affinity <= HOSTILE_THRESHOLD:
-		return Disposition.HOSTILE
-	return Disposition.NEUTRAL
+func get_player_affinity() -> float:
+	return RelationshipService.get_affinity(_owner_id())
 
 
-func register_aggression(attacker: CharacterController, damage: float, _context: Dictionary = {}) -> void:
+func get_player_disposition() -> Disposition:
+	return RelationshipService.get_disposition(_owner_id()) as Disposition
+
+
+func get_affinity(_target_id: StringName) -> float:
+	# Player-centric: affinity of this NPC toward the player.
+	return get_player_affinity()
+
+
+func change_affinity(_target_id: StringName, amount: float, reason: StringName = &"") -> void:
+	var old := get_player_affinity()
+	var old_disp := get_player_disposition()
+	RelationshipService.change_affinity(_owner_id(), amount, reason)
+	affinity_changed.emit(_target_id, old, get_player_affinity())
+	var new_disp := get_player_disposition()
+	if new_disp != old_disp:
+		disposition_changed.emit(_target_id, old_disp, new_disp)
+
+
+func get_disposition(_target_id: StringName) -> Disposition:
+	return get_player_disposition()
+
+
+func register_aggression(attacker: CharacterController, damage: float, context: Dictionary = {}) -> void:
 	if attacker == null:
 		return
-	var attacker_id := attacker.character_id
-	var current := get_affinity(attacker_id)
-	var disposition := get_disposition(attacker_id)
-	var penalty := -maxf(1.0, damage * 0.5)
-	if disposition == Disposition.FRIENDLY:
-		change_affinity(attacker_id, penalty, &"attacked_friendly")
-		if get_affinity(attacker_id) < FRIENDLY_THRESHOLD:
-			_temporary_hostile[attacker_id] = true
-	elif disposition == Disposition.NEUTRAL:
-		_temporary_hostile[attacker_id] = true
-		change_affinity(attacker_id, penalty, &"attacked_neutral")
-	else:
-		change_affinity(attacker_id, penalty * 0.25, &"attacked_hostile")
+	# Aggression is always player→NPC in this slice when attacker is the player.
+	RelationshipService.register_aggression(_owner_id(), damage, context)
+	affinity_changed.emit(attacker.character_id, 0.0, get_player_affinity())
 
 
-func clear_temporary_hostile(target_id: StringName) -> void:
-	_temporary_hostile.erase(target_id)
+func clear_temporary_hostile(_target_id: StringName) -> void:
+	RelationshipService.clear_temporary_hostile(_owner_id())
 
 
 func to_dict() -> Dictionary:
-	return {
-		"affinity": _affinity.duplicate(true),
-		"temporary_hostile": _temporary_hostile.duplicate(true),
-	}
+	# Persistence is owned by RelationshipService.
+	return {}
 
 
-func from_dict(data: Dictionary) -> void:
-	_affinity = data.get("affinity", {}).duplicate(true)
-	_temporary_hostile = data.get("temporary_hostile", {}).duplicate(true)
-
-
-func _update_disposition_signal(target_id: StringName, old_disp: Disposition) -> void:
-	var new_disp := get_disposition(target_id)
-	if new_disp != old_disp:
-		disposition_changed.emit(target_id, old_disp, new_disp)
+func from_dict(_data: Dictionary) -> void:
+	pass
