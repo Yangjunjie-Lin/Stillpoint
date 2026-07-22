@@ -17,17 +17,11 @@ func run() -> bool:
 	var before := mira.health.current_health
 	player.global_position = mira.global_position + Vector3(0, 0, 1.2)
 	player.look_at(mira.global_position, Vector3.UP)
-	player.combat.hitbox = player.get_node("HitboxRoot/Hitbox3D") as Hitbox3D
-	player.combat.hitbox.source = player
-	player.combat.hitbox.team = &"player"
-	player.combat.try_attack(player.energy)
-	# Force active frame
-	player.combat._begin_active()
-	player.combat.hitbox.set_active(true)
-	# Direct damage path verification through receive_damage
+	player.combat.open_attack_window()
+	if player.combat.hitbox != null:
+		player.combat.hitbox.set_active(true)
 	var dealt := mira.receive_damage(12.0, player, {"is_normal_attack": true})
 	var ok := dealt > 0.0 and mira.health.current_health < before
-	# Same hitbox shouldn't double-count via dictionary — second call same activation still works for receive_damage
 	ok = ok and RelationshipService.get_affinity(&"mira") < 60.0
 	world.free()
 	return ok

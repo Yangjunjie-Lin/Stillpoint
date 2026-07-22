@@ -2,14 +2,22 @@
 
 > An isekai life-sim RPG foundation — explore, live, relate, and fight when you choose to.
 
-Stillpoint **0.5.1** is a **runnable Vertical Slice** on Godot 4.7 (Compatibility renderer): Town → dialogue → quest → wilderness gather → deliver, plus combat consequences, pet/mount, region travel, and world save/continue.
+Stillpoint **0.6.0** adds **Jolt Physics** combat feedback on top of the **0.5.1 Vertical Slice**: animation-event attack windows, melee sweep, knockback, local hit stop, guard reactions, physics props, and **Combat Lab**.
 
 ## Modes
 
 | Menu | Scene |
 | --- | --- |
 | **New Adventure / Continue** | `scenes/world/vertical_slice.tscn` (2.5D RPG) |
+| **Combat Lab** | `scenes/combat/combat_lab.tscn` (combat sandbox) |
 | **Survival Prototype** | `scenes/gameplay/gameplay.tscn` (legacy 2D shooter) |
+
+## Physics
+
+- **Backend:** built-in **Jolt Physics** (`physics/3d/physics_engine`)
+- **Characters:** `CharacterBody3D` (not RigidBody)
+- **Props:** `RigidBody3D` crates, destructible barrels
+- **Interpolation:** enabled; teleports call `reset_physics_interpolation()`
 
 ## Controls (rebindable in Settings)
 
@@ -18,40 +26,27 @@ Stillpoint **0.5.1** is a **runnable Vertical Slice** on Godot 4.7 (Compatibilit
 | Move | WASD |
 | Interact | F |
 | Walk/Run toggle | Space |
-| Attack | J |
+| Attack (3-hit combo) | J |
 | Jump | K |
 | Guard | Shift |
 | Crouch | Ctrl |
+| Combat debug overlay | F10 (diagnostics toggle) |
 | Hotbar | Q / E |
-| Pause / Menu / Map | Esc / Tab / M |
 
-## Vertical Slice checklist
+## Combat Lab
 
-1. Stand on Town ground; move, jump, crouch, walk/run.
-2. Talk to Mira; accept errand.
-3. Portal to Wilderness; pick up Herb.
-4. Return; deliver to Mira; reward + affinity.
-5. Attack Mira (affinity drop / flee); attack Ren (hostile).
-6. Enter Dungeon; Bandit is hostile.
-7. Guard reduces frontal damage.
-8. Pet Follow/Stay; Mount ride/dismount.
-9. Autosave / return to menu; Continue restores state.
+Main menu → **Combat Lab**. Demonstrates combo attacks, sweep hits, guard, knockback, crate push, barrel break, and bandit sparring. Animations are **placeholder** box rigs — see [docs/COMBAT_ANIMATION_GUIDE.md](docs/COMBAT_ANIMATION_GUIDE.md).
 
-## Saves
+## Vertical Slice (life sim)
 
-| File | Purpose |
-| --- | --- |
-| `user://world_save.json` | Adventure world save (schema **v3**) |
-| `user://input_bindings.json` | Key bindings |
-| `user://run_save.json` | Legacy survival run (v2) |
+Town → Mira quest → wilderness herb → deliver; relationships, pets, mounts, autosave, Continue.
 
 ## Placeholder / not yet implemented
 
-- Formal art & AnimationTree
+- Production character art & mocap animation
+- Full AnimationTree blend trees per asset
 - Agriculture, housing, festivals, marriage
-- Full crime/witness/bounty
 - Streaming open world
-- Complex skill trees
 
 ## Tests
 

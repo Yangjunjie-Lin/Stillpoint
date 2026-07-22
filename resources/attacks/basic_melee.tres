@@ -6,10 +6,14 @@
 script = ExtResource("1")
 id = &"basic_melee"
 display_name = "Strike"
+animation_name = &"attack_light_1"
 damage = 12.0
 energy_cost = 5.0
 windup = 0.12
 active = 0.18
 recovery = 0.2
+knockback_distance = 2.0
+knockback_duration = 0.15
+hit_stop_duration = 0.05
 knockback = 2.0
 range = 1.8

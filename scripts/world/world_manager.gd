@@ -71,6 +71,7 @@ func transition_to(region_id: StringName, spawn_id: StringName = &"spawn") -> vo
 	_activate_region(region_id)
 	if player != null:
 		player.global_position = _find_spawn(region_id, spawn_id)
+		player.reset_physics_interpolation()
 		player.current_region_id = region_id
 		player.region_id = region_id
 		var pet := actors_root.get_node_or_null("Pet") as PetController

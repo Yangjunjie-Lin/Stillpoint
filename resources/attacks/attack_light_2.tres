@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AttackDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/attack_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"attack_light_2"
+display_name = "Light Strike 2"
+animation_name = &"attack_light_2"
+damage = 11.0
+energy_cost = 4.0
+windup = 0.09
+active = 0.13
+recovery = 0.17
+knockback_distance = 1.8
+knockback_duration = 0.13
+hit_stop_duration = 0.045
+next_combo_attack_ids = Array[StringName]([&"attack_light_3"])
