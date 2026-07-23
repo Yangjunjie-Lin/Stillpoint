@@ -72,3 +72,19 @@ func from_dict(data: Dictionary) -> void:
 	current_energy = clampf(float(data.get("current_energy", current_energy)), 0.0, max_energy)
 	is_fatigued = bool(data.get("is_fatigued", false))
 	energy_changed.emit(current_energy, max_energy)
+
+
+func get_persistence_key() -> StringName:
+	return &"energy"
+
+
+func capture_state() -> Dictionary:
+	return to_dict()
+
+
+func restore_state(data: Dictionary) -> void:
+	from_dict(data)
+
+
+func get_state_version() -> int:
+	return 1

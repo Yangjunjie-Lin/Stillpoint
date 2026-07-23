@@ -5,9 +5,11 @@ extends WorldEffect
 
 
 func apply(context: WorldEffectContext) -> EffectResult:
-	if context.session_context == null or context.session_context.quest_manager == null:
-		return EffectResult.fail("no quest manager")
+	if context.session_context == null or context.session_context.world_session == null:
+		return EffectResult.fail("no session")
+	var session := context.session_context.world_session as WorldSession
+	if session == null or session.quest_coordinator == null:
+		return EffectResult.fail("no quest coordinator")
 	if quest_id == &"":
 		return EffectResult.fail("empty quest id")
-	var ok: bool = context.session_context.quest_manager.call("start_quest", quest_id)
-	return EffectResult.ok() if ok else EffectResult.fail("start quest failed")
+	return session.quest_coordinator.try_start_quest(quest_id, context)

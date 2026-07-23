@@ -1,16 +1,22 @@
 class_name QuestEventRouter
 extends Node
-## Routes gameplay events to matching quest objectives.
+## Routes gameplay events to matching quest objectives via QuestCoordinator.
 
 signal objective_matched(quest_id: StringName, objective_id: StringName)
 
 var _session_context: WorldSessionContext
 var _event_bus: GameplayEventBus
+var _quest_coordinator: QuestCoordinator
 
 
-func setup(context: WorldSessionContext, bus: GameplayEventBus) -> void:
+func setup(
+	context: WorldSessionContext,
+	bus: GameplayEventBus,
+	coordinator: QuestCoordinator = null,
+) -> void:
 	_session_context = context
 	_event_bus = bus
+	_quest_coordinator = coordinator
 	if _event_bus != null:
 		_event_bus.event_emitted.connect(_on_event)
 
@@ -34,9 +40,12 @@ func _on_event(event: GameplayEvent) -> void:
 			continue
 		if not _objective_matches(current, event, ctx):
 			continue
-		_session_context.quest_manager.call(
-			"advance_objective_by_event", quest_id, current.id, event,
-		)
+		if _quest_coordinator != null:
+			_quest_coordinator.complete_objective(quest_id, current.id, event)
+		else:
+			_session_context.quest_manager.call(
+				"advance_objective_by_event", quest_id, current.id, event,
+			)
 		objective_matched.emit(quest_id, current.id)
 
 

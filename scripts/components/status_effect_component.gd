@@ -107,3 +107,26 @@ func from_dict(data: Dictionary, game_time: float) -> void:
 			else:
 				_effects[StringName(str(key))] = game_time + rem
 	effects_changed.emit()
+
+
+func get_persistence_key() -> StringName:
+	return &"status_effects"
+
+
+func capture_state() -> Dictionary:
+	var effects: Dictionary = {}
+	for key in _effects.keys():
+		effects[String(key)] = float(_effects[key])
+	return {"effects": effects}
+
+
+func restore_state(data: Dictionary) -> void:
+	_effects.clear()
+	var effects: Dictionary = data.get("effects", {})
+	for key in effects.keys():
+		_effects[StringName(str(key))] = float(effects[key])
+	effects_changed.emit()
+
+
+func get_state_version() -> int:
+	return 1

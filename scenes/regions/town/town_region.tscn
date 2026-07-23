@@ -241,6 +241,14 @@ prompt_text = "Enter Mine"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -3)
 script = ExtResource("20")
 region_id = &"base:town"
+item_id = &"herb"
+
+[node name="WorldEntityIdentity" type="Node" parent="Interactables/Chest"]
+script = ExtResource("17")
+persistent_id = &"base:town/interactable/chest_0001"
+definition_id = &"chest"
+region_id = &"base:town"
+persistence_policy = 2
 
 [node name="PetInteract" type="Node3D" parent="Interactables"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, -1)
