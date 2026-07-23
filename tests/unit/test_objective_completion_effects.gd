@@ -9,6 +9,7 @@ func run() -> bool:
 	quest.id = TEST_QUEST
 	var obj := ObjectiveDefinition.new()
 	obj.id = &"collect_one"
+	obj.objective_type = ObjectiveDefinition.ObjectiveType.COLLECT
 	obj.required_count = 1
 	var effect := SetWorldFlagEffect.new()
 	effect.flag_id = &"unit_test_objective_done"
@@ -18,7 +19,6 @@ func run() -> bool:
 	if ResourceRegistry.get_quest(TEST_QUEST) == null:
 		ResourceRegistry.register_quest(quest)
 	else:
-		# Replace objectives on already-registered definition for re-runs.
 		var existing := ResourceRegistry.get_quest(TEST_QUEST)
 		existing.objectives.clear()
 		existing.objectives.append(obj)
@@ -30,6 +30,13 @@ func run() -> bool:
 	var start := coordinator.try_start_quest(TEST_QUEST)
 	if not start.success:
 		push_error("failed to start quest: %s" % start.message)
+		flags.free()
+		coordinator.free()
+		return false
+
+	var current := QuestManager.get_current_objective(TEST_QUEST)
+	if current == null or current.id != &"collect_one":
+		push_error("expected collect_one as current objective after start")
 		flags.free()
 		coordinator.free()
 		return false
