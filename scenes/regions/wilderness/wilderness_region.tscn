@@ -1,0 +1,67 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/interaction/pickup_interactable_3d.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="3"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wild"]
+albedo_color = Color(0.2, 0.45, 0.25, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(40, 0.2, 40)
+
+[node name="RegionRoot" type="Node3D"]
+
+[node name="Environment" type="Node3D" parent="."]
+
+[node name="Floor" type="MeshInstance3D" parent="Environment"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("Mat_wild")
+
+[node name="StaticPhysics" type="Node3D" parent="."]
+
+[node name="FloorBody" type="StaticBody3D" parent="StaticPhysics"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticPhysics/FloorBody"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Navigation" type="Node3D" parent="."]
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="spawn" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+
+[node name="EntitySpawns" type="Node3D" parent="."]
+
+[node name="StaticEntities" type="Node3D" parent="."]
+
+[node name="Interactables" type="Node3D" parent="."]
+
+[node name="HerbPickup" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 3)
+script = ExtResource("2")
+region_id = &"base:wilderness"
+item_id = &"herb"
+
+[node name="WorldEntityIdentity" type="Node" parent="Interactables/HerbPickup"]
+script = ExtResource("3")
+persistent_id = &"base:wilderness/pickup/herb_0001"
+definition_id = &"herb"
+region_id = &"base:wilderness"
+
+[node name="TownPortal" type="Node3D" parent="Interactables"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("1")
+region_id = &"base:wilderness"
+target_region_id = &"base:town"
+prompt_text = "Return to Town"
+
+[node name="LocalEffects" type="Node3D" parent="."]
+
+[node name="RegionServices" type="Node3D" parent="."]

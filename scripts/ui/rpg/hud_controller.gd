@@ -11,7 +11,7 @@ extends CanvasLayer
 @onready var hotbar_label: Label = $VBox/HotbarLabel if has_node("VBox/HotbarLabel") else null
 @onready var target_label: Label = $VBox/TargetLabel if has_node("VBox/TargetLabel") else null
 
-var _world: WorldManager
+var _world: WorldSession
 
 
 func _ready() -> void:
@@ -55,7 +55,7 @@ func _update_hotbar(player: PlayerController3D) -> void:
 
 
 func _update_quest() -> void:
-	var runtime := QuestManager.get_runtime(&"demo_errand")
+	var runtime := QuestManager.get_tracked_quest()
 	if runtime == null:
 		quest_label.text = "Quest: --"
 		return
@@ -65,11 +65,14 @@ func _update_quest() -> void:
 	if runtime.state != QuestDefinition.QuestState.ACTIVE:
 		quest_label.text = "Quest: --"
 		return
-	var objective := QuestManager.get_current_objective(&"demo_errand")
+	var def := ResourceRegistry.get_quest(runtime.quest_id)
+	var objective := QuestManager.get_current_objective(runtime.quest_id)
 	if objective != null:
 		quest_label.text = "Quest: %s" % objective.display_text
+	elif def != null:
+		quest_label.text = "Quest: %s" % def.display_name
 	else:
-		quest_label.text = "Quest: Mira's Errand"
+		quest_label.text = "Quest: --"
 
 
 func _update_target(player: PlayerController3D) -> void:
@@ -77,12 +80,16 @@ func _update_target(player: PlayerController3D) -> void:
 		return
 	var best: NPCController = null
 	var best_dist := 4.0
-	if _world == null:
+	if _world == null or _world.region_service == null:
 		target_label.text = ""
 		return
-	for child in _world.actors_root.get_children():
-		if child is NPCController and (child as Node3D).visible:
-			var npc := child as NPCController
+	var region_root := _world.region_service.get_current_region_root()
+	if region_root == null:
+		target_label.text = ""
+		return
+	for node in region_root.find_children("*", "CharacterBody3D", true, false):
+		if node is NPCController:
+			var npc := node as NPCController
 			var dist := player.global_position.distance_to(npc.global_position)
 			if dist < best_dist:
 				best_dist = dist
@@ -111,8 +118,10 @@ func _on_time_changed(day: int, hour: int, minute: int) -> void:
 	time_label.text = "Day %d  %02d:%02d" % [day, hour, minute]
 
 
-func _find_world() -> WorldManager:
+func _find_world() -> WorldSession:
 	var node := get_parent()
-	if node is WorldManager:
-		return node as WorldManager
+	while node != null:
+		if node is WorldSession:
+			return node as WorldSession
+		node = node.get_parent()
 	return null

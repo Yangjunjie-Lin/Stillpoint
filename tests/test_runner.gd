@@ -83,6 +83,7 @@ func _autoload(name: String) -> Node:
 func _reset_global_state() -> void:
 	paused = false
 	_autoload("WorldSaveService").call("clear_world")
+	_clear_save_slots()
 	_autoload("SaveService").call("clear_run")
 	_autoload("RelationshipService").call("reset_all")
 	_autoload("QuestManager").call("reset_all")
@@ -108,6 +109,7 @@ func _reset_global_state() -> void:
 		if (
 			n.begins_with("Test")
 			or n == "VerticalSlice"
+			or n == "WorldSession"
 			or n.begins_with("WorldRoot")
 			or child.is_in_group("world_manager")
 			or child.is_in_group("gameplay")
@@ -116,6 +118,42 @@ func _reset_global_state() -> void:
 	for node in to_free:
 		if is_instance_valid(node):
 			node.free()
+
+
+func _clear_save_slots() -> void:
+	var base := "user://saves/"
+	if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(base)):
+		return
+	var dir := DirAccess.open(base)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var name := dir.get_next()
+	while name != "":
+		var slot_path := base.path_join(name)
+		if dir.current_is_dir():
+			_remove_dir_recursive(slot_path)
+		else:
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(slot_path))
+		name = dir.get_next()
+	dir.list_dir_end()
+
+
+func _remove_dir_recursive(path: String) -> void:
+	var dir := DirAccess.open(path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var name := dir.get_next()
+	while name != "":
+		var full := path.path_join(name)
+		if dir.current_is_dir():
+			_remove_dir_recursive(full)
+		else:
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(full))
+		name = dir.get_next()
+	dir.list_dir_end()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
 
 func _cleanup_temp_user_files() -> void:
@@ -129,6 +167,8 @@ func _cleanup_temp_user_files() -> void:
 			file_name.begins_with("stillpoint_test")
 			or file_name.begins_with("stillpoint_tmp")
 			or file_name == "world_save.json"
+			or file_name == "world_save_v3_imported.bak"
+			or file_name.begins_with("saves")
 			or file_name == "input_bindings.json"
 		):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path("user://%s" % file_name))

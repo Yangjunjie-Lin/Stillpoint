@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/dialogue_definition.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/dialogue_choice.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/resources/dialogue_node.gd" id="3"]
+[ext_resource type="Resource" path="res://content/base/effects/remove_herb.tres" id="4"]
+[ext_resource type="Resource" path="res://content/base/effects/emit_herb_delivered.tres" id="5"]
 
 [sub_resource type="Resource" id="choice_ok"]
 script = ExtResource("2")
@@ -10,7 +12,7 @@ text = "I have the herb."
 next_node_id = &"thanks"
 affinity_delta = 5.0
 requires_not_hostile = true
-quest_effect = &"deliver_herb"
+effects = Array[ExtResource("4")]([ExtResource("4"), ExtResource("5")])
 
 [sub_resource type="Resource" id="choice_wait"]
 script = ExtResource("2")

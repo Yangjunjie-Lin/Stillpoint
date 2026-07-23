@@ -3,11 +3,8 @@ extends RefCounted
 
 func run() -> bool:
 	var tree := Engine.get_main_loop() as SceneTree
-	var packed: PackedScene = load("res://scenes/world/vertical_slice.tscn") as PackedScene
-	var world := packed.instantiate() as WorldManager
-	tree.root.add_child(world)
-	await tree.physics_frame
-	await tree.physics_frame
+	var world := WorldTestHelper.boot_world(tree)
+	await WorldTestHelper.await_frames(tree, 2)
 	var player := world.player
 	if player == null:
 		world.free()
@@ -24,7 +21,6 @@ func run() -> bool:
 	release.action = &"crouch"
 	release.pressed = false
 	player._unhandled_input(release)
-	# Without ceiling, stand should succeed.
 	ok = ok and (not player.state.is_crouching or not player._has_headroom())
 	world.free()
 	return ok

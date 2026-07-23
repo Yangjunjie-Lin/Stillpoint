@@ -17,21 +17,21 @@ func start_new_adventure(requested_name: String = "Traveler") -> void:
 		player_name = "Traveler"
 	run_active = true
 	resume_requested = false
-	WorldSaveService.clear_world()
-	SceneRouter.go_to_vertical_slice()
+	SaveSlotService.clear_adventure_save()
+	SceneRouter.go_to_world_session()
 
 
 func continue_adventure() -> void:
-	if not WorldSaveService.has_world_save():
+	if not SaveSlotService.has_adventure_save():
 		push_warning("GameManager: no world save to continue")
 		return
 	run_active = true
 	resume_requested = true
-	SceneRouter.go_to_vertical_slice()
+	SceneRouter.go_to_world_session()
 
 
 func has_resumable_adventure() -> bool:
-	return WorldSaveService.has_world_save()
+	return SaveSlotService.has_adventure_save()
 
 
 func start_new_run(requested_name: String = "Player") -> void:
@@ -72,7 +72,7 @@ func inspect_resumable_run(max_age_seconds: float = SaveService.DEFAULT_MAX_AGE)
 func return_to_menu() -> void:
 	var tree := get_tree()
 	if tree != null:
-		var world := tree.get_first_node_in_group("world_manager") as WorldManager
+		var world := tree.get_first_node_in_group("world_manager") as WorldSession
 		if world != null:
 			world.save_world_state()
 	run_active = false

@@ -115,3 +115,19 @@ func from_dict(data: Dictionary) -> void:
 		current_health = 0.0
 	defense = maxf(0.0, loaded_defense)
 	health_changed.emit(current_health, max_health)
+
+
+func get_persistence_key() -> StringName:
+	return &"health"
+
+
+func capture_state() -> Dictionary:
+	return to_dict()
+
+
+func restore_state(data: Dictionary) -> void:
+	from_dict(data)
+
+
+func get_state_version() -> int:
+	return 1

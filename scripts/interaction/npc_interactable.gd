@@ -2,15 +2,18 @@ class_name NPCInteractable
 extends Interactable
 
 @export var npc_path: NodePath
+@export var identity: WorldEntityIdentity
+@export var conditions: Array[WorldCondition] = []
+@export var effects: Array[WorldEffect] = []
 
 var _npc: NPCController
-var _world: WorldManager
+var _session: WorldSession
 
 
 func _ready() -> void:
 	if npc_path != NodePath():
 		_npc = get_node_or_null(npc_path) as NPCController
-	_world = _find_world_manager()
+	_session = _find_session()
 	if _npc != null:
 		region_id = _npc.region_id
 
@@ -34,24 +37,41 @@ func get_priority(_actor: CharacterController) -> int:
 
 
 func interact(actor: CharacterController, _context: InteractionContext) -> void:
-	if _world == null:
-		_world = _find_world_manager()
-	if _world == null or _npc == null:
+	if _session == null:
+		_session = _find_session()
+	if _session == null or _npc == null:
 		return
-	# Quest-aware Mira dialogue routing.
-	if _npc.character_id == &"mira":
-		_world.start_mira_dialogue(_npc)
-	else:
-		_world.start_dialogue(_npc)
+	var session_ctx := _session.get_session_context()
+	for cond in conditions:
+		if cond != null and not cond.evaluate(session_ctx):
+			return
+	var effect_ctx := WorldEffectContext.new(session_ctx)
+	WorldEffect.apply_sequence(effects, effect_ctx)
+	_session.start_dialogue(_npc)
+	var ev := GameplayEvent.make(
+		GameplayEventTypes.NPC_TALKED,
+		&"base:player/main",
+		_get_npc_persistent_id(),
+		_npc.character_id,
+		region_id,
+	)
+	_session.event_bus.emit_event(ev)
 
 
-func _find_world_manager() -> WorldManager:
+func _get_npc_persistent_id() -> StringName:
+	for child in _npc.get_children():
+		if child is WorldEntityIdentity:
+			return (child as WorldEntityIdentity).persistent_id
+	return &""
+
+
+func _find_session() -> WorldSession:
 	var node := get_parent()
 	while node != null:
-		if node is WorldManager:
-			return node as WorldManager
+		if node is WorldSession:
+			return node as WorldSession
 		node = node.get_parent()
 	var tree := get_tree()
 	if tree != null:
-		return tree.get_first_node_in_group("world_manager") as WorldManager
+		return tree.get_first_node_in_group("world_manager") as WorldSession
 	return null

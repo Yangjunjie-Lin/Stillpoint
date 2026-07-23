@@ -7,7 +7,7 @@ config_version=5
 
 config/name="Stillpoint"
 config/description="An isekai life-sim RPG foundation with exploration, relationships, and light action."
-config/version="0.6.0"
+config/version="0.7.0"
 run/main_scene="res://scenes/bootstrap/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/characters/player_up.png"
@@ -24,6 +24,7 @@ GameManager="*res://scripts/core/game_manager.gd"
 SceneRouter="*res://scripts/core/scene_router.gd"
 SaveService="*res://scripts/core/save_service.gd"
 WorldSaveService="*res://scripts/core/world_save_service.gd"
+SaveSlotService="*res://scripts/world/save/save_slot_service.gd"
 PhysicsSettingsService="*res://scripts/core/physics_settings_service.gd"
 AudioManager="*res://scripts/core/audio_manager.gd"
 
