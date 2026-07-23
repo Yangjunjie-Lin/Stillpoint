@@ -45,8 +45,14 @@ Town → Mira quest → wilderness herb → deliver; relationships, pets, mounts
 
 - Production character art & mocap animation
 - Full AnimationTree blend trees per asset
-- Agriculture, housing, festivals, marriage
-- Streaming open world (regions load one at a time; see [docs/WORLD_ARCHITECTURE.md](docs/WORLD_ARCHITECTURE.md))
+- Full content pack / Mod pipeline
+- Multi-slot save UI
+- Seamless open world / adjacent region preload
+- Full offline ecosystem / virtual combat simulation
+- Cloud saves, multiplayer, threaded writers
+- Agriculture, housing, festivals, marriage, weather, economy
+
+Regions load one at a time; see [docs/WORLD_ARCHITECTURE.md](docs/WORLD_ARCHITECTURE.md).
 
 ## Tests
 
