@@ -11,8 +11,8 @@ func run() -> bool:
 	coordinator.mark_dirty(&"player")
 	coordinator.mark_dirty(&"relationships")
 	coordinator._session = null
-	var ok := not coordinator.save_dirty_sections()
-	if ok:
+	# Player write fails without session; relationships should still succeed.
+	if coordinator.save_dirty_sections():
 		push_error("expected partial failure when player section cannot save")
 		coordinator.clear_save()
 		coordinator.free()

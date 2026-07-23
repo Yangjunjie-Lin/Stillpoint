@@ -14,20 +14,29 @@ func run() -> bool:
 	chest.interact(world.player, InteractionContext.new(world.player))
 	await WorldTestHelper.await_frames(tree)
 
+	# Capture dirty signal before transition_to autosave clears flags.
+	var marked := {"town": false}
+	var on_captured := func(region_id: StringName, _chunk: Dictionary) -> void:
+		if region_id == &"base:town":
+			marked["town"] = true
+	world.region_service.region_chunk_captured.connect(on_captured)
 	world.transition_to(&"base:wilderness")
 	await WorldTestHelper.await_frames(tree)
 
-	var dirty := world.save_coordinator._dirty_regions
-	var repo_dirty := world.entity_repository.peek_dirty_regions()
-	var town_dirty := dirty.has(&"base:town") or repo_dirty.has(&"base:town")
-	if not town_dirty:
-		push_error("town not marked dirty after leaving region")
+	if not bool(marked["town"]):
+		push_error("town chunk was not captured when leaving region")
 		world.free()
 		return false
 
 	var chunk := world.region_service.get_region_chunk(&"base:town")
 	if chunk.is_empty():
-		push_error("town chunk not captured on transition")
+		push_error("town chunk not retained after transition")
+		world.free()
+		return false
+	var entities: Dictionary = chunk.get("entities", {})
+	var chest_data: Dictionary = entities.get("base:town/interactable/chest_0001", {})
+	if chest_data.is_empty():
+		push_error("town chunk missing chest entity after leave")
 		world.free()
 		return false
 

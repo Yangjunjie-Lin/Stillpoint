@@ -18,7 +18,7 @@ func run() -> bool:
 		world.free()
 		return false
 	b1.health.current_health = 11.0
-	b2.health.current_health = 77.0
+	b2.health.current_health = 33.0
 	world.transition_to(&"base:town")
 	await WorldTestHelper.await_frames(tree)
 	world.transition_to(&"base:dungeon")
@@ -34,7 +34,7 @@ func run() -> bool:
 		push_error("bandit_0001 HP wrong: %s" % b1b.health.current_health)
 		world.free()
 		return false
-	if not is_equal_approx(b2b.health.current_health, 77.0):
+	if not is_equal_approx(b2b.health.current_health, 33.0):
 		push_error("bandit_0002 HP wrong: %s" % b2b.health.current_health)
 		world.free()
 		return false

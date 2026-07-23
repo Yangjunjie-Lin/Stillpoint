@@ -30,17 +30,18 @@ func run() -> bool:
 			push_error("manifest chunk mapping wrong for %s" % key)
 			world.free()
 			return false
-		var path := "user://saves/slot_01/regions/" + expected[key]
+		var fname: String = str(expected[key])
+		var path: String = "user://saves/slot_01/regions/" + fname
 		if not FileAccess.file_exists(path):
 			push_error("missing chunk file %s" % path)
 			world.free()
 			return false
 		var chunk := world.save_coordinator._read_json(path)
 		if str(chunk.get("region_id", "")) != key:
-			push_error("chunk region_id mismatch in %s" % expected[key])
+			push_error("chunk region_id mismatch in %s" % fname)
 			world.free()
 			return false
-		if expected[key].contains("wilderness") and key == "base:town":
+		if fname.contains("wilderness") and key == "base:town":
 			push_error("town chunk filename looks like wilderness")
 			world.free()
 			return false

@@ -13,15 +13,26 @@ func run() -> bool:
 	var effect := SetWorldFlagEffect.new()
 	effect.flag_id = &"unit_test_objective_done"
 	effect.value = true
-	obj.completion_effects = [effect]
-	quest.objectives = [obj]
-	ResourceRegistry.register_quest(quest)
+	obj.completion_effects.append(effect)
+	quest.objectives.append(obj)
+	if ResourceRegistry.get_quest(TEST_QUEST) == null:
+		ResourceRegistry.register_quest(quest)
+	else:
+		# Replace objectives on already-registered definition for re-runs.
+		var existing := ResourceRegistry.get_quest(TEST_QUEST)
+		existing.objectives.clear()
+		existing.objectives.append(obj)
 
 	var flags := WorldFlagService.new()
 	var ctx := WorldSessionContext.new(null, null, null, null, QuestManager, flags)
 	var coordinator := QuestCoordinator.new()
 	coordinator.setup(ctx)
-	coordinator.try_start_quest(TEST_QUEST)
+	var start := coordinator.try_start_quest(TEST_QUEST)
+	if not start.success:
+		push_error("failed to start quest: %s" % start.message)
+		flags.free()
+		coordinator.free()
+		return false
 
 	var result := coordinator.complete_objective(TEST_QUEST, &"collect_one")
 	if not result.success:

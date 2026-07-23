@@ -18,7 +18,10 @@ func run() -> bool:
 	if identity != null:
 		world.entity_repository.mark_dirty(identity.persistent_id)
 
+	# Leave and return so town chunk is captured, then save while town is current.
 	world.transition_to(&"base:wilderness")
+	await WorldTestHelper.await_frames(tree)
+	world.transition_to(&"base:town")
 	await WorldTestHelper.await_frames(tree)
 	world.save_world_state()
 	world.free()
@@ -26,6 +29,9 @@ func run() -> bool:
 	GameManager.resume_requested = true
 	var world2 := WorldTestHelper.boot_world(tree)
 	await WorldTestHelper.await_frames(tree, 3)
+	if world2.current_region_id != &"base:town":
+		world2.transition_to(&"base:town")
+		await WorldTestHelper.await_frames(tree)
 
 	var mira2 := WorldTestHelper.find_npc(world2, "Mira")
 	if mira2 == null or not mira2.is_downed:

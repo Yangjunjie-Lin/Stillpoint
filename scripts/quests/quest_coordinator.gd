@@ -38,16 +38,18 @@ func complete_objective(
 	if def == null or current == null or current.id != objective_id:
 		return EffectResult.fail("objective mismatch")
 	var ctx := WorldEffectContext.new(_session_context.with_event(event) if event != null else _session_context)
-	if not QuestManager.advance_objective(quest_id, objective_id, 1):
-		return EffectResult.fail("advance failed")
-	# Objective completion effects fire when the objective just completed.
 	var runtime := QuestManager.get_runtime(quest_id)
 	if runtime == null:
 		return EffectResult.fail("missing runtime")
+	var progress_before := int(runtime.objective_progress.get(String(objective_id), 0))
+	if not QuestManager.advance_objective(quest_id, objective_id, 1):
+		return EffectResult.fail("advance failed")
 	var progress := int(runtime.objective_progress.get(String(objective_id), 0))
-	if progress >= current.required_count:
+	# Fire objective completion effects once when the objective crosses the finish line.
+	if progress_before < current.required_count and progress >= current.required_count:
 		WorldEffect.apply_sequence(current.completion_effects, ctx)
-	if runtime.state == QuestDefinition.QuestState.COMPLETED:
+	runtime = QuestManager.get_runtime(quest_id)
+	if runtime != null and runtime.state == QuestDefinition.QuestState.COMPLETED:
 		return complete_quest(quest_id, ctx)
 	return EffectResult.ok()
 

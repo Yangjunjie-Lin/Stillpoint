@@ -14,6 +14,9 @@ func run() -> bool:
 		world.free()
 		return false
 	herb.interact(world.player, InteractionContext.new(world.player))
+	# Leave so unload captures the collected chunk, then save.
+	world.transition_to(&"base:town")
+	await WorldTestHelper.await_frames(tree)
 	if not world.save_world_state():
 		push_error("save failed")
 		world.free()
