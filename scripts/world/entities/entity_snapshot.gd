@@ -55,6 +55,8 @@ func capture_from_node(node: Node3D) -> void:
 			component_states[String(key)] = child.call("capture_state")
 	if node.has_method("to_dict"):
 		component_states["entity"] = node.call("to_dict")
+	if node.get("is_permanently_dead") == true:
+		destroyed = true
 
 
 func apply_to_node(node: Node3D) -> void:

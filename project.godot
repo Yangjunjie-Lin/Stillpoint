@@ -24,6 +24,7 @@ GameManager="*res://scripts/core/game_manager.gd"
 SceneRouter="*res://scripts/core/scene_router.gd"
 SaveService="*res://scripts/core/save_service.gd"
 WorldSaveService="*res://scripts/core/world_save_service.gd"
+SaveSlotService="*res://scripts/world/save/save_slot_service.gd"
 PhysicsSettingsService="*res://scripts/core/physics_settings_service.gd"
 AudioManager="*res://scripts/core/audio_manager.gd"
 

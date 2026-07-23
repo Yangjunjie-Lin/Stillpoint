@@ -125,6 +125,28 @@ func get_region(id: StringName) -> RegionDefinition:
 	return _regions.get(id) as RegionDefinition
 
 
+func get_all_regions() -> Array[RegionDefinition]:
+	var result: Array[RegionDefinition] = []
+	var seen: Dictionary = {}
+	for key in _regions.keys():
+		var def := _regions[key] as RegionDefinition
+		if def == null:
+			continue
+		var id := String(def.id)
+		if seen.has(id):
+			continue
+		seen[id] = true
+		result.append(def)
+	return result
+
+
+func get_all_region_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for def in get_all_regions():
+		result.append(def.id)
+	return result
+
+
 func get_pet(id: StringName) -> PetDefinition:
 	return _pets.get(id) as PetDefinition
 

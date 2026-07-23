@@ -38,16 +38,21 @@ func _on_continue_pressed() -> void:
 
 
 func _refresh_continue() -> void:
-	var summary := WorldSaveService.inspect_summary()
+	var summary := SaveSlotService.inspect_adventure_summary()
 	if bool(summary.get("valid", false)):
 		continue_button.disabled = false
 		continue_summary.text = "Continue adventure as %s\n%s · Day %d %02d:%02d" % [
 			str(summary.get("player_name", "Traveler")),
-			str(summary.get("region", "town")).capitalize(),
+			str(summary.get("region", "base:town")),
 			int(summary.get("day", 1)),
 			int(summary.get("hour", 8)),
 			int(summary.get("minute", 0)),
 		]
+		return
+	var adventure_reason := str(summary.get("reason", ""))
+	if adventure_reason == "future_version" or adventure_reason == "corrupt_manifest":
+		continue_button.disabled = true
+		continue_summary.text = _continue_unavailable_text(adventure_reason)
 		return
 	var run_summary := GameManager.inspect_resumable_run()
 	continue_button.disabled = not run_summary.valid
@@ -69,6 +74,8 @@ func _continue_unavailable_text(reason: String) -> String:
 	match reason:
 		"future_version":
 			return "Save created by a newer version"
+		"corrupt_manifest":
+			return "Adventure save is damaged"
 		"unknown_level":
 			return "Save level is no longer available"
 		"game_over":

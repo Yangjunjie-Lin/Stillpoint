@@ -33,7 +33,7 @@ static func interactable_persistent_id(node_name: String, region_id: StringName)
 		"HerbPickup":
 			return &"base:wilderness/pickup/herb_0001"
 		"Chest":
-			return &"base:town/interactable/chest"
+			return &"base:town/interactable/chest_0001"
 		"ForestPortal":
 			return &"base:town/portal/wilderness"
 		"DungeonPortal":

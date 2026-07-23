@@ -12,8 +12,11 @@ var event_bus := GameplayEventBus.new()
 var player: PlayerController3D
 var current_region_id: StringName = &""
 var discovered_regions: Array = ["base:town"]
+var unlocked_pet_ids: Array = []
+var unlocked_mount_ids: Array = []
 var _autosave_timer: float = 0.0
 var _session_context: WorldSessionContext
+var _pending_player_transform: Dictionary = {}
 
 @onready var persistent_root: Node3D = $PersistentRoot
 @onready var player_root: Node3D = $PersistentRoot/PlayerRoot
@@ -26,6 +29,7 @@ var _session_context: WorldSessionContext
 @onready var interaction_index: InteractionIndex = $WorldServices/InteractionIndex
 @onready var dialogue_coordinator: DialogueCoordinator = $WorldServices/DialogueCoordinator
 @onready var quest_event_router: QuestEventRouter = $WorldServices/QuestEventRouter
+@onready var quest_coordinator: QuestCoordinator = $WorldServices/QuestCoordinator
 @onready var save_coordinator: WorldSaveCoordinator = $WorldServices/WorldSaveCoordinator
 @onready var simulation_service: WorldSimulationService = $WorldServices/WorldSimulationService
 @onready var world_flags: WorldFlagService = $WorldServices/WorldFlagService
@@ -55,14 +59,16 @@ func _ready() -> void:
 	region_service.region_changed.connect(_on_region_changed)
 	if EventBus.has_signal("request_world_save"):
 		EventBus.request_world_save.connect(save_world_state)
-	QuestManager.quest_state_changed.connect(_on_quest_state_changed)
 
 
 func _process(delta: float) -> void:
 	_autosave_timer += delta
 	if _autosave_timer >= autosave_interval:
 		_autosave_timer = 0.0
-		save_world_state()
+		# Autosave always marks core sections; regions only if dirty.
+		save_coordinator.mark_dirty(&"player")
+		save_coordinator.mark_dirty(&"global_world")
+		save_coordinator.save_dirty_sections()
 
 
 func _physics_process(_delta: float) -> void:
@@ -88,6 +94,7 @@ func discover_region(region_id: StringName) -> void:
 	var norm := String(RegionIdUtil.normalize(region_id))
 	if not discovered_regions.has(norm):
 		discovered_regions.append(norm)
+		save_coordinator.mark_dirty(&"global_world")
 
 
 func save_world_state() -> bool:
@@ -119,32 +126,91 @@ func capture_player_data() -> Dictionary:
 	var inventory_data := player.inventory.to_dict() if player.inventory else {}
 	var player_data := player.to_dict()
 	player_data.erase("inventory")
+	player_data["region_id"] = String(current_region_id)
 	return {"player": player_data, "inventory": inventory_data}
 
 
 func restore_player_data(data: Dictionary) -> void:
 	if player == null:
 		return
-	player.from_dict(data.get("player", {}))
+	var player_data: Dictionary = data.get("player", {})
+	_pending_player_transform = player_data.get("position", {})
+	# Restore non-transform fields first; position applied after region load.
+	var saved_pos := player.global_position
+	player.from_dict(player_data)
+	player.global_position = saved_pos
 	if player.inventory != null:
 		player.inventory.from_dict(data.get("inventory", {}))
 
 
+func apply_saved_player_transform(data: Dictionary) -> void:
+	if player == null:
+		return
+	var player_data: Dictionary = data.get("player", data)
+	var pos: Dictionary = player_data.get("position", _pending_player_transform)
+	if pos.is_empty():
+		return
+	player.global_position = Vector3(
+		float(pos.get("x", player.global_position.x)),
+		float(pos.get("y", player.global_position.y)),
+		float(pos.get("z", player.global_position.z)),
+	)
+	player.reset_physics_interpolation()
+	_pending_player_transform.clear()
+
+
+func capture_global_world_data() -> Dictionary:
+	return {
+		"world_time": WorldTimeService.to_dict(),
+		"discovered_regions": discovered_regions.duplicate(),
+		"current_region_id": String(current_region_id),
+	}
+
+
+func restore_global_world_data(data: Dictionary) -> void:
+	var discovered: Variant = data.get("discovered_regions", ["base:town"])
+	if typeof(discovered) == TYPE_ARRAY:
+		discovered_regions.clear()
+		for d in discovered:
+			discovered_regions.append(String(RegionIdUtil.normalize(StringName(str(d)))))
+	if discovered_regions.is_empty():
+		discovered_regions = ["base:town"]
+
+
 func capture_companions() -> Dictionary:
-	return {"pets": _serialize_pet(), "mounts": _serialize_mount()}
+	return {
+		"pets": _serialize_pet(),
+		"mounts": _serialize_mount(),
+		"unlocked_pet_ids": unlocked_pet_ids.duplicate(),
+		"unlocked_mount_ids": unlocked_mount_ids.duplicate(),
+	}
 
 
 func restore_companions(data: Dictionary) -> void:
 	_restore_pet(data.get("pets", {}))
 	_restore_mount(data.get("mounts", {}))
+	unlocked_pet_ids = data.get("unlocked_pet_ids", []).duplicate()
+	unlocked_mount_ids = data.get("unlocked_mount_ids", []).duplicate()
 
 
-func unlock_pet(_pet_id: StringName) -> void:
-	pass
+func unlock_pet(pet_id: StringName) -> bool:
+	var key := String(pet_id)
+	if key.is_empty():
+		return false
+	if not unlocked_pet_ids.has(key):
+		unlocked_pet_ids.append(key)
+		save_coordinator.mark_dirty(&"companions")
+	return true
 
 
-func unlock_mount(_mount_id: StringName) -> void:
-	pass
+func unlock_mount(mount_id: StringName) -> bool:
+	var key := String(mount_id)
+	if key.is_empty():
+		return false
+	if not unlocked_mount_ids.has(key):
+		unlocked_mount_ids.append(key)
+		save_coordinator.mark_dirty(&"companions")
+	return true
 
 
 func get_session_context() -> WorldSessionContext:
@@ -154,6 +220,7 @@ func get_session_context() -> WorldSessionContext:
 func _setup_services() -> void:
 	actor_factory.setup(entity_repository)
 	region_service.setup(self, entity_repository, actor_factory, interaction_index)
+	# Resolved from WorldSession root via RegionRuntimeService._get_slot().
 	region_service.active_region_slot_path = NodePath("ActiveRegionSlot")
 	save_coordinator.setup(self, entity_repository, region_service, world_flags)
 	simulation_service.setup(entity_repository)
@@ -162,7 +229,8 @@ func _setup_services() -> void:
 		QuestManager, world_flags,
 	)
 	dialogue_coordinator.setup(_session_context)
-	quest_event_router.setup(_session_context, event_bus)
+	quest_coordinator.setup(_session_context)
+	quest_event_router.setup(_session_context, event_bus, quest_coordinator)
 
 
 func _spawn_player() -> void:
@@ -226,7 +294,7 @@ func _restore_mount(data: Dictionary) -> void:
 		mount.from_dict(data)
 
 
-func _on_region_changed(previous: StringName, current: StringName) -> void:
+func _on_region_changed(_previous: StringName, current: StringName) -> void:
 	current_region_id = current
 	region_changed.emit(current)
 	EventBus.region_changed.emit(current)
@@ -241,11 +309,3 @@ func _on_region_changed(previous: StringName, current: StringName) -> void:
 		current,
 	)
 	event_bus.emit_event(ev)
-
-
-func _on_quest_state_changed(quest_id: StringName, state: int) -> void:
-	if state == QuestDefinition.QuestState.COMPLETED:
-		var def := ResourceRegistry.get_quest(quest_id)
-		if def != null:
-			var ctx := WorldEffectContext.new(_session_context)
-			WorldEffect.apply_sequence(def.reward_effects, ctx)

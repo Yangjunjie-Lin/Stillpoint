@@ -1,6 +1,8 @@
 class_name SaveSectionProvider
 extends Node
-## Interface for modular save sections.
+## Reserved for 0.8.0 modular save sections.
+## Save v4 currently uses WorldSaveCoordinator match-based section writers.
+## Do not treat this interface as production-ready until providers are registered.
 
 func get_section_id() -> StringName:
 	return &""

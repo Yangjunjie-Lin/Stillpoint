@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://worldsession001"]
+[gd_scene load_steps=23 format=3 uid="uid://worldsession001"]
 
 [ext_resource type="Script" path="res://scripts/world/session/world_session.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
@@ -19,6 +19,8 @@
 [ext_resource type="Script" path="res://scripts/ui/rpg/hud_controller.gd" id="17"]
 [ext_resource type="Script" path="res://scripts/ui/rpg/dialogue_ui.gd" id="18"]
 [ext_resource type="Script" path="res://scripts/world/debug/world_architecture_debug_panel.gd" id="19"]
+[ext_resource type="PackedScene" path="res://scenes/characters/base/npc_base_3d.tscn" id="20"]
+[ext_resource type="Script" path="res://scripts/quests/quest_coordinator.gd" id="21"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_companion"]
 radius = 0.4
@@ -87,6 +89,7 @@ script = ExtResource("4")
 
 [node name="ActorFactory" type="Node" parent="WorldServices"]
 script = ExtResource("5")
+default_npc_scene = ExtResource("20")
 
 [node name="RegionRuntimeService" type="Node" parent="WorldServices"]
 script = ExtResource("6")
@@ -99,6 +102,9 @@ script = ExtResource("8")
 
 [node name="QuestEventRouter" type="Node" parent="WorldServices"]
 script = ExtResource("9")
+
+[node name="QuestCoordinator" type="Node" parent="WorldServices"]
+script = ExtResource("21")
 
 [node name="WorldSaveCoordinator" type="Node" parent="WorldServices"]
 script = ExtResource("10")

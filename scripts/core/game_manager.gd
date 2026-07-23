@@ -17,18 +17,12 @@ func start_new_adventure(requested_name: String = "Traveler") -> void:
 		player_name = "Traveler"
 	run_active = true
 	resume_requested = false
-	_clear_world_save()
+	SaveSlotService.clear_adventure_save()
 	SceneRouter.go_to_world_session()
 
 
 func continue_adventure() -> void:
-	var has_save := false
-	var coordinator := _get_save_coordinator()
-	if coordinator != null:
-		has_save = coordinator.has_save()
-	else:
-		has_save = WorldSaveService.has_world_save()
-	if not has_save:
+	if not SaveSlotService.has_adventure_save():
 		push_warning("GameManager: no world save to continue")
 		return
 	run_active = true
@@ -37,10 +31,7 @@ func continue_adventure() -> void:
 
 
 func has_resumable_adventure() -> bool:
-	var coordinator := _get_save_coordinator()
-	if coordinator != null:
-		return coordinator.has_save()
-	return WorldSaveService.has_world_save()
+	return SaveSlotService.has_adventure_save()
 
 
 func start_new_run(requested_name: String = "Player") -> void:
@@ -88,40 +79,6 @@ func return_to_menu() -> void:
 	resume_requested = false
 	get_tree().paused = false
 	SceneRouter.go_to_main_menu()
-
-
-func _get_save_coordinator() -> WorldSaveCoordinator:
-	var tree := get_tree()
-	if tree == null:
-		return null
-	var world := tree.get_first_node_in_group("world_manager")
-	if world != null and world.has_node("WorldServices/WorldSaveCoordinator"):
-		return world.get_node("WorldServices/WorldSaveCoordinator") as WorldSaveCoordinator
-	return null
-
-
-func _clear_world_save() -> void:
-	var coordinator := _get_save_coordinator()
-	if coordinator != null:
-		coordinator.clear_save()
-	else:
-		_clear_save_slot_dir()
-		WorldSaveService.clear_world()
-
-
-func _clear_save_slot_dir() -> void:
-	var path := "user://saves/slot_01/"
-	if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(path)):
-		return
-	var dir := DirAccess.open(path)
-	if dir == null:
-		return
-	dir.list_dir_begin()
-	var entry := dir.get_next()
-	while entry != "":
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(path.path_join(entry)))
-		entry = dir.get_next()
-	dir.list_dir_end()
 
 
 func _unhandled_input(event: InputEvent) -> void:

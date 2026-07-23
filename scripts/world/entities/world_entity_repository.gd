@@ -90,6 +90,17 @@ func consume_dirty_regions() -> Array[StringName]:
 	return result
 
 
+func peek_dirty_regions() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for key in _dirty_regions.keys():
+		result.append(key)
+	return result
+
+
+func clear_dirty_region(region_id: StringName) -> void:
+	_dirty_regions.erase(RegionIdUtil.normalize(region_id))
+
+
 func get_snapshot_count() -> int:
 	return _snapshots.size()
 
