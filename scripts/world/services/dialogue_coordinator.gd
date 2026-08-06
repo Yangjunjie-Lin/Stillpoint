@@ -4,11 +4,14 @@ extends Node
 
 signal dialogue_started(npc: NPCController)
 signal dialogue_ended
+signal choice_effect_failed(reason: String)
 
 var _runner := DialogueRunner.new()
 var _session_context: WorldSessionContext
 var _npc: NPCController
 var _player: PlayerController3D
+var _npc_state_before_dialogue: NPCController.NPCState = NPCController.NPCState.IDLE
+var _player_input_before_dialogue: bool = true
 
 
 func setup(context: WorldSessionContext) -> void:
@@ -16,6 +19,7 @@ func setup(context: WorldSessionContext) -> void:
 	_runner.line_presented.connect(_on_line)
 	_runner.choices_presented.connect(_on_choices)
 	_runner.dialogue_finished.connect(_on_finished)
+	_runner.choice_effect_failed.connect(_on_choice_effect_failed)
 
 
 func get_runner() -> DialogueRunner:
@@ -28,20 +32,26 @@ func start_dialogue(npc: NPCController, player: PlayerController3D) -> bool:
 	if not npc.can_talk_to(player):
 		EventBus.notice_requested.emit("They refuse to speak with you.")
 		return false
-	_npc = npc
-	_player = player
 	var dialogue := _resolve_dialogue(npc)
 	if dialogue == null:
 		return false
+	_npc = npc
+	_player = player
+	_npc_state_before_dialogue = npc.npc_state
+	_player_input_before_dialogue = player.state.input_enabled
 	player.set_input_enabled(false)
 	npc.set_npc_state(NPCController.NPCState.TALK)
-	_runner.start(dialogue, npc, player, _session_context)
+	if not _runner.start(dialogue, npc, player, _session_context):
+		_restore_actor_state()
+		_npc = null
+		_player = null
+		return false
 	dialogue_started.emit(npc)
 	return true
 
 
-func apply_choice(index: int) -> void:
-	_runner.choose(index)
+func apply_choice(index: int) -> EffectResult:
+	return _runner.choose(index)
 
 
 func _resolve_dialogue(npc: NPCController) -> DialogueDefinition:
@@ -64,9 +74,21 @@ func _on_choices(choices: Array) -> void:
 
 
 func _on_finished() -> void:
-	if _player != null:
-		_player.set_input_enabled(true)
-	if _npc != null and _npc.npc_state == NPCController.NPCState.TALK:
-		_npc.set_npc_state(NPCController.NPCState.FOLLOW_SCHEDULE)
+	_restore_actor_state()
 	EventBus.dialogue_finished.emit()
 	dialogue_ended.emit()
+	_npc = null
+	_player = null
+
+
+func _on_choice_effect_failed(_choice: DialogueChoice, reason: String) -> void:
+	choice_effect_failed.emit(reason)
+	EventBus.notice_requested.emit("Dialogue choice failed: %s" % reason)
+
+
+func _restore_actor_state() -> void:
+	if _player != null and is_instance_valid(_player):
+		_player.set_input_enabled(_player_input_before_dialogue)
+	if _npc != null and is_instance_valid(_npc) \
+		and _npc.npc_state == NPCController.NPCState.TALK:
+		_npc.set_npc_state(_npc_state_before_dialogue)

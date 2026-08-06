@@ -18,7 +18,7 @@ func apply(context: WorldEffectContext) -> EffectResult:
 		context.source_entity_id,
 		target_entity_id,
 		definition_id,
-		region_id if region_id != &"" else context.session_context.current_region_id,
+		region_id if region_id != &"" else context.session_context.get_current_region_id(),
 	)
 	session.event_bus.emit_event(ev)
 	return EffectResult.ok()

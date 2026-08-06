@@ -70,7 +70,7 @@ func _on_finished() -> void:
 
 func _select(index: int) -> void:
 	choice_selected.emit(index)
-	var world := get_tree().get_first_node_in_group("world_manager") as WorldManager
+	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
 	if world != null:
 		world.apply_dialogue_choice(index)
 

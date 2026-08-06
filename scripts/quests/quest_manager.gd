@@ -49,16 +49,21 @@ func start_quest(quest_id: StringName) -> bool:
 		return false
 	runtime.state = QuestDefinition.QuestState.ACTIVE
 	runtime.current_objective_index = 0
+	runtime.objective_progress.clear()
+	runtime.rewards_claimed = false
+	runtime.completion_effects_applied = false
+	runtime.failure_effects_applied = false
+	runtime.applied_effect_ids.clear()
 	if _tracked_quest_id == &"":
 		_tracked_quest_id = quest_id
-	# Auto-complete talk objective when started via dialogue.
-	if not def.objectives.is_empty() and def.objectives[0] != null:
-		var first := def.objectives[0]
-		if first.objective_type == ObjectiveDefinition.ObjectiveType.TALK:
-			runtime.objective_progress[String(first.id)] = first.required_count
-			runtime.current_objective_index = 1
 	quest_state_changed.emit(quest_id, runtime.state)
 	return true
+
+
+func notify_runtime_changed(quest_id: StringName) -> void:
+	var runtime := get_runtime(quest_id)
+	if runtime != null:
+		quest_state_changed.emit(quest_id, runtime.state)
 
 
 func complete_quest(quest_id: StringName) -> bool:
