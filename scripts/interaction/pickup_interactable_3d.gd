@@ -40,15 +40,18 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 		for cond in conditions:
 			if cond != null and not cond.evaluate(session_ctx):
 				return
+		var effect_ctx := WorldEffectContext.new(session_ctx)
+		if identity != null:
+			effect_ctx.source_entity_id = identity.persistent_id
+		var effect_result := WorldEffect.apply_sequence(effects, effect_ctx)
+		if not effect_result.success:
+			EventBus.notice_requested.emit("Pickup effect failed: %s" % effect_result.message)
+			return
 	player.inventory.add_item(item_id, quantity)
 	_collected = true
 	interaction_enabled = false
 	visible = false
 	if session_ctx != null and _session != null:
-		var effect_ctx := WorldEffectContext.new(session_ctx)
-		if identity != null:
-			effect_ctx.source_entity_id = identity.persistent_id
-		WorldEffect.apply_sequence(effects, effect_ctx)
 		var ev := GameplayEvent.make(
 			GameplayEventTypes.ITEM_COLLECTED,
 			&"base:player/main",

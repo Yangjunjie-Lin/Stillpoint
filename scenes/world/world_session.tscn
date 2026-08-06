@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://worldsession001"]
+[gd_scene load_steps=24 format=3 uid="uid://worldsession001"]
 
 [ext_resource type="Script" path="res://scripts/world/session/world_session.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
@@ -21,6 +21,7 @@
 [ext_resource type="Script" path="res://scripts/world/debug/world_architecture_debug_panel.gd" id="19"]
 [ext_resource type="PackedScene" path="res://scenes/characters/base/npc_base_3d.tscn" id="20"]
 [ext_resource type="Script" path="res://scripts/quests/quest_coordinator.gd" id="21"]
+[ext_resource type="Script" path="res://scripts/ui/rpg/world_pause_menu.gd" id="22"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_companion"]
 radius = 0.4
@@ -197,6 +198,57 @@ unique_name_in_owner = true
 [node name="ContinueHint" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
 unique_name_in_owner = true
 text = "..."
+
+[node name="PausePanel" type="Control" parent="WorldUI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("22")
+
+[node name="Dim" type="ColorRect" parent="WorldUI/PausePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Panel" type="VBoxContainer" parent="WorldUI/PausePanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -100.0
+offset_right = 140.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="WorldUI/PausePanel/Panel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Paused"
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="WorldUI/PausePanel/Panel"]
+layout_mode = 2
+text = "Resume"
+
+[node name="MainMenuButton" type="Button" parent="WorldUI/PausePanel/Panel"]
+layout_mode = 2
+text = "Save & Main Menu"
+
+[connection signal="pressed" from="WorldUI/PausePanel/Panel/ResumeButton" to="WorldUI/PausePanel" method="_on_resume_pressed"]
+[connection signal="pressed" from="WorldUI/PausePanel/Panel/MainMenuButton" to="WorldUI/PausePanel" method="_on_main_menu_pressed"]
 
 [node name="DebugTools" type="CanvasLayer" parent="."]
 visible = false

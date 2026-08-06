@@ -46,7 +46,10 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 		if cond != null and not cond.evaluate(session_ctx):
 			return
 	var effect_ctx := WorldEffectContext.new(session_ctx)
-	WorldEffect.apply_sequence(effects, effect_ctx)
+	var effect_result := WorldEffect.apply_sequence(effects, effect_ctx)
+	if not effect_result.success:
+		EventBus.notice_requested.emit("Interaction effect failed: %s" % effect_result.message)
+		return
 	_session.start_dialogue(_npc)
 	var ev := GameplayEvent.make(
 		GameplayEventTypes.NPC_TALKED,

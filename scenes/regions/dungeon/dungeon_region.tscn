@@ -14,6 +14,15 @@ albedo_color = Color(0.35, 0.32, 0.38, 1)
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(40, 0.2, 40)
 
+[sub_resource type="TorusMesh" id="TorusMesh_portal"]
+inner_radius = 0.65
+outer_radius = 0.85
+rings = 16
+ring_segments = 24
+
+[sub_resource type="StandardMaterial3D" id="Mat_portal_town"]
+albedo_color = Color(0.98, 0.76, 0.22, 1)
+
 [node name="RegionRoot" type="Node3D"]
 
 [node name="Environment" type="Node3D" parent="."]
@@ -52,6 +61,8 @@ spawn_definition = ExtResource("4")
 
 [node name="StaticEntities" type="Node3D" parent="."]
 
+[node name="DynamicEntities" type="Node3D" parent="."]
+
 [node name="Interactables" type="Node3D" parent="."]
 
 [node name="TownPortal" type="Node3D" parent="Interactables"]
@@ -60,6 +71,12 @@ script = ExtResource("1")
 region_id = &"base:dungeon"
 target_region_id = &"base:town"
 prompt_text = "Return to Town"
+
+[node name="PortalVisual" type="MeshInstance3D" parent="Interactables/TownPortal"]
+position = Vector3(0, 1.1, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("TorusMesh_portal")
+surface_material_override/0 = SubResource("Mat_portal_town")
 
 [node name="LocalEffects" type="Node3D" parent="."]
 

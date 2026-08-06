@@ -13,6 +13,32 @@ albedo_color = Color(0.2, 0.45, 0.25, 1)
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(40, 0.2, 40)
 
+[sub_resource type="CylinderMesh" id="CylinderMesh_herb_stem"]
+top_radius = 0.055
+bottom_radius = 0.075
+height = 0.55
+
+[sub_resource type="SphereMesh" id="SphereMesh_herb_leaf"]
+radius = 0.22
+height = 0.3
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="Mat_herb_stem"]
+albedo_color = Color(0.25, 0.62, 0.18, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_herb_leaf"]
+albedo_color = Color(0.45, 0.95, 0.2, 1)
+
+[sub_resource type="TorusMesh" id="TorusMesh_portal"]
+inner_radius = 0.65
+outer_radius = 0.85
+rings = 16
+ring_segments = 24
+
+[sub_resource type="StandardMaterial3D" id="Mat_portal_town"]
+albedo_color = Color(0.98, 0.76, 0.22, 1)
+
 [node name="RegionRoot" type="Node3D"]
 
 [node name="Environment" type="Node3D" parent="."]
@@ -41,6 +67,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 
 [node name="StaticEntities" type="Node3D" parent="."]
 
+[node name="DynamicEntities" type="Node3D" parent="."]
+
 [node name="Interactables" type="Node3D" parent="."]
 
 [node name="HerbPickup" type="Node3D" parent="Interactables"]
@@ -48,6 +76,32 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 3)
 script = ExtResource("2")
 region_id = &"base:wilderness"
 item_id = &"herb"
+
+[node name="StemVisual" type="MeshInstance3D" parent="Interactables/HerbPickup"]
+position = Vector3(0, 0.275, 0)
+mesh = SubResource("CylinderMesh_herb_stem")
+surface_material_override/0 = SubResource("Mat_herb_stem")
+
+[node name="LeafVisualA" type="MeshInstance3D" parent="Interactables/HerbPickup"]
+position = Vector3(0.18, 0.5, 0)
+rotation = Vector3(0, 0, -0.55)
+scale = Vector3(1.4, 0.75, 0.8)
+mesh = SubResource("SphereMesh_herb_leaf")
+surface_material_override/0 = SubResource("Mat_herb_leaf")
+
+[node name="LeafVisualB" type="MeshInstance3D" parent="Interactables/HerbPickup"]
+position = Vector3(-0.18, 0.45, 0.06)
+rotation = Vector3(0.2, 0.8, 0.55)
+scale = Vector3(1.35, 0.75, 0.8)
+mesh = SubResource("SphereMesh_herb_leaf")
+surface_material_override/0 = SubResource("Mat_herb_leaf")
+
+[node name="LeafVisualC" type="MeshInstance3D" parent="Interactables/HerbPickup"]
+position = Vector3(0, 0.58, -0.16)
+rotation = Vector3(-0.65, 0, 0)
+scale = Vector3(1.1, 0.7, 0.8)
+mesh = SubResource("SphereMesh_herb_leaf")
+surface_material_override/0 = SubResource("Mat_herb_leaf")
 
 [node name="WorldEntityIdentity" type="Node" parent="Interactables/HerbPickup"]
 script = ExtResource("3")
@@ -61,6 +115,12 @@ script = ExtResource("1")
 region_id = &"base:wilderness"
 target_region_id = &"base:town"
 prompt_text = "Return to Town"
+
+[node name="PortalVisual" type="MeshInstance3D" parent="Interactables/TownPortal"]
+position = Vector3(0, 1.1, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("TorusMesh_portal")
+surface_material_override/0 = SubResource("Mat_portal_town")
 
 [node name="LocalEffects" type="Node3D" parent="."]
 

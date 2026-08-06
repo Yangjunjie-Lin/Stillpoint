@@ -45,6 +45,33 @@ albedo_color = Color(0.9, 0.5, 0.7, 1)
 [sub_resource type="StandardMaterial3D" id="Mat_ren"]
 albedo_color = Color(0.5, 0.6, 0.9, 1)
 
+[sub_resource type="TorusMesh" id="TorusMesh_portal"]
+inner_radius = 0.65
+outer_radius = 0.85
+rings = 16
+ring_segments = 24
+
+[sub_resource type="StandardMaterial3D" id="Mat_portal_wilderness"]
+albedo_color = Color(0.18, 0.9, 0.38, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_portal_dungeon"]
+albedo_color = Color(0.72, 0.32, 0.95, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_chest_body"]
+size = Vector3(1.2, 0.55, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_chest_lid"]
+size = Vector3(1.25, 0.2, 0.85)
+
+[sub_resource type="BoxMesh" id="BoxMesh_chest_latch"]
+size = Vector3(0.18, 0.28, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="Mat_chest_wood"]
+albedo_color = Color(0.48, 0.22, 0.08, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_chest_metal"]
+albedo_color = Color(0.95, 0.72, 0.16, 1)
+
 [node name="RegionRoot" type="Node3D"]
 
 [node name="Environment" type="Node3D" parent="."]
@@ -209,6 +236,8 @@ team = &"npc"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
+[node name="DynamicEntities" type="Node3D" parent="."]
+
 [node name="Interactables" type="Node3D" parent="."]
 
 [node name="MiraTalk" type="Node3D" parent="Interactables"]
@@ -230,6 +259,12 @@ region_id = &"base:town"
 target_region_id = &"base:wilderness"
 prompt_text = "Enter Forest"
 
+[node name="PortalVisual" type="MeshInstance3D" parent="Interactables/WildernessPortal"]
+position = Vector3(0, 1.1, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("TorusMesh_portal")
+surface_material_override/0 = SubResource("Mat_portal_wilderness")
+
 [node name="DungeonPortal" type="Node3D" parent="Interactables"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
 script = ExtResource("19")
@@ -237,11 +272,32 @@ region_id = &"base:town"
 target_region_id = &"base:dungeon"
 prompt_text = "Enter Mine"
 
+[node name="PortalVisual" type="MeshInstance3D" parent="Interactables/DungeonPortal"]
+position = Vector3(0, 1.1, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("TorusMesh_portal")
+surface_material_override/0 = SubResource("Mat_portal_dungeon")
+
 [node name="Chest" type="Node3D" parent="Interactables"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -3)
 script = ExtResource("20")
 region_id = &"base:town"
 item_id = &"herb"
+
+[node name="BodyVisual" type="MeshInstance3D" parent="Interactables/Chest"]
+position = Vector3(0, 0.3, 0)
+mesh = SubResource("BoxMesh_chest_body")
+surface_material_override/0 = SubResource("Mat_chest_wood")
+
+[node name="LidVisual" type="MeshInstance3D" parent="Interactables/Chest"]
+position = Vector3(0, 0.675, 0)
+mesh = SubResource("BoxMesh_chest_lid")
+surface_material_override/0 = SubResource("Mat_chest_wood")
+
+[node name="LatchVisual" type="MeshInstance3D" parent="Interactables/Chest"]
+position = Vector3(0, 0.52, 0.44)
+mesh = SubResource("BoxMesh_chest_latch")
+surface_material_override/0 = SubResource("Mat_chest_metal")
 
 [node name="WorldEntityIdentity" type="Node" parent="Interactables/Chest"]
 script = ExtResource("17")

@@ -48,6 +48,7 @@ func get_snapshot(persistent_id: StringName) -> EntitySnapshot:
 func store_snapshot(snapshot: EntitySnapshot) -> void:
 	if snapshot == null or snapshot.persistent_id == &"":
 		return
+	snapshot.region_id = RegionIdUtil.normalize(snapshot.region_id)
 	_snapshots[snapshot.persistent_id] = snapshot
 
 
@@ -64,6 +65,16 @@ func get_entities_in_region(region_id: StringName) -> Array[StringName]:
 		var snap := _snapshots[pid] as EntitySnapshot
 		if snap != null and RegionIdUtil.normalize(snap.region_id) == norm:
 			result.append(pid)
+	return result
+
+
+func get_snapshots_in_region(region_id: StringName) -> Array[EntitySnapshot]:
+	var norm := RegionIdUtil.normalize(region_id)
+	var result: Array[EntitySnapshot] = []
+	for snapshot in _snapshots.values():
+		var snap := snapshot as EntitySnapshot
+		if snap != null and RegionIdUtil.normalize(snap.region_id) == norm:
+			result.append(snap)
 	return result
 
 
@@ -120,9 +131,8 @@ func capture_all_in_region(region_id: StringName) -> Dictionary:
 		if PersistencePolicyUtil.should_persist_across_regions(identity.persistence_policy):
 			continue
 		var snap := EntitySnapshot.new()
-		snap.persistent_id = identity.persistent_id
-		snap.definition_id = identity.definition_id
-		snap.region_id = identity.region_id
+		_seed_snapshot_from_identity(snap, identity)
+		_preserve_snapshot_metadata(snap, get_snapshot(identity.persistent_id))
 		if entity is Node3D:
 			snap.capture_from_node(entity as Node3D)
 		entities[String(pid)] = snap.to_dict()
@@ -158,13 +168,37 @@ func clear_all() -> void:
 
 func _capture_entity_snapshot(entity: Node, identity: WorldEntityIdentity) -> void:
 	var snap := EntitySnapshot.new()
-	snap.persistent_id = identity.persistent_id
-	snap.definition_id = identity.definition_id
-	snap.region_id = identity.region_id
+	_seed_snapshot_from_identity(snap, identity)
+	var previous := get_snapshot(identity.persistent_id)
+	_preserve_snapshot_metadata(snap, previous)
 	if entity is Node3D:
 		snap.capture_from_node(entity as Node3D)
+	if previous != null and previous.destroyed:
+		snap.destroyed = true
 	_snapshots[identity.persistent_id] = snap
 	mark_dirty(identity.persistent_id)
+
+
+func _seed_snapshot_from_identity(
+	snapshot: EntitySnapshot,
+	identity: WorldEntityIdentity,
+) -> void:
+	snapshot.persistent_id = identity.persistent_id
+	snapshot.definition_id = identity.definition_id
+	snapshot.region_id = RegionIdUtil.normalize(identity.region_id)
+	snapshot.runtime_spawned = identity.runtime_spawned
+
+
+func _preserve_snapshot_metadata(
+	snapshot: EntitySnapshot,
+	previous: EntitySnapshot,
+) -> void:
+	if previous == null:
+		return
+	snapshot.pending_spawn_id = previous.pending_spawn_id
+	snapshot.entity_category = previous.entity_category
+	snapshot.runtime_spawned = snapshot.runtime_spawned or previous.runtime_spawned
+	snapshot.destroyed = previous.destroyed
 
 
 func _find_identity(entity: Node) -> WorldEntityIdentity:

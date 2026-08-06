@@ -30,6 +30,10 @@ func setup(
 	_entity_repository = repository
 	_actor_factory = factory
 	_interaction_index = index
+	if _actor_factory != null:
+		_actor_factory.set_region_service(self)
+		if not _actor_factory.actor_spawned.is_connected(_wire_actor_gameplay_events):
+			_actor_factory.actor_spawned.connect(_wire_actor_gameplay_events)
 
 
 func enter_region(
@@ -65,11 +69,13 @@ func enter_region(
 	hydrate_region_chunk(norm, _region_chunks.get(norm, {}))
 	# 3) Restore snapshots onto static entities
 	restore_static_entities(instance)
-	# 4) Spawn/restore dynamic actors from markers
+	# 4) Spawn/restore actors declared by region spawn markers
 	_spawn_markers(norm)
-	# 5) Register interactables
+	# 5) Materialize queued runtime actors that have no scene marker
+	_restore_runtime_spawned_entities(norm)
+	# 6) Register interactables
 	_register_interactables(instance, norm)
-	# 6) Place persistent actors
+	# 7) Place persistent actors
 	var use_saved := transition_context != null and transition_context.restore_saved_transform
 	if not use_saved:
 		_place_persistent_actors(spawn_id if spawn_id != &"" else def.default_spawn_id)
@@ -118,27 +124,45 @@ func set_region_chunk(region_id: StringName, data: Dictionary) -> void:
 
 
 func get_region_chunk(region_id: StringName) -> Dictionary:
-	return _region_chunks.get(RegionIdUtil.normalize(region_id), {})
+	return capture_region_chunk(region_id)
 
 
 func capture_current_region_chunk() -> Dictionary:
 	if _current_region_id == &"" or _entity_repository == null:
 		return {}
-	var entities := _entity_repository.capture_all_in_region(_current_region_id)
+	return capture_region_chunk(_current_region_id)
+
+
+func capture_region_chunk(region_id: StringName) -> Dictionary:
+	var norm := RegionIdUtil.normalize(region_id)
+	if norm == &"" or _entity_repository == null:
+		return {}
+	var cached: Dictionary = _region_chunks.get(norm, {})
+	var entities: Dictionary = cached.get("entities", {}).duplicate(true)
+	var captured := _entity_repository.capture_all_in_region(norm)
+	for persistent_id in captured.keys():
+		entities[persistent_id] = captured[persistent_id]
 	var destroyed: Array = []
 	for pid in entities.keys():
-		var snap_data: Dictionary = entities[pid]
+		var value: Variant = entities[pid]
+		if typeof(value) != TYPE_DICTIONARY:
+			continue
+		var snap_data: Dictionary = value
 		if bool(snap_data.get("destroyed", false)):
 			destroyed.append(str(pid))
-	return {
-		"region_id": String(_current_region_id),
-		"region_state_version": 1,
-		"last_simulated_time": WorldTimeService.to_dict(),
-		"entities": entities,
-		"destroyed_entities": destroyed,
-		"spawn_states": {},
-		"custom_state": {},
-	}
+	var chunk := cached.duplicate(true)
+	chunk["region_id"] = String(norm)
+	chunk["region_state_version"] = int(chunk.get("region_state_version", 1))
+	chunk["last_simulated_time"] = (
+		WorldTimeService.to_dict()
+		if norm == _current_region_id
+		else chunk.get("last_simulated_time", {})
+	)
+	chunk["entities"] = entities
+	chunk["destroyed_entities"] = destroyed
+	chunk["spawn_states"] = chunk.get("spawn_states", {})
+	chunk["custom_state"] = chunk.get("custom_state", {})
+	return chunk
 
 
 func hydrate_region_chunk(region_id: StringName, chunk: Dictionary) -> void:
@@ -146,8 +170,13 @@ func hydrate_region_chunk(region_id: StringName, chunk: Dictionary) -> void:
 		return
 	var entities: Dictionary = chunk.get("entities", {})
 	for key in entities.keys():
-		var data: Dictionary = entities[key]
+		var value: Variant = entities[key]
+		if typeof(value) != TYPE_DICTIONARY:
+			continue
+		var data: Dictionary = value
 		var snap := EntitySnapshot.from_dict(data)
+		if snap.region_id == &"":
+			snap.region_id = RegionIdUtil.normalize(region_id)
 		_entity_repository.store_snapshot(snap)
 
 
@@ -160,8 +189,22 @@ func restore_static_entities(region_root: Node) -> void:
 func get_dynamic_parent() -> Node:
 	if _current_region_root == null:
 		return null
-	var dynamic := _current_region_root.get_node_or_null("StaticEntities")
-	return dynamic if dynamic != null else _current_region_root
+	var dynamic := _current_region_root.get_node_or_null("DynamicEntities")
+	if dynamic != null:
+		return dynamic
+	var static_entities := _current_region_root.get_node_or_null("StaticEntities")
+	return static_entities if static_entities != null else _current_region_root
+
+
+func resolve_entity_region(entity: Node) -> StringName:
+	var identity := _find_identity(entity)
+	if identity != null and identity.region_id != &"":
+		return RegionIdUtil.normalize(identity.region_id)
+	if entity is CharacterController:
+		var actor_region := RegionIdUtil.normalize((entity as CharacterController).region_id)
+		if actor_region != &"":
+			return actor_region
+	return RegionIdUtil.normalize(_current_region_id)
 
 
 func _unload_current_region() -> void:
@@ -205,7 +248,8 @@ func _spawn_markers(region_id: StringName) -> void:
 		if snap != null and snap.destroyed:
 			continue
 		if snap != null:
-			_actor_factory.restore_actor(snap, _get_entity_parent())
+			var restored := _actor_factory.restore_actor(snap, _get_entity_parent())
+			_wire_actor_gameplay_events(restored)
 			continue
 		var ctx := ActorSpawnContext.new()
 		ctx.definition_id = def.definition_id
@@ -213,7 +257,49 @@ func _spawn_markers(region_id: StringName) -> void:
 		ctx.region_id = region_id
 		ctx.parent = _get_entity_parent()
 		ctx.transform = marker.global_transform
-		_actor_factory.spawn_actor(def.definition_id, ctx)
+		var actor := _actor_factory.spawn_actor(def.definition_id, ctx)
+		_wire_actor_gameplay_events(actor)
+
+
+func _restore_runtime_spawned_entities(region_id: StringName) -> void:
+	if _current_region_root == null or _actor_factory == null or _entity_repository == null:
+		return
+	var parent := get_dynamic_parent()
+	if parent == null:
+		push_warning("RegionRuntimeService: no dynamic parent for %s" % String(region_id))
+		return
+	var materialized: Dictionary = {}
+	for snapshot in _entity_repository.get_snapshots_in_region(region_id):
+		if snapshot == null or snapshot.destroyed or not snapshot.runtime_spawned:
+			continue
+		if snapshot.entity_category != &"actor":
+			push_warning(
+				"RegionRuntimeService: unsupported runtime entity category %s for %s"
+				% [String(snapshot.entity_category), String(snapshot.persistent_id)]
+			)
+			continue
+		if materialized.has(snapshot.persistent_id):
+			continue
+		if _entity_repository.get_loaded_entity(snapshot.persistent_id) != null:
+			materialized[snapshot.persistent_id] = true
+			continue
+		if not _has_actor_definition(snapshot.definition_id):
+			push_warning(
+				"RegionRuntimeService: runtime snapshot %s has missing actor definition %s"
+				% [String(snapshot.persistent_id), String(snapshot.definition_id)]
+			)
+			continue
+		if not snapshot.transform_data.has("position") and snapshot.pending_spawn_id != &"":
+			_set_snapshot_transform(snapshot, find_spawn(snapshot.pending_spawn_id))
+		var actor := _actor_factory.restore_actor(snapshot, parent)
+		if actor == null:
+			push_warning(
+				"RegionRuntimeService: failed to materialize runtime snapshot %s"
+				% String(snapshot.persistent_id)
+			)
+			continue
+		materialized[snapshot.persistent_id] = true
+		_wire_actor_gameplay_events(actor)
 
 
 func _register_static_entities(region_root: Node3D, region_id: StringName) -> void:
@@ -233,6 +319,18 @@ func _register_interactables(region_root: Node3D, region_id: StringName) -> void
 
 
 func _register_entity_tree(node: Node, region_id: StringName, register_interactables: bool) -> void:
+	if node.is_queued_for_deletion():
+		return
+	var identity := _find_identity(node)
+	if node is CharacterController:
+		var actor_region := region_id
+		if identity != null and identity.region_id != &"":
+			actor_region = identity.region_id
+		actor_region = RegionIdUtil.normalize(actor_region)
+		(node as CharacterController).region_id = actor_region
+		if identity != null:
+			identity.region_id = actor_region
+		_wire_actor_gameplay_events(node as CharacterController)
 	if register_interactables and node is Interactable:
 		var interactable := node as Interactable
 		interactable.region_id = region_id
@@ -240,7 +338,6 @@ func _register_entity_tree(node: Node, region_id: StringName, register_interacta
 	for child in node.get_children():
 		_register_entity_tree(child, region_id, register_interactables)
 	if _entity_repository != null and node is Node3D:
-		var identity := _find_identity(node)
 		if identity != null and identity.is_valid():
 			if identity.region_id == &"":
 				identity.region_id = region_id
@@ -255,6 +352,7 @@ func _apply_snapshots_recursive(node: Node) -> void:
 		if snap != null and not snap.destroyed:
 			snap.apply_to_node(node as Node3D)
 		elif snap != null and snap.destroyed:
+			_entity_repository.unregister_entity(node, false)
 			node.queue_free()
 			return
 	for child in node.get_children():
@@ -303,6 +401,89 @@ func _find_identity(entity: Node) -> WorldEntityIdentity:
 	return null
 
 
+func _has_actor_definition(definition_id: StringName) -> bool:
+	return (
+		ResourceRegistry.get_npc(definition_id) != null
+		or ResourceRegistry.get_character(definition_id) != null
+	)
+
+
+func _set_snapshot_transform(snapshot: EntitySnapshot, transform: Transform3D) -> void:
+	snapshot.transform_data = {
+		"position": {
+			"x": transform.origin.x,
+			"y": transform.origin.y,
+			"z": transform.origin.z,
+		},
+		"rotation": {
+			"x": transform.basis.get_euler().x,
+			"y": transform.basis.get_euler().y,
+			"z": transform.basis.get_euler().z,
+		},
+	}
+
+
+func _wire_actor_gameplay_events(actor: CharacterController) -> void:
+	if actor == null:
+		return
+	var downed_callback := Callable(self, "_on_actor_downed").bind(actor)
+	if not actor.downed.is_connected(downed_callback):
+		actor.downed.connect(downed_callback)
+	var defeated_callback := Callable(self, "_on_actor_defeated").bind(actor)
+	if not actor.died_permanently.is_connected(defeated_callback):
+		actor.died_permanently.connect(defeated_callback)
+
+
+func _on_actor_downed(source: Node, actor: CharacterController) -> void:
+	var identity := _find_identity(actor)
+	if identity != null and _entity_repository != null:
+		_entity_repository.mark_dirty(identity.persistent_id)
+	_emit_actor_gameplay_event(GameplayEventTypes.ENTITY_DOWNED, source, actor)
+
+
+func _on_actor_defeated(source: Node, actor: CharacterController) -> void:
+	var identity := _find_identity(actor)
+	if identity != null and _entity_repository != null:
+		var snapshot := _entity_repository.get_snapshot(identity.persistent_id)
+		if snapshot == null:
+			snapshot = EntitySnapshot.new()
+		snapshot.persistent_id = identity.persistent_id
+		snapshot.definition_id = identity.definition_id
+		snapshot.region_id = resolve_entity_region(actor)
+		snapshot.runtime_spawned = identity.runtime_spawned
+		if actor is Node3D:
+			snapshot.capture_from_node(actor as Node3D)
+		snapshot.destroyed = true
+		_entity_repository.store_snapshot(snapshot)
+		_entity_repository.unregister_entity(actor, false)
+		_entity_repository.mark_dirty(identity.persistent_id)
+	_emit_actor_gameplay_event(GameplayEventTypes.ENTITY_DEFEATED, source, actor)
+
+
+func _emit_actor_gameplay_event(
+	event_type: StringName,
+	source: Node,
+	actor: CharacterController,
+) -> void:
+	var session := _session as WorldSession
+	if session == null or actor == null:
+		return
+	var identity := _find_identity(actor)
+	var event := GameplayEvent.make(
+		event_type,
+		_get_entity_persistent_id(source),
+		identity.persistent_id if identity != null else &"",
+		identity.definition_id if identity != null else actor.character_id,
+		resolve_entity_region(actor),
+	)
+	session.event_bus.emit_event(event)
+
+
+func _get_entity_persistent_id(entity: Node) -> StringName:
+	var identity := _find_identity(entity)
+	return identity.persistent_id if identity != null else &""
+
+
 func _place_persistent_actors(spawn_id: StringName) -> void:
 	if _session == null:
 		return
@@ -311,8 +492,7 @@ func _place_persistent_actors(spawn_id: StringName) -> void:
 		var xform := find_spawn(spawn_id if spawn_id != &"" else &"spawn")
 		player.global_transform = xform
 		player.reset_physics_interpolation()
-		player.current_region_id = _current_region_id
-		player.region_id = _current_region_id
+		_sync_player_region(player)
 
 
 func _sync_player_region_ids() -> void:
@@ -320,8 +500,15 @@ func _sync_player_region_ids() -> void:
 		return
 	var player: PlayerController3D = _session.get("player")
 	if player != null:
-		player.current_region_id = _current_region_id
-		player.region_id = _current_region_id
+		_sync_player_region(player)
+
+
+func _sync_player_region(player: PlayerController3D) -> void:
+	player.current_region_id = _current_region_id
+	player.region_id = _current_region_id
+	var identity := _find_identity(player)
+	if identity != null:
+		identity.region_id = _current_region_id
 
 
 func _get_slot() -> Node:
