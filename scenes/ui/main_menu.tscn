@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/input_rebind_panel.tscn" id="2"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -161,9 +162,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -160.0
+offset_top = -350.0
 offset_right = 200.0
-offset_bottom = 160.0
+offset_bottom = 350.0
 theme_override_constants/separation = 10
 
 [node name="SettingsTitle" type="Label" parent="SettingsPanel/Panel"]
@@ -211,6 +212,8 @@ value = -3.0
 unique_name_in_owner = true
 layout_mode = 2
 text = "Fullscreen"
+
+[node name="InputRebindUI" parent="SettingsPanel/Panel" instance=ExtResource("2")]
 
 [node name="SettingsClose" type="Button" parent="SettingsPanel/Panel"]
 layout_mode = 2

@@ -3,6 +3,7 @@ extends Node3D
 ## Thin world session coordinator; initializes services and exposes read-only APIs.
 
 signal region_changed(region_id: StringName)
+signal restore_failed(reason: StringName)
 
 @export var player_scene: PackedScene
 @export var initial_region_id: StringName = &"base:town"
@@ -15,6 +16,8 @@ var discovered_regions: Array = ["base:town"]
 var unlocked_pet_ids: Array = []
 var unlocked_mount_ids: Array = []
 var _autosave_timer: float = 0.0
+var _autosave_enabled: bool = true
+var _restore_failed_state: bool = false
 var _session_context: WorldSessionContext
 var _pending_player_transform: Dictionary = {}
 
@@ -50,9 +53,21 @@ func _ready() -> void:
 	_spawn_companions()
 	var start_region := RegionIdUtil.normalize(initial_region_id)
 	if GameManager.resume_requested:
-		save_coordinator.restore_session()
-		current_region_id = region_service.get_current_region_id()
+		var validation := SaveSlotService.inspect_adventure_summary()
+		var restored := false
+		if bool(validation.get("valid", false)):
+			restored = save_coordinator.restore_session()
 		GameManager.resume_requested = false
+		if restored:
+			current_region_id = region_service.get_current_region_id()
+			if current_region_id == &"":
+				restored = false
+		if not restored:
+			var reason := StringName(str(validation.get("reason", "restore_failed")))
+			if reason == &"":
+				reason = &"restore_failed"
+			_handle_restore_failure(reason)
+			return
 	else:
 		region_service.enter_region(start_region)
 		current_region_id = region_service.get_current_region_id()
@@ -62,6 +77,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if not _autosave_enabled or _restore_failed_state:
+		return
 	_autosave_timer += delta
 	if _autosave_timer >= autosave_interval:
 		_autosave_timer = 0.0
@@ -72,6 +89,8 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if _restore_failed_state:
+		return
 	if player != null:
 		var nearby := interaction_index.query_nearby(player, 3.0)
 		player.update_interaction_targets(nearby)
@@ -98,7 +117,8 @@ func discover_region(region_id: StringName) -> void:
 
 
 func save_world_state() -> bool:
-	if player == null:
+	# A failed restore must remain read-only until this partial session is removed.
+	if _restore_failed_state or not _autosave_enabled or player == null:
 		return false
 	save_coordinator.mark_dirty(&"player")
 	save_coordinator.mark_dirty(&"global_world")
@@ -111,7 +131,38 @@ func save_world_state() -> bool:
 
 
 func load_world_state() -> bool:
-	return save_coordinator.restore_session()
+	var restored := save_coordinator.restore_session()
+	if restored:
+		return true
+	var validation := SaveSlotService.inspect_adventure_summary()
+	var reason := StringName(str(validation.get("reason", "restore_failed")))
+	if reason == &"":
+		reason = &"restore_failed"
+	_handle_restore_failure(reason)
+	return false
+
+
+func _handle_restore_failure(reason: StringName = &"restore_failed") -> void:
+	if _restore_failed_state:
+		return
+	_restore_failed_state = true
+	_autosave_enabled = false
+	_autosave_timer = 0.0
+	set_process(false)
+	set_physics_process(false)
+	if player != null:
+		player.set_input_enabled(false)
+	if region_service != null:
+		region_service.unload_current_region()
+	current_region_id = &""
+	_pending_player_transform.clear()
+	GameManager.run_active = false
+	restore_failed.emit(reason)
+	push_error(
+		"WorldSession: restore failed (%s); returning to the main menu without saving"
+		% String(reason)
+	)
+	SceneRouter.call_deferred("go_to_main_menu")
 
 
 func start_dialogue(npc: NPCController) -> void:

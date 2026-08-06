@@ -13,12 +13,18 @@ var _dirty_sections: Dictionary = {}
 var _dirty_regions: Dictionary = {}
 ## region_id -> chunk filename mapping for manifest
 var _region_chunk_map: Dictionary = {}
+## A failed final manifest commit is retried even after section files succeeded.
+var _manifest_dirty: bool = false
 var _last_save_result: String = "none"
 var _entity_repository: WorldEntityRepository
 var _region_service: RegionRuntimeService
 var _world_flags: WorldFlagService
 var _session: Node
 var _id_counters: Dictionary = {}
+
+## Test-only fault injection for an atomic tmp -> final rename.
+var _test_fail_replace_count: int = 0
+var _test_fail_replace_path_suffix: String = ""
 
 
 func setup(
@@ -45,12 +51,11 @@ func mark_region_dirty(region_id: StringName) -> void:
 	if norm == &"":
 		return
 	_dirty_regions[norm] = true
-	_region_chunk_map[String(norm)] = RegionIdUtil.to_chunk_filename(norm) + ".json"
 
 
 func save_dirty_sections() -> bool:
 	_absorb_repository_dirty_regions()
-	if _dirty_sections.is_empty() and _dirty_regions.is_empty():
+	if _dirty_sections.is_empty() and _dirty_regions.is_empty() and not _manifest_dirty:
 		return true
 	var all_ok := true
 	var cleared_sections: Array[StringName] = []
@@ -71,7 +76,17 @@ func save_dirty_sections() -> bool:
 			all_ok = false
 	for region_id in cleared_regions:
 		_dirty_regions.erase(region_id)
-	_write_manifest()
+	# The manifest is the commit record for the section/chunk generation. Never
+	# publish it while any preceding write failed: doing so could advertise a new
+	# chunk mapping whose file was not durably replaced.
+	if not all_ok:
+		_manifest_dirty = true
+		_last_save_result = "partial_failure"
+		return false
+	var manifest_ok := _write_manifest()
+	_manifest_dirty = not manifest_ok
+	if not manifest_ok:
+		all_ok = false
 	_last_save_result = "ok" if all_ok else "partial_failure"
 	return all_ok
 
@@ -104,8 +119,13 @@ func has_save() -> bool:
 
 
 func restore_session() -> bool:
-	if FileAccess.file_exists(SLOT_PATH + "manifest.json"):
-		return _restore_v4()
+	# Use the same slot validation as Main Menu so a valid manifest backup can be
+	# restored, and a damaged v4 slot can never fall through to legacy migration.
+	var validation := SaveSlotService.validate_adventure_save()
+	if bool(validation.get("valid", false)):
+		return _restore_v4(validation)
+	if str(validation.get("reason", "missing")) != "missing":
+		return false
 	if FileAccess.file_exists(LEGACY_PATH):
 		return _migrate_v3_to_v4()
 	return false
@@ -168,8 +188,16 @@ func _on_flags_dirty(_a = null, _b = null) -> void:
 	mark_dirty(&"world_flags")
 
 
-func _restore_v4() -> bool:
-	var manifest := _read_json_with_backup(SLOT_PATH + "manifest.json")
+func _restore_v4(validation: Dictionary = {}) -> bool:
+	var slot_validation := validation
+	if slot_validation.is_empty():
+		slot_validation = SaveSlotService.validate_adventure_save()
+	if not bool(slot_validation.get("valid", false)):
+		return false
+	var manifest := _read_validated_section(
+		SLOT_PATH + "manifest.json",
+		bool(slot_validation.get("used_manifest_backup", false)),
+	)
 	if manifest.is_empty():
 		return false
 	var version := int(manifest.get("save_version", 0))
@@ -177,11 +205,15 @@ func _restore_v4() -> bool:
 		push_warning("WorldSaveCoordinator: future save version")
 		return false
 	GameManager.player_name = str(manifest.get("player_name", "Traveler"))
-	var player_data := _read_json_with_backup(SLOT_PATH + "player.json")
+	var player_data := _read_validated_section(
+		SLOT_PATH + "player.json",
+		bool(slot_validation.get("used_player_backup", false)),
+	)
 	if player_data.is_empty():
 		push_warning("WorldSaveCoordinator: player file missing/corrupt")
 		return false
-	var global_data := _read_json_with_backup(SLOT_PATH + "global_world.json")
+	var global_selection := _read_global_world_with_backup(manifest)
+	var global_data: Dictionary = global_selection.get("data", {})
 	WorldTimeService.from_dict(global_data.get("world_time", {}))
 	_id_counters = global_data.get("id_counters", {}).duplicate(true)
 	RelationshipService.from_dict(_read_json_with_backup(SLOT_PATH + "relationships.json"))
@@ -197,6 +229,10 @@ func _restore_v4() -> bool:
 		_session.call("restore_player_data", player_data)
 	if _region_service != null:
 		_load_all_region_chunks(region_chunks_map)
+		if bool(global_selection.get("used_defaults", false)):
+			# Persist the safe defaults plus counters recovered from runtime snapshot
+			# IDs on the next save, so a damaged global section cannot rewind IDs.
+			mark_dirty(&"global_world")
 		var ctx := RegionTransitionContext.new()
 		ctx.restore_saved_transform = true
 		_region_service.enter_region(region_id, &"", ctx)
@@ -215,36 +251,168 @@ func _load_all_region_chunks(region_chunks_map: Dictionary) -> void:
 			var fname := str(region_chunks_map[region_key])
 			var chunk := _read_region_chunk_file(fname, StringName(str(region_key)))
 			if not chunk.is_empty():
+				_merge_runtime_id_counters_from_chunk(chunk, StringName(str(region_key)))
 				_region_service.set_region_chunk(StringName(str(region_key)), chunk)
 		return
 	for file_name in _list_region_files():
 		var region_id := RegionIdUtil.from_chunk_filename(file_name)
 		var chunk2 := _read_region_chunk_file(file_name, region_id)
 		if not chunk2.is_empty():
+			_merge_runtime_id_counters_from_chunk(chunk2, region_id)
 			_region_service.set_region_chunk(region_id, chunk2)
 
 
 func _read_region_chunk_file(file_name: String, region_id: StringName) -> Dictionary:
 	var path := SLOT_PATH + "regions/" + file_name
-	var chunk := _read_json_with_backup(path)
+	var primary := _read_json(path)
+	var primary_container_valid := _is_valid_region_chunk_container(primary, region_id)
+	if primary_container_valid and _all_entity_snapshots_valid(primary):
+		return _sanitize_region_chunk(primary, region_id)
+
+	# Structural corruption is as significant as malformed JSON. In particular,
+	# an Array in `entities`, or non-Dictionary snapshot transform/components,
+	# must select the last structurally valid backup when one exists.
+	var backup := _read_json(path + ".bak")
+	var backup_container_valid := _is_valid_region_chunk_container(backup, region_id)
+	if backup_container_valid and _all_entity_snapshots_valid(backup):
+		push_warning("WorldSaveCoordinator: recovered %s from structural backup" % path)
+		return _sanitize_region_chunk(backup, region_id)
+	if primary_container_valid:
+		return _sanitize_region_chunk(primary, region_id)
+	if backup_container_valid:
+		push_warning("WorldSaveCoordinator: recovered salvageable %s backup" % path)
+		return _sanitize_region_chunk(backup, region_id)
+	push_warning(
+		"WorldSaveCoordinator: region chunk corrupt/missing for %s; using defaults"
+		% String(region_id)
+	)
+	return {}
+
+
+func _is_valid_region_chunk_container(chunk: Dictionary, region_id: StringName) -> bool:
 	if chunk.is_empty():
-		push_warning("WorldSaveCoordinator: region chunk corrupt/missing for %s; using defaults" % String(region_id))
-		return {}
-	# Sanitize entity snapshots.
+		return false
+	if typeof(chunk.get("region_id", null)) != TYPE_STRING:
+		return false
+	var stored_region := RegionIdUtil.normalize(StringName(str(chunk.get("region_id", ""))))
+	var expected_region := RegionIdUtil.normalize(region_id)
+	if stored_region == &"" or (expected_region != &"" and stored_region != expected_region):
+		return false
+	if typeof(chunk.get("entities", null)) != TYPE_DICTIONARY:
+		return false
+	if chunk.has("region_state_version") and not _is_finite_number(
+		chunk.get("region_state_version")
+	):
+		return false
+	if chunk.has("destroyed_entities") and typeof(chunk.get("destroyed_entities")) != TYPE_ARRAY:
+		return false
+	if chunk.has("spawn_states") and typeof(chunk.get("spawn_states")) != TYPE_DICTIONARY:
+		return false
+	if chunk.has("custom_state") and typeof(chunk.get("custom_state")) != TYPE_DICTIONARY:
+		return false
+	if chunk.has("last_simulated_time") and typeof(chunk.get("last_simulated_time")) != TYPE_DICTIONARY:
+		return false
+	return true
+
+
+func _all_entity_snapshots_valid(chunk: Dictionary) -> bool:
+	var entities: Dictionary = chunk.get("entities", {})
+	for entry in entities.values():
+		if not _is_valid_entity_snapshot(entry):
+			return false
+	return true
+
+
+func _is_valid_entity_snapshot(entry: Variant) -> bool:
+	if typeof(entry) != TYPE_DICTIONARY:
+		return false
+	var data: Dictionary = entry
+	if typeof(data.get("persistent_id", null)) != TYPE_STRING:
+		return false
+	if str(data.get("persistent_id", "")).strip_edges().is_empty():
+		return false
+	for string_field in ["definition_id", "region_id", "pending_spawn_id", "entity_category"]:
+		if data.has(string_field) and typeof(data.get(string_field)) != TYPE_STRING:
+			return false
+	if data.has("state_version") and not _is_finite_number(data.get("state_version")):
+		return false
+	if data.has("transform"):
+		if typeof(data.get("transform")) != TYPE_DICTIONARY:
+			return false
+		var transform: Dictionary = data.get("transform", {})
+		for transform_field in ["position", "rotation"]:
+			if transform.has(transform_field):
+				if typeof(transform.get(transform_field)) != TYPE_DICTIONARY:
+					return false
+				var vector_data: Dictionary = transform.get(transform_field, {})
+				for axis in ["x", "y", "z"]:
+					if vector_data.has(axis) and not _is_finite_number(vector_data.get(axis)):
+						return false
+	if data.has("components") and typeof(data.get("components")) != TYPE_DICTIONARY:
+		return false
+	if data.has("tags") and typeof(data.get("tags")) != TYPE_ARRAY:
+		return false
+	for bool_field in ["destroyed", "runtime_spawned"]:
+		if data.has(bool_field) and typeof(data.get(bool_field)) != TYPE_BOOL:
+			return false
+	return true
+
+
+func _sanitize_region_chunk(chunk: Dictionary, region_id: StringName) -> Dictionary:
+	var sanitized := chunk.duplicate(true)
 	var entities: Dictionary = chunk.get("entities", {})
 	var cleaned: Dictionary = {}
 	for key in entities.keys():
 		var entry: Variant = entities[key]
+		if not _is_valid_entity_snapshot(entry):
+			push_warning("WorldSaveCoordinator: skipped corrupt entity %s" % str(key))
+			continue
+		cleaned[str(key)] = (entry as Dictionary).duplicate(true)
+	sanitized["region_id"] = String(RegionIdUtil.normalize(region_id))
+	sanitized["region_state_version"] = int(sanitized.get("region_state_version", 1))
+	sanitized["entities"] = cleaned
+	if not sanitized.has("destroyed_entities"):
+		sanitized["destroyed_entities"] = []
+	if not sanitized.has("spawn_states"):
+		sanitized["spawn_states"] = {}
+	if not sanitized.has("custom_state"):
+		sanitized["custom_state"] = {}
+	return sanitized
+
+
+func _merge_runtime_id_counters_from_chunk(
+	chunk: Dictionary,
+	fallback_region_id: StringName,
+) -> void:
+	var entities: Dictionary = chunk.get("entities", {})
+	for entry in entities.values():
 		if typeof(entry) != TYPE_DICTIONARY:
-			push_warning("WorldSaveCoordinator: skipped corrupt entity %s" % str(key))
 			continue
-		var data: Dictionary = entry
-		if not data.has("persistent_id"):
-			push_warning("WorldSaveCoordinator: skipped corrupt entity %s" % str(key))
+		var snapshot: Dictionary = entry
+		if not bool(snapshot.get("runtime_spawned", false)):
 			continue
-		cleaned[str(key)] = data
-	chunk["entities"] = cleaned
-	return chunk
+		var persistent_id := str(snapshot.get("persistent_id", ""))
+		var parts := persistent_id.split("/", false)
+		if parts.size() < 3:
+			continue
+		var counter_text := parts[parts.size() - 1]
+		if not counter_text.is_valid_int():
+			continue
+		var counter := int(counter_text)
+		if counter < 1:
+			continue
+		var category := StringName(parts[parts.size() - 2])
+		var id_region := RegionIdUtil.normalize(StringName(parts[0]))
+		if id_region == &"":
+			id_region = RegionIdUtil.normalize(
+				StringName(str(snapshot.get("region_id", fallback_region_id)))
+			)
+		if id_region == &"" or category == &"":
+			continue
+		var key := "%s:%s" % [String(id_region), String(category)]
+		if counter > int(_id_counters.get(key, 0)):
+			_id_counters[key] = counter
+			mark_dirty(&"global_world")
 
 
 func _migrate_v3_to_v4() -> bool:
@@ -252,59 +420,110 @@ func _migrate_v3_to_v4() -> bool:
 	if raw.is_empty():
 		return false
 	_remove_dir(SLOT_PATH)
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SLOT_PATH + "regions"))
-	_write_json(SLOT_PATH + "profile.json", raw.get("profile", {}))
-	_write_json(SLOT_PATH + "player.json", {
+	_region_chunk_map.clear()
+	var mkdir_error := DirAccess.make_dir_recursive_absolute(
+		ProjectSettings.globalize_path(SLOT_PATH + "regions")
+	)
+	if mkdir_error != OK:
+		return _abort_v3_migration("cannot create Save v4 directories")
+	if not _write_json(SLOT_PATH + "profile.json", raw.get("profile", {})):
+		return _abort_v3_migration("profile section write failed")
+	if not _write_json(SLOT_PATH + "player.json", {
 		"player": raw.get("player", {}),
 		"inventory": raw.get("inventory", {}),
-	})
+	}):
+		return _abort_v3_migration("player section write failed")
 	var regions: Dictionary = raw.get("regions", {})
 	var discovered: Array = regions.get("discovered", ["town"])
 	var discovered_norm: Array = []
 	for d in discovered:
 		discovered_norm.append(String(RegionIdUtil.normalize(StringName(str(d)))))
-	_write_json(SLOT_PATH + "global_world.json", {
+	if not _write_json(SLOT_PATH + "global_world.json", {
 		"world_time": raw.get("world", {}),
 		"discovered_regions": discovered_norm,
 		"id_counters": {},
-	})
-	_write_json(SLOT_PATH + "relationships.json", raw.get("relationships", {}))
-	_write_json(SLOT_PATH + "quests.json", raw.get("quests", {}))
-	_write_json(SLOT_PATH + "world_flags.json", {})
-	_write_json(SLOT_PATH + "companions.json", {
+	}):
+		return _abort_v3_migration("global_world section write failed")
+	if not _write_json(SLOT_PATH + "relationships.json", raw.get("relationships", {})):
+		return _abort_v3_migration("relationships section write failed")
+	if not _write_json(SLOT_PATH + "quests.json", raw.get("quests", {})):
+		return _abort_v3_migration("quests section write failed")
+	if not _write_json(SLOT_PATH + "world_flags.json", {}):
+		return _abort_v3_migration("world_flags section write failed")
+	if not _write_json(SLOT_PATH + "companions.json", {
 		"pets": raw.get("pets", {}),
 		"mounts": raw.get("mounts", {}),
 		"unlocked_pet_ids": [],
 		"unlocked_mount_ids": [],
-	})
-	_migrate_v3_entities_to_chunks(raw)
+	}):
+		return _abort_v3_migration("companions section write failed")
+	if not _migrate_v3_entities_to_chunks(raw):
+		return _abort_v3_migration("region chunk write failed")
 	var current := RegionIdUtil.normalize(StringName(str(regions.get("current", "town"))))
-	_write_manifest_data(current, &"spawn", raw)
+	if not _write_manifest_data(current, &"spawn", raw):
+		return _abort_v3_migration("manifest write failed")
 	var global_legacy := ProjectSettings.globalize_path(LEGACY_PATH)
 	var backup := ProjectSettings.globalize_path(LEGACY_BACKUP)
 	if FileAccess.file_exists(LEGACY_PATH):
 		if FileAccess.file_exists(LEGACY_BACKUP):
-			DirAccess.remove_absolute(backup)
-		DirAccess.rename_absolute(global_legacy, backup)
+			var remove_error := DirAccess.remove_absolute(backup)
+			if remove_error != OK:
+				push_error(
+					"WorldSaveCoordinator: cannot replace legacy migration backup (%s)"
+					% error_string(remove_error)
+				)
+				return false
+		var archive_error := DirAccess.rename_absolute(global_legacy, backup)
+		if archive_error != OK:
+			push_error(
+				"WorldSaveCoordinator: cannot archive migrated legacy save (%s)"
+				% error_string(archive_error)
+			)
+			return false
 	return _restore_v4()
 
 
-func _migrate_v3_entities_to_chunks(raw: Dictionary) -> void:
+func _abort_v3_migration(reason: String) -> bool:
+	push_error("WorldSaveCoordinator: v3 migration aborted: %s" % reason)
+	_remove_dir(SLOT_PATH)
+	_region_chunk_map.clear()
+	_manifest_dirty = false
+	return false
+
+
+func _migrate_v3_entities_to_chunks(raw: Dictionary) -> bool:
 	var npcs: Dictionary = raw.get("npcs", {})
 	var interactables: Dictionary = raw.get("interactables", {})
 	var mapping := SaveV3MigrationMapping.INTERACTABLE_REGION_MAP
 	for npc_key in npcs.keys():
 		var npc_data: Dictionary = npcs[npc_key]
 		var region := RegionIdUtil.normalize(StringName(str(npc_data.get("region_id", "base:town"))))
-		_append_entity_to_chunk(region, SaveV3MigrationMapping.npc_persistent_id(str(npc_key)), StringName(str(npc_key)), npc_data)
+		var npc_components := SaveV3MigrationMapping.migrate_legacy_npc_state(npc_data)
+		if not _append_entity_to_chunk(
+			region,
+			SaveV3MigrationMapping.npc_persistent_id(str(npc_key)),
+			StringName(str(npc_key)),
+			npc_components,
+		):
+			return false
 	for iname in interactables.keys():
 		var idata: Dictionary = interactables[iname]
 		var region2 := RegionIdUtil.normalize(mapping.get(iname, &"base:town"))
 		var pid := SaveV3MigrationMapping.interactable_persistent_id(str(iname), region2)
-		_append_entity_to_chunk(region2, pid, &"", idata)
+		var interactable_components := SaveV3MigrationMapping.migrate_legacy_interactable_state(
+			str(iname), idata,
+		)
+		if not _append_entity_to_chunk(region2, pid, &"", interactable_components):
+			return false
+	return true
 
 
-func _append_entity_to_chunk(region_id: StringName, persistent_id: StringName, definition_id: StringName, data: Dictionary) -> void:
+func _append_entity_to_chunk(
+	region_id: StringName,
+	persistent_id: StringName,
+	definition_id: StringName,
+	components: Dictionary,
+) -> bool:
 	var fname := SLOT_PATH + "regions/%s.json" % RegionIdUtil.to_chunk_filename(region_id)
 	var chunk := _read_json(fname)
 	if chunk.is_empty():
@@ -322,19 +541,25 @@ func _append_entity_to_chunk(region_id: StringName, persistent_id: StringName, d
 		"definition_id": String(definition_id),
 		"region_id": String(region_id),
 		"state_version": 1,
-		"components": {"entity": data},
+		"components": components.duplicate(true),
 	}
 	chunk["entities"] = entities
-	_write_json(fname, chunk)
+	if not _write_json(fname, chunk):
+		return false
 	_region_chunk_map[String(region_id)] = RegionIdUtil.to_chunk_filename(region_id) + ".json"
+	return true
 
 
-func _write_manifest_data(region_id: StringName, spawn_id: StringName, raw: Dictionary = {}) -> void:
+func _write_manifest_data(
+	region_id: StringName,
+	spawn_id: StringName,
+	raw: Dictionary = {},
+) -> bool:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SLOT_PATH))
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SLOT_PATH + "regions/"))
 	var profile: Dictionary = raw.get("profile", {}) if not raw.is_empty() else {}
 	var world: Dictionary = raw.get("world", {}) if not raw.is_empty() else WorldTimeService.to_dict()
-	_write_json(SLOT_PATH + "manifest.json", {
+	return _write_json(SLOT_PATH + "manifest.json", {
 		"save_version": WORLD_SAVE_VERSION,
 		"game_version": "0.7.0",
 		"slot_id": "slot_01",
@@ -353,11 +578,11 @@ func _write_manifest_data(region_id: StringName, spawn_id: StringName, raw: Dict
 	})
 
 
-func _write_manifest() -> void:
+func _write_manifest() -> bool:
 	if _session == null or _region_service == null:
-		return
+		return true
 	var world_time := WorldTimeService.to_dict()
-	_write_json(SLOT_PATH + "manifest.json", {
+	return _write_json(SLOT_PATH + "manifest.json", {
 		"save_version": WORLD_SAVE_VERSION,
 		"game_version": "0.7.0",
 		"slot_id": "slot_01",
@@ -430,9 +655,12 @@ func _save_region_chunk(region_id: StringName) -> bool:
 			"custom_state": {},
 		}
 	var fname := RegionIdUtil.to_chunk_filename(region_id) + ".json"
-	_region_chunk_map[String(RegionIdUtil.normalize(region_id))] = fname
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SLOT_PATH + "regions"))
-	return _write_json(SLOT_PATH + "regions/" + fname, chunk)
+	if not _write_json(SLOT_PATH + "regions/" + fname, chunk):
+		return false
+	# Only a successfully replaced chunk is eligible for the next manifest.
+	_region_chunk_map[String(RegionIdUtil.normalize(region_id))] = fname
+	return true
 
 
 func _get_known_regions() -> Array[StringName]:
@@ -489,13 +717,50 @@ func _write_json(path: String, payload: Dictionary) -> bool:
 	if FileAccess.file_exists(global_path):
 		if FileAccess.file_exists(bak_path):
 			DirAccess.remove_absolute(bak_path)
-		DirAccess.rename_absolute(global_path, bak_path)
-	if DirAccess.rename_absolute(tmp_path, global_path) != OK:
+		var backup_error := _rename_absolute(global_path, bak_path)
+		if backup_error != OK:
+			DirAccess.remove_absolute(tmp_path)
+			push_error(
+				"WorldSaveCoordinator: cannot backup %s (%s)"
+				% [path, error_string(backup_error)]
+			)
+			return false
+	var replace_error := _rename_absolute(tmp_path, global_path)
+	if replace_error != OK:
+		# A failed atomic replace must never leave a stale tmp that can be
+		# mistaken for pending save data on a later run.
+		if FileAccess.file_exists(tmp_path):
+			DirAccess.remove_absolute(tmp_path)
 		if FileAccess.file_exists(bak_path):
-			DirAccess.rename_absolute(bak_path, global_path)
+			var restore_error := _rename_absolute(bak_path, global_path)
+			if restore_error != OK:
+				push_error(
+					"WorldSaveCoordinator: cannot restore backup for %s (%s)"
+					% [path, error_string(restore_error)]
+				)
+		push_error(
+			"WorldSaveCoordinator: atomic replace failed for %s (%s)"
+			% [path, error_string(replace_error)]
+		)
 		return false
 	# Keep .bak for corruption recovery of critical files.
 	return true
+
+
+func _rename_absolute(source: String, target: String) -> Error:
+	var normalized_target := target.replace("\\", "/")
+	var matches_target := (
+		_test_fail_replace_path_suffix.is_empty()
+		or normalized_target.ends_with(_test_fail_replace_path_suffix)
+	)
+	if (
+		_test_fail_replace_count > 0
+		and source.ends_with(".tmp")
+		and matches_target
+	):
+		_test_fail_replace_count -= 1
+		return ERR_CANT_CREATE
+	return DirAccess.rename_absolute(source, target)
 
 
 func _read_json(path: String) -> Dictionary:
@@ -523,6 +788,61 @@ func _read_json_with_backup(path: String) -> Dictionary:
 				push_warning("WorldSaveCoordinator: recovered %s from backup" % path)
 				return parsed
 	return {}
+
+
+func _read_global_world_with_backup(manifest: Dictionary) -> Dictionary:
+	var path := SLOT_PATH + "global_world.json"
+	var primary := _read_json(path)
+	if SaveSlotService._is_valid_global_world_section(primary):
+		return {"data": primary, "used_backup": false, "used_defaults": false}
+	var backup := _read_json(path + ".bak")
+	if SaveSlotService._is_valid_global_world_section(backup):
+		push_warning("WorldSaveCoordinator: recovered %s from structural backup" % path)
+		return {"data": backup, "used_backup": true, "used_defaults": false}
+	push_warning("WorldSaveCoordinator: %s invalid; using warned safe defaults" % path)
+	var current_region := RegionIdUtil.normalize(
+		StringName(str(manifest.get("current_region_id", "base:town")))
+	)
+	if current_region == &"":
+		current_region = &"base:town"
+	return {
+		"data": {
+			"world_time": {
+				"day": _safe_int_value(manifest.get("day"), 1),
+				"hour": _safe_int_value(manifest.get("hour"), 8),
+				"minute": _safe_int_value(manifest.get("minute"), 0),
+				"paused": false,
+				"time_scale": 1.0,
+			},
+			"discovered_regions": [String(current_region)],
+			"current_region_id": String(current_region),
+			"id_counters": {},
+		},
+		"used_backup": false,
+		"used_defaults": true,
+	}
+
+
+func _safe_int_value(value: Variant, fallback: int) -> int:
+	if not _is_finite_number(value):
+		return fallback
+	return int(value)
+
+
+func _is_finite_number(value: Variant) -> bool:
+	if typeof(value) not in [TYPE_INT, TYPE_FLOAT]:
+		return false
+	return is_finite(float(value))
+
+
+func _read_validated_section(path: String, use_backup: bool) -> Dictionary:
+	if not use_backup:
+		return _read_json(path)
+	var backup_path := path + ".bak"
+	var data := _read_json(backup_path)
+	if not data.is_empty():
+		push_warning("WorldSaveCoordinator: recovered %s from validated backup" % path)
+	return data
 
 
 func _remove_dir(path: String) -> void:

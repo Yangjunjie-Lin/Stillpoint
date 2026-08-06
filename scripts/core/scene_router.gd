@@ -46,7 +46,12 @@ func change_scene(scene_path: String) -> void:
 		get_tree().change_scene_to_packed(packed)
 		return
 	var slot: Node = root.get_node("CurrentScene")
+	var exiting_index := 0
 	for child in slot.get_children():
+		# Release the authored root name immediately so a synchronously routed
+		# replacement can retain it while the old node awaits end-of-frame deletion.
+		child.name = "_ExitingScene%d" % exiting_index
+		exiting_index += 1
 		child.queue_free()
 	_current_scene = packed.instantiate()
 	slot.add_child(_current_scene)

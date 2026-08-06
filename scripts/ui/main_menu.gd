@@ -31,10 +31,16 @@ func _load_settings_widgets() -> void:
 
 
 func _on_continue_pressed() -> void:
-	if GameManager.has_resumable_adventure():
+	var adventure_summary := SaveSlotService.inspect_adventure_summary()
+	if bool(adventure_summary.get("valid", false)):
 		GameManager.continue_adventure()
-	else:
+	elif str(adventure_summary.get("reason", "missing")) == "missing":
 		GameManager.continue_run()
+	else:
+		push_warning(
+			"MainMenu: adventure continue rejected (%s)"
+			% str(adventure_summary.get("reason", "invalid"))
+		)
 
 
 func _refresh_continue() -> void:
@@ -48,9 +54,16 @@ func _refresh_continue() -> void:
 			int(summary.get("hour", 8)),
 			int(summary.get("minute", 0)),
 		]
+		if (
+			bool(summary.get("used_player_backup", false))
+			or bool(summary.get("used_manifest_backup", false))
+		):
+			continue_summary.text += "\nSave recovered from backup"
 		return
 	var adventure_reason := str(summary.get("reason", ""))
-	if adventure_reason == "future_version" or adventure_reason == "corrupt_manifest":
+	if adventure_reason in [
+		"future_version", "corrupt_manifest", "missing_player", "corrupt_player",
+	]:
 		continue_button.disabled = true
 		continue_summary.text = _continue_unavailable_text(adventure_reason)
 		return
@@ -76,6 +89,10 @@ func _continue_unavailable_text(reason: String) -> String:
 			return "Save created by a newer version"
 		"corrupt_manifest":
 			return "Adventure save is damaged"
+		"missing_player":
+			return "Player save is missing"
+		"corrupt_player":
+			return "Player save is damaged"
 		"unknown_level":
 			return "Save level is no longer available"
 		"game_over":
@@ -124,21 +141,9 @@ func _on_settings_pressed() -> void:
 
 
 func _ensure_controls_section() -> void:
-	var panel := settings_panel.get_node_or_null("Panel") as VBoxContainer
-	if panel == null or panel.has_node("ControlsHint"):
-		return
-	var hint := Label.new()
-	hint.name = "ControlsHint"
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.text = "Bindings are edited via InputBindingService (user://input_bindings.json). Use in-game Actions list in future builds; Reset All restores defaults."
-	panel.add_child(hint)
-	var reset := Button.new()
-	reset.text = "Reset All Keybindings"
-	reset.pressed.connect(func() -> void:
-		InputBindingService.reset_all()
-		InputBindingService.save_bindings()
-	)
-	panel.add_child(reset)
+	var controls := settings_panel.get_node_or_null("Panel/InputRebindUI")
+	if controls != null and controls.has_method("_rebuild"):
+		controls.call("_rebuild")
 
 
 func _on_settings_close() -> void:

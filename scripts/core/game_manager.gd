@@ -17,6 +17,9 @@ func start_new_adventure(requested_name: String = "Traveler") -> void:
 		player_name = "Traveler"
 	run_active = true
 	resume_requested = false
+	QuestManager.reset_all()
+	RelationshipService.reset_all()
+	WorldTimeService.reset_all()
 	SaveSlotService.clear_adventure_save()
 	SceneRouter.go_to_world_session()
 
