@@ -561,7 +561,7 @@ func _write_manifest_data(
 	var world: Dictionary = raw.get("world", {}) if not raw.is_empty() else WorldTimeService.to_dict()
 	return _write_json(SLOT_PATH + "manifest.json", {
 		"save_version": WORLD_SAVE_VERSION,
-		"game_version": "0.7.0",
+		"game_version": "0.7.1",
 		"slot_id": "slot_01",
 		"created_at": int(Time.get_unix_time_from_system()),
 		"updated_at": int(Time.get_unix_time_from_system()),
@@ -584,7 +584,7 @@ func _write_manifest() -> bool:
 	var world_time := WorldTimeService.to_dict()
 	return _write_json(SLOT_PATH + "manifest.json", {
 		"save_version": WORLD_SAVE_VERSION,
-		"game_version": "0.7.0",
+		"game_version": "0.7.1",
 		"slot_id": "slot_01",
 		"created_at": int(Time.get_unix_time_from_system()),
 		"updated_at": int(Time.get_unix_time_from_system()),

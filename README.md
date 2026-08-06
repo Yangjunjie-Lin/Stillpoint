@@ -2,7 +2,9 @@
 
 > An isekai life-sim RPG foundation — explore, live, relate, and fight when you choose to.
 
-Stillpoint **0.7.0** hardens world architecture: dynamic region loading, persistent entity IDs, event-driven quests, Save v4, and data-driven dialogue/effects — on top of **0.6.0** Jolt combat and the **0.5.1** vertical slice.
+Stillpoint **0.7.1** hardens world architecture: dynamic region loading, persistent entity IDs, event-driven quests, Save v4, and data-driven dialogue/effects — on top of **0.6.0** Jolt combat and the **0.5.1** vertical slice.
+
+Stillpoint 0.7.1 is a runtime and CI stability release with no new gameplay. Existing 0.7.0 Save v4 data remains directly compatible.
 
 Save v4 validates the manifest and player core before Continue, recovers critical files from `.bak`, and returns safely to the menu if restore cannot complete. Runtime actors can be queued into an unloaded region, materialized under that region's `DynamicEntities`, saved across restart, and permanently destroyed without respawning. Required quest/dialogue effect failures are surfaced and retryable instead of being silently committed.
 
@@ -62,6 +64,7 @@ Regions load one at a time; see [docs/WORLD_ARCHITECTURE.md](docs/WORLD_ARCHITEC
 ```bash
 godot --headless --path . --editor --quit
 godot --headless --path . --script res://tests/test_runner.gd
+python tools/python/run_godot_tests.py
 python tools/python/validate_repo.py
 ```
 
