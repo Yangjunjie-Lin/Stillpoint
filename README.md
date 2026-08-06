@@ -2,9 +2,9 @@
 
 > An isekai life-sim RPG foundation — explore, live, relate, and fight when you choose to.
 
-Stillpoint **0.7.1** hardens world architecture: dynamic region loading, persistent entity IDs, event-driven quests, Save v4, and data-driven dialogue/effects — on top of **0.6.0** Jolt combat and the **0.5.1** vertical slice.
+Stillpoint **0.8.0** adds the NPC Cognitive Foundation on top of the 0.7.1 world architecture: authored NPC ontology, isolated memory, scoped knowledge graph, provider-agnostic dialogue, and deterministic offline fallback.
 
-Stillpoint 0.7.1 is a runtime and CI stability release with no new gameplay. Existing 0.7.0 Save v4 data remains directly compatible.
+Stillpoint 0.8.0 keeps Save v4 compatible with 0.7.1; the optional `npc_cognition` section is versioned independently and absent sections restore as empty cognition state.
 
 Save v4 validates the manifest and player core before Continue, recovers critical files from `.bak`, and returns safely to the menu if restore cannot complete. Runtime actors can be queued into an unloaded region, materialized under that region's `DynamicEntities`, saved across restart, and permanently destroyed without respawning. Required quest/dialogue effect failures are surfaced and retryable instead of being silently committed.
 

@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="NPCMindDefinition" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/npc_mind_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/npc_identity_definition.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/npc_personality_definition.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/resources/npc_speech_style_definition.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/resources/npc_memory_policy_definition.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/resources/npc_cognitive_skill_definition.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/resources/npc_knowledge_seed.gd" id="7"]
+
+[sub_resource type="Resource" id="Identity"]
+script = ExtResource("2")
+canonical_name = "Ren"
+occupation = &"guard"
+social_role = &"town_guard"
+faction_ids = Array[StringName]([&"townfolk"])
+home_region_id = &"base:town"
+birth_region_id = &"base:town"
+public_description = "A town guard responsible for public safety."
+
+[sub_resource type="Resource" id="Personality"]
+script = ExtResource("3")
+conscientiousness = 0.85
+agreeableness = 0.58
+emotional_stability = 0.8
+courage = 0.82
+honesty = 0.82
+patience = 0.65
+
+[sub_resource type="Resource" id="Speech"]
+script = ExtResource("4")
+formality = 0.65
+verbosity = 0.35
+sentence_length = &"short"
+dialect_notes = "Direct, calm, and duty-focused."
+greeting_patterns = ["Stay alert, traveler."]
+farewell_patterns = ["Keep safe."]
+
+[sub_resource type="Resource" id="MemoryPolicy"]
+script = ExtResource("5")
+default_half_life_hours = 336.0
+high_salience_half_life_hours = 17520.0
+
+[sub_resource type="Resource" id="TownSafety"]
+script = ExtResource("6")
+id = &"town_safety"
+display_name = "Town Safety"
+domain_tags = Array[StringName]([&"town", &"security"])
+proficiency = 0.85
+knowledge_node_ids = Array[StringName]([&"region:base:town"])
+
+[sub_resource type="Resource" id="TownKnowledge"]
+script = ExtResource("7")
+node_id = &"region:base:town"
+node_type = &"region"
+content = "Ren guards the town and knows its public safety rules."
+domain_tags = Array[StringName]([&"town", &"security"])
+source_id = &"ren"
+
+[resource]
+script = ExtResource("1")
+id = &"ren_mind"
+identity = SubResource("Identity")
+personality = SubResource("Personality")
+speech_style = SubResource("Speech")
+values = Array[StringName]([&"duty", &"safety", &"honesty"])
+knowledge_seeds = Array[NPCKnowledgeSeed]([SubResource("TownKnowledge")])
+cognitive_skills = Array[NPCCognitiveSkillDefinition]([SubResource("TownSafety")])
+memory_policy = SubResource("MemoryPolicy")

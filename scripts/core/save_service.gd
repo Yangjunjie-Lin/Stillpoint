@@ -15,6 +15,9 @@ var settings: Dictionary = {
 	"sfx_volume_db": -3.0,
 	"show_diagnostics": false,
 	"renderer_preference": "compatibility",
+	"ai_dialogue_enabled": false,
+	"allow_conversation_storage": false,
+	"allow_memory_personalization": false,
 }
 
 ## Test-only: fail the next N atomic replace renames (tmp -> final).

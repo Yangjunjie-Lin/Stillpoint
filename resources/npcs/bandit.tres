@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="NPCDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/npc_definition.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/npcs/bandit_mind.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -15,3 +16,5 @@ run_speed = 7.0
 can_be_attacked = true
 can_be_killed = true
 npc_role = &"enemy"
+home_region_id = &"base:dungeon"
+mind_profile = ExtResource("2")

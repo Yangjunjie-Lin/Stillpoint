@@ -103,6 +103,24 @@ func get_npc(id: StringName) -> NPCDefinition:
 	return _npcs.get(id) as NPCDefinition
 
 
+func get_all_npcs() -> Array[NPCDefinition]:
+	var result: Array[NPCDefinition] = []
+	var ids := _npcs.keys()
+	ids.sort_custom(func(a: Variant, b: Variant) -> bool: return String(a) < String(b))
+	for id in ids:
+		var definition := _npcs[id] as NPCDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_all_npc_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for definition in get_all_npcs():
+		result.append(definition.id)
+	return result
+
+
 func get_faction(id: StringName) -> FactionDefinition:
 	return _factions.get(id) as FactionDefinition
 
@@ -180,7 +198,7 @@ func get_level(id: StringName) -> LevelDefinition:
 func load_defaults() -> void:
 	_register_dir("res://content/base/", _register_content_resource, true)
 	_register_dir("res://resources/characters/", register_character)
-	_register_dir("res://resources/npcs/", register_npc)
+	_register_dir("res://resources/npcs/", _register_npc_resource)
 	_register_dir("res://resources/factions/", register_faction)
 	_register_dir("res://resources/skills/", register_skill)
 	_register_dir("res://resources/items/", register_item)
@@ -286,6 +304,13 @@ func _register_content_resource(res: Resource) -> void:
 		pass  # Content pack resources loaded for editor reference; not indexed globally.
 	elif res is DialogueSelectorDefinition:
 		pass
+
+
+func _register_npc_resource(res: Resource) -> void:
+	## The NPC folder also contains authoritative mind resources. Only full
+	## NPCDefinition resources belong in the runtime definition registry.
+	if res is NPCDefinition:
+		register_npc(res as NPCDefinition)
 
 
 func _put(bucket: Dictionary, id: StringName, value: Resource, kind: String) -> void:

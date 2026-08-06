@@ -1,0 +1,5 @@
+from .test_memory_isolation import test_two_instances_and_players_do_not_share_memory
+
+
+def test_memory_isolation_by_player_profile():
+    test_two_instances_and_players_do_not_share_memory()

@@ -21,6 +21,7 @@ var _region_service: RegionRuntimeService
 var _world_flags: WorldFlagService
 var _session: Node
 var _id_counters: Dictionary = {}
+var _npc_cognition_provider: NPCCognitionSaveProvider
 
 ## Test-only fault injection for an atomic tmp -> final rename.
 var _test_fail_replace_count: int = 0
@@ -37,6 +38,10 @@ func setup(
 	_entity_repository = repository
 	_region_service = region_service
 	_world_flags = flags
+	if _npc_cognition_provider == null:
+		_npc_cognition_provider = NPCCognitionSaveProvider.new()
+		_npc_cognition_provider.name = "NPCCognitionSaveProvider"
+		add_child(_npc_cognition_provider)
 	if _region_service != null and not _region_service.region_chunk_captured.is_connected(_on_region_chunk_captured):
 		_region_service.region_chunk_captured.connect(_on_region_chunk_captured)
 	_connect_dirty_signals()
@@ -101,6 +106,8 @@ func save_all() -> bool:
 		&"world_flags": true,
 		&"companions": true,
 	}
+	if _npc_cognition_provider != null and _npc_cognition_provider.is_dirty():
+		_dirty_sections[&"npc_cognition"] = true
 	if _region_service != null:
 		var current := _region_service.get_current_region_id()
 		if current != &"":
@@ -220,6 +227,9 @@ func _restore_v4(validation: Dictionary = {}) -> bool:
 	QuestManager.from_dict(_read_json_with_backup(SLOT_PATH + "quests.json"))
 	if _world_flags != null:
 		_world_flags.from_dict(_read_json_with_backup(SLOT_PATH + "world_flags.json"))
+	if _npc_cognition_provider != null:
+		# Absence is the expected Save v4/0.7.1 compatibility path.
+		_npc_cognition_provider.restore_save_data(_read_json_with_backup(SLOT_PATH + "npc_cognition.json"))
 	var region_chunks_map: Dictionary = manifest.get("region_chunks", {})
 	_region_chunk_map = region_chunks_map.duplicate(true)
 	var region_id := StringName(str(manifest.get("current_region_id", "base:town")))
@@ -561,7 +571,7 @@ func _write_manifest_data(
 	var world: Dictionary = raw.get("world", {}) if not raw.is_empty() else WorldTimeService.to_dict()
 	return _write_json(SLOT_PATH + "manifest.json", {
 		"save_version": WORLD_SAVE_VERSION,
-		"game_version": "0.7.1",
+		"game_version": "0.8.0",
 		"slot_id": "slot_01",
 		"created_at": int(Time.get_unix_time_from_system()),
 		"updated_at": int(Time.get_unix_time_from_system()),
@@ -584,7 +594,7 @@ func _write_manifest() -> bool:
 	var world_time := WorldTimeService.to_dict()
 	return _write_json(SLOT_PATH + "manifest.json", {
 		"save_version": WORLD_SAVE_VERSION,
-		"game_version": "0.7.1",
+		"game_version": "0.8.0",
 		"slot_id": "slot_01",
 		"created_at": int(Time.get_unix_time_from_system()),
 		"updated_at": int(Time.get_unix_time_from_system()),
@@ -633,6 +643,16 @@ func _save_named_section(section_id: StringName) -> bool:
 			if _session == null:
 				return false
 			return _write_json(SLOT_PATH + "companions.json", _session.call("capture_companions"))
+		"npc_cognition":
+			if _npc_cognition_provider == null:
+				return true
+			var cognition_ok := _write_json(
+				SLOT_PATH + "npc_cognition.json",
+				_npc_cognition_provider.capture_save_data(),
+			)
+			if cognition_ok:
+				_npc_cognition_provider.clear_dirty()
+			return cognition_ok
 		_:
 			return true
 

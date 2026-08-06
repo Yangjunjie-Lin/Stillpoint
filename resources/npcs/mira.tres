@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="NPCDefinition" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/npc_definition.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/dialogues/mira_intro.tres" id="2"]
 [ext_resource type="Resource" path="res://resources/schedules/mira_schedule.tres" id="3"]
 [ext_resource type="Resource" path="res://content/base/dialogues/mira_selector.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/npcs/mira_mind.tres" id="5"]
 
 [resource]
 script = ExtResource("1")
@@ -22,3 +23,4 @@ can_be_killed = false
 npc_role = &"merchant"
 home_region_id = &"base:town"
 dialogue_selector = ExtResource("4")
+mind_profile = ExtResource("5")
