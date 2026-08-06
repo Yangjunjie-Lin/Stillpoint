@@ -6,6 +6,7 @@ signal disposition_changed(npc_id: StringName, old_disposition: int, new_disposi
 
 const FRIENDLY_THRESHOLD := 50.0
 const HOSTILE_THRESHOLD := -20.0
+const TEMPORARY_HOSTILE_DURATION_SECONDS := 10.0
 
 ## npc_id -> { affinity, temporary_hostile, anger, last_aggression_time }
 var _states: Dictionary = {}
@@ -32,7 +33,14 @@ func ensure_registered(npc_id: StringName, default_disposition: StringName = &"n
 
 func get_affinity(npc_id: StringName) -> float:
 	ensure_registered(npc_id)
-	return float(_states[npc_id].get("affinity", 0.0))
+	return peek_affinity(npc_id)
+
+
+func peek_affinity(npc_id: StringName) -> float:
+	var state: Variant = _states.get(npc_id)
+	if not state is Dictionary:
+		return 0.0
+	return float((state as Dictionary).get("affinity", 0.0))
 
 
 func change_affinity(npc_id: StringName, amount: float, _reason: StringName = &"") -> void:
@@ -59,13 +67,33 @@ func add_anger(npc_id: StringName, amount: float) -> void:
 
 func is_temporarily_hostile(npc_id: StringName) -> bool:
 	ensure_registered(npc_id)
-	return bool(_states[npc_id].get("temporary_hostile", false))
+	var state: Dictionary = _states[npc_id]
+	if bool(state.get("temporary_hostile", false)) and not _peek_state_temporary_hostile(state):
+		state["temporary_hostile"] = false
+		return false
+	return bool(state.get("temporary_hostile", false))
 
 
-func set_temporary_hostile(npc_id: StringName, value: bool) -> void:
+func peek_temporary_hostile(npc_id: StringName) -> bool:
+	var state: Variant = _states.get(npc_id)
+	if not state is Dictionary:
+		return false
+	return _peek_state_temporary_hostile(state as Dictionary)
+
+
+func set_temporary_hostile(
+	npc_id: StringName,
+	value: bool,
+	from_aggression: bool = false,
+) -> void:
 	ensure_registered(npc_id)
 	var old_disp := get_disposition(npc_id)
 	_states[npc_id]["temporary_hostile"] = value
+	# Story effects are intentionally indefinite. Clear an old aggression
+	# timestamp when a story effect takes ownership; only register_aggression may
+	# preserve the TTL timestamp. Clearing the flag also clears stale metadata.
+	if not value or not from_aggression:
+		_states[npc_id]["last_aggression_time"] = 0.0
 	var new_disp := get_disposition(npc_id)
 	if new_disp != old_disp:
 		disposition_changed.emit(npc_id, old_disp, new_disp)
@@ -75,12 +103,36 @@ func get_disposition(npc_id: StringName) -> RelationshipComponent.Disposition:
 	ensure_registered(npc_id)
 	if is_temporarily_hostile(npc_id):
 		return RelationshipComponent.Disposition.HOSTILE
-	var affinity := get_affinity(npc_id)
+	return _disposition_from_affinity(peek_affinity(npc_id))
+
+
+func peek_disposition(npc_id: StringName) -> RelationshipComponent.Disposition:
+	if peek_temporary_hostile(npc_id):
+		return RelationshipComponent.Disposition.HOSTILE
+	return _disposition_from_affinity(peek_affinity(npc_id))
+
+
+func _disposition_from_affinity(affinity: float) -> RelationshipComponent.Disposition:
 	if affinity >= FRIENDLY_THRESHOLD:
 		return RelationshipComponent.Disposition.FRIENDLY
 	if affinity <= HOSTILE_THRESHOLD:
 		return RelationshipComponent.Disposition.HOSTILE
 	return RelationshipComponent.Disposition.NEUTRAL
+
+
+func _peek_state_temporary_hostile(state: Dictionary) -> bool:
+	if not bool(state.get("temporary_hostile", false)):
+		return false
+	# Aggression-created refusal expires across travel/save boundaries. Pure
+	# queries observe that expiry without cleaning the stored record; regular
+	# gameplay getters retain their historical cleanup behavior.
+	var last_aggression := float(state.get("last_aggression_time", 0.0))
+	if last_aggression <= 0.0:
+		return true
+	return (
+		Time.get_unix_time_from_system() - last_aggression
+		< TEMPORARY_HOSTILE_DURATION_SECONDS
+	)
 
 
 func register_aggression(npc_id: StringName, damage: float, _context: Dictionary = {}) -> void:
@@ -92,13 +144,13 @@ func register_aggression(npc_id: StringName, damage: float, _context: Dictionary
 
 	if disposition == RelationshipComponent.Disposition.FRIENDLY:
 		change_affinity(npc_id, penalty, &"attacked_friendly")
-		set_temporary_hostile(npc_id, true)
+		set_temporary_hostile(npc_id, true, true)
 		# Drop to neutral if affinity falls below friendly threshold.
 		if get_affinity(npc_id) < FRIENDLY_THRESHOLD:
 			set_temporary_hostile(npc_id, false)
 	elif disposition == RelationshipComponent.Disposition.NEUTRAL:
 		# First valid hit: immediate hostile.
-		set_temporary_hostile(npc_id, true)
+		set_temporary_hostile(npc_id, true, true)
 		change_affinity(npc_id, minf(penalty, HOSTILE_THRESHOLD - get_affinity(npc_id)), &"attacked_neutral")
 	else:
 		# Already hostile: minor affinity shift only.

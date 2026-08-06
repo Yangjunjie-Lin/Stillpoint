@@ -30,7 +30,9 @@ var _reward_granted: bool = false
 func _ready() -> void:
 	add_to_group("enemies")
 	if enemy_id == &"":
-		enemy_id = StringName(str(get_instance_id()))
+		push_warning(
+			"EnemyController: missing stable enemy_id; GameplayController must assign it before add_child"
+		)
 	if definition != null and definition_id == &"":
 		apply_definition(definition, 1.0)
 	health.damaged.connect(_on_damaged)

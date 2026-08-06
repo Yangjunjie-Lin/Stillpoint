@@ -27,8 +27,6 @@ var is_permanently_dead: bool = false
 
 
 func _ready() -> void:
-	if character_id == &"":
-		character_id = StringName(str(get_instance_id()))
 	if definition != null:
 		apply_definition(definition)
 	if relationship != null:

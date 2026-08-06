@@ -9,7 +9,11 @@ var region_service: RegionRuntimeService = null
 var quest_manager: Node = null
 var world_flags: WorldFlagService = null
 var gameplay_event: GameplayEvent = null
-var current_region_id: StringName = &""
+# Deprecated compatibility property. It is intentionally computed on every read so
+# older Effects cannot retain the Region that happened to be active at construction.
+var current_region_id: StringName:
+	get:
+		return get_current_region_id()
 
 
 func _init(
@@ -28,8 +32,18 @@ func _init(
 	quest_manager = p_quest_manager
 	world_flags = p_world_flags
 	gameplay_event = p_event
-	if p_region_service != null:
-		current_region_id = p_region_service.get_current_region_id()
+
+
+func get_current_region_id() -> StringName:
+	if region_service != null:
+		return RegionIdUtil.normalize(region_service.get_current_region_id())
+
+	if world_session != null:
+		var value: Variant = world_session.get("current_region_id")
+		if value != null:
+			return RegionIdUtil.normalize(StringName(str(value)))
+
+	return &""
 
 
 func with_event(event: GameplayEvent) -> WorldSessionContext:

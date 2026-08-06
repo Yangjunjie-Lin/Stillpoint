@@ -8,4 +8,4 @@ extends WorldCondition
 func evaluate(_context: WorldSessionContext) -> bool:
 	if npc_id == &"":
 		return false
-	return RelationshipService.get_disposition(npc_id) == required_disposition
+	return RelationshipService.peek_disposition(npc_id) == required_disposition

@@ -9,5 +9,5 @@ extends WorldCondition
 func evaluate(_context: WorldSessionContext) -> bool:
 	if npc_id == &"":
 		return false
-	var affinity := RelationshipService.get_affinity(npc_id)
+	var affinity := RelationshipService.peek_affinity(npc_id)
 	return affinity >= min_affinity and affinity <= max_affinity

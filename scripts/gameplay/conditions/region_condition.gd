@@ -5,6 +5,7 @@ extends WorldCondition
 
 
 func evaluate(context: WorldSessionContext) -> bool:
-	if region_id == &"":
+	if context == null or region_id == &"":
 		return false
-	return RegionIdUtil.normalize(context.current_region_id) == RegionIdUtil.normalize(region_id)
+	var current := context.get_current_region_id()
+	return current == RegionIdUtil.normalize(region_id)
