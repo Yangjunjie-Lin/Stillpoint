@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="DialogueSelectorDefinition" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_selector_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_selector_entry.gd" id="2"]
+[ext_resource type="Resource" path="res://content/base/conditions/quest_completed.tres" id="3"]
+[ext_resource type="Resource" path="res://content/base/conditions/objective_deliver_herb.tres" id="4"]
+[ext_resource type="Resource" path="res://content/base/conditions/has_herb.tres" id="5"]
+[ext_resource type="Resource" path="res://content/base/conditions/quest_active.tres" id="6"]
+[ext_resource type="Resource" path="res://content/base/conditions/quest_undiscovered.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/dialogues/mira_done.tres" id="8"]
+[ext_resource type="Resource" path="res://resources/dialogues/mira_deliver.tres" id="9"]
+[ext_resource type="Resource" path="res://resources/dialogues/mira_waiting.tres" id="10"]
+[ext_resource type="Resource" path="res://resources/dialogues/mira_intro.tres" id="11"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/all_conditions.gd" id="12"]
+
+[sub_resource type="Resource" id="all_deliver"]
+script = ExtResource("12")
+conditions = Array[ExtResource("7")]([ExtResource("4"), ExtResource("5")])
+
+[sub_resource type="Resource" id="entry_done"]
+script = ExtResource("2")
+conditions = Array[ExtResource("7")]([ExtResource("3")])
+dialogue = ExtResource("8")
+
+[sub_resource type="Resource" id="entry_deliver"]
+script = ExtResource("2")
+conditions = Array[ExtResource("7")]([SubResource("all_deliver")])
+dialogue = ExtResource("9")
+
+[sub_resource type="Resource" id="entry_waiting"]
+script = ExtResource("2")
+conditions = Array[ExtResource("7")]([ExtResource("6")])
+dialogue = ExtResource("10")
+
+[sub_resource type="Resource" id="entry_intro"]
+script = ExtResource("2")
+conditions = Array[ExtResource("7")]([ExtResource("7")])
+dialogue = ExtResource("11")
+
+[resource]
+script = ExtResource("1")
+entries = Array[ExtResource("2")]([SubResource("entry_done"), SubResource("entry_deliver"), SubResource("entry_waiting"), SubResource("entry_intro")])

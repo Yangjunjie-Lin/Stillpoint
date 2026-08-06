@@ -34,6 +34,16 @@ func set_time(new_day: int, new_hour: int, new_minute: int) -> void:
 	minute_changed.emit(day, hour, minute)
 
 
+func reset_all() -> void:
+	day = 1
+	hour = 8
+	minute = 0
+	paused = false
+	time_scale = 1.0
+	_accumulator = 0.0
+	minute_changed.emit(day, hour, minute)
+
+
 func get_total_minutes() -> int:
 	return (day - 1) * HOURS_PER_DAY * MINUTES_PER_HOUR + hour * MINUTES_PER_HOUR + minute
 

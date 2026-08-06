@@ -27,8 +27,6 @@ var is_permanently_dead: bool = false
 
 
 func _ready() -> void:
-	if character_id == &"":
-		character_id = StringName(str(get_instance_id()))
 	if definition != null:
 		apply_definition(definition)
 	if relationship != null:
@@ -186,3 +184,19 @@ func from_dict(data: Dictionary) -> void:
 		state.current = CharacterState.State.DOWNED
 	elif is_permanently_dead:
 		state.current = CharacterState.State.DISABLED
+
+
+func get_persistence_key() -> StringName:
+	return &"character"
+
+
+func capture_state() -> Dictionary:
+	return to_dict()
+
+
+func restore_state(data: Dictionary) -> void:
+	from_dict(data)
+
+
+func get_state_version() -> int:
+	return 1

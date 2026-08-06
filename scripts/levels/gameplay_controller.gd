@@ -2,6 +2,8 @@ class_name GameplayController
 extends Node2D
 ## Owns one run: spawning, difficulty, pause, game-over, autosave/restore.
 
+const ENEMY_ID_PREFIX := "survival:enemy:"
+
 @export var level_def: LevelDefinition
 @export var player_scene: PackedScene
 @export var enemy_scene: PackedScene
@@ -25,6 +27,8 @@ var _autosave_timer: float = 0.0
 var _item_timer: float = 0.0
 var _rng := RandomNumberGenerator.new()
 var _world_bounds: Rect2 = Rect2()
+var _next_enemy_id: int = 1
+var _claimed_enemy_ids: Dictionary = {}
 
 
 func _ready() -> void:
@@ -211,7 +215,11 @@ func _spawn_enemy() -> void:
 	if def == null:
 		return
 	var enemy := enemy_scene.instantiate() as EnemyController
+	if enemy == null:
+		push_error("GameplayController: enemy_scene root is not EnemyController")
+		return
 	var point := _find_spawn_point(350.0)
+	enemy.enemy_id = _allocate_enemy_id()
 	enemies_root.add_child(enemy)
 	enemy.global_position = point
 	enemy.setup(def, difficulty_scale, player, _world_bounds)
@@ -301,6 +309,7 @@ func _save_run() -> void:
 		"difficulty_scale": difficulty_scale,
 		"autosave_timer": _autosave_timer,
 		"item_timer": _item_timer,
+		"next_enemy_id": _next_enemy_id,
 		"player": player.to_dict(),
 		"enemies": enemies,
 		"pickups": pickup_entries,
@@ -314,6 +323,7 @@ func _restore_run(data: Dictionary) -> void:
 	GameManager.player_name = str(data.get("player_name", GameManager.player_name))
 	difficulty_scale = float(data.get("difficulty_scale", 1.0))
 	_restore_run_timers(data)
+	_restore_enemy_id_counter(data)
 	var player_data: Dictionary = data.get("player", {})
 	var pos: Dictionary = player_data.get("position", {})
 	var spawn := Vector2(
@@ -357,10 +367,19 @@ func _restore_enemies(entries: Array) -> void:
 			push_warning("GameplayController: missing enemy definition '%s'" % String(def_id))
 			continue
 		var enemy := enemy_scene.instantiate() as EnemyController
+		if enemy == null:
+			push_warning("GameplayController: enemy_scene root is not EnemyController")
+			continue
+		var restored_id := _claim_restored_enemy_id(
+			StringName(str(data.get("enemy_id", "")))
+		)
+		enemy.enemy_id = restored_id
 		enemies_root.add_child(enemy)
 		enemy.world_bounds = _world_bounds
 		enemy.setup(def, 1.0, player, _world_bounds)
-		enemy.from_dict(data, player)
+		var normalized_data := data.duplicate(true)
+		normalized_data["enemy_id"] = String(restored_id)
+		enemy.from_dict(normalized_data, player)
 		if def.texture != null and enemy.sprite != null:
 			enemy.sprite.texture = def.texture
 		if not enemy.is_saveable():
@@ -394,3 +413,53 @@ func _restore_pickups(entries: Array) -> void:
 func _restore_run_timers(data: Dictionary) -> void:
 	_autosave_timer = float(data.get("autosave_timer", 0.0))
 	_item_timer = float(data.get("item_timer", 0.0))
+
+
+func _restore_enemy_id_counter(data: Dictionary) -> void:
+	# Old run saves have no counter. Their existing IDs are still claimed during
+	# restore, while newly allocated IDs use a namespace that cannot collide with
+	# the old instance-derived/named values.
+	_next_enemy_id = maxi(1, int(data.get("next_enemy_id", 1)))
+	_claimed_enemy_ids.clear()
+	var entries: Variant = data.get("enemies", [])
+	if entries is Array:
+		for entry in entries as Array:
+			if entry is Dictionary:
+				_advance_enemy_id_counter_past(
+					StringName(str((entry as Dictionary).get("enemy_id", "")))
+				)
+
+
+func _allocate_enemy_id() -> StringName:
+	while true:
+		var candidate := StringName("%s%08d" % [ENEMY_ID_PREFIX, _next_enemy_id])
+		_next_enemy_id += 1
+		if not _claimed_enemy_ids.has(candidate):
+			_claimed_enemy_ids[candidate] = true
+			return candidate
+	return &""
+
+
+func _claim_restored_enemy_id(saved_id: StringName) -> StringName:
+	if saved_id == &"" or _claimed_enemy_ids.has(saved_id):
+		if saved_id == &"":
+			push_warning("GameplayController: legacy enemy has no ID; assigning a stable run ID")
+		else:
+			push_warning(
+				"GameplayController: duplicate saved enemy ID '%s'; assigning a unique run ID"
+				% String(saved_id)
+			)
+		return _allocate_enemy_id()
+	_claimed_enemy_ids[saved_id] = true
+	_advance_enemy_id_counter_past(saved_id)
+	return saved_id
+
+
+func _advance_enemy_id_counter_past(enemy_id: StringName) -> void:
+	var text := String(enemy_id)
+	if not text.begins_with(ENEMY_ID_PREFIX):
+		return
+	var suffix := text.trim_prefix(ENEMY_ID_PREFIX)
+	if not suffix.is_valid_int():
+		return
+	_next_enemy_id = maxi(_next_enemy_id, int(suffix) + 1)

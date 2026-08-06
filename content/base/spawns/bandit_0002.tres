@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EntitySpawnDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/spawning/entity_spawn_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+persistent_id = &"base:dungeon/npc/bandit_0002"
+definition_id = &"bandit"
+spawn_id = &"bandit_b"
+enabled_by_default = true

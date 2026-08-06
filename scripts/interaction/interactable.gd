@@ -3,7 +3,7 @@ extends Node3D
 ## Base class for all world interactables.
 
 @export var interaction_priority: int = 0
-@export var region_id: StringName = &"town"
+@export var region_id: StringName = &"base:town"
 @export var interaction_enabled: bool = true
 
 

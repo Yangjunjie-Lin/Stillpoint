@@ -3,11 +3,9 @@ extends RefCounted
 
 func run() -> bool:
 	var tree := Engine.get_main_loop() as SceneTree
-	var packed: PackedScene = load("res://scenes/world/vertical_slice.tscn") as PackedScene
-	var world := packed.instantiate() as WorldManager
-	tree.root.add_child(world)
-	await tree.physics_frame
-	var mount := world.actors_root.get_node("Mount") as MountController
+	var world := WorldTestHelper.boot_world(tree)
+	await WorldTestHelper.await_frames(tree)
+	var mount := world.companion_root.get_node("Mount") as MountController
 	var player := world.player
 	mount.mount(player)
 	var ok := mount.is_mounted and not player.state.input_enabled

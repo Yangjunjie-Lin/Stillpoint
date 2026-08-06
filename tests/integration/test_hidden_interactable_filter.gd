@@ -3,21 +3,18 @@ extends RefCounted
 
 func run() -> bool:
 	var tree := Engine.get_main_loop() as SceneTree
-	var packed: PackedScene = load("res://scenes/world/vertical_slice.tscn") as PackedScene
-	var world := packed.instantiate() as WorldManager
-	tree.root.add_child(world)
-	await tree.physics_frame
-	await tree.physics_frame
-	var herb := world.interactables_root.get_node_or_null("HerbPickup") as Interactable
-	if herb == null:
-		world.free()
-		return false
-	world._activate_region(&"town")
-	await tree.process_frame
-	var ok := not herb.is_interaction_enabled()
-	world._activate_region(&"wilderness")
-	await tree.process_frame
-	ok = ok and herb.is_interaction_enabled()
-	ok = ok and herb.region_id == &"wilderness"
+	var world := WorldTestHelper.boot_world(tree)
+	await WorldTestHelper.await_frames(tree)
+	# Herb only exists in wilderness region scene.
+	var herb_town := WorldTestHelper.find_pickup(world)
+	var ok := herb_town == null
+	world.transition_to(&"base:wilderness")
+	await WorldTestHelper.await_frames(tree)
+	var herb := WorldTestHelper.find_pickup(world)
+	ok = ok and herb != null and herb.is_interaction_enabled()
+	world.transition_to(&"base:town")
+	await WorldTestHelper.await_frames(tree)
+	herb = WorldTestHelper.find_pickup(world)
+	ok = ok and herb == null
 	world.free()
 	return ok

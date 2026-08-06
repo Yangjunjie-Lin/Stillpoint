@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/dialogue_definition.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/dialogue_choice.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/resources/dialogue_node.gd" id="3"]
+[ext_resource type="Resource" path="res://content/base/effects/start_demo_errand.tres" id="4"]
 
 [sub_resource type="Resource" id="choice_a"]
 script = ExtResource("2")
@@ -10,7 +11,7 @@ text = "You seem kind. I'd like to help."
 next_node_id = &"thanks"
 affinity_delta = 8.0
 requires_not_hostile = true
-quest_effect = &"demo_errand"
+effects = Array[ExtResource("4")]([ExtResource("4")])
 
 [sub_resource type="Resource" id="choice_b"]
 script = ExtResource("2")

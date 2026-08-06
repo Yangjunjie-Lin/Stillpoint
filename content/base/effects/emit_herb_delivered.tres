@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EmitGameplayEventEffect" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/effects/emit_gameplay_event_effect.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+event_type = &"item_delivered"
+definition_id = &"herb"
+region_id = &"base:town"

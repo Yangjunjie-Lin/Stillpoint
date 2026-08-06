@@ -16,3 +16,23 @@ func tick() -> void:
 		return
 	current_activity = entry.activity_id
 	current_marker_id = entry.target_marker_id
+
+
+func get_persistence_key() -> StringName:
+	return &"schedule"
+
+
+func capture_state() -> Dictionary:
+	return {
+		"current_activity": String(current_activity),
+		"current_marker_id": String(current_marker_id),
+	}
+
+
+func restore_state(data: Dictionary) -> void:
+	current_activity = StringName(str(data.get("current_activity", current_activity)))
+	current_marker_id = StringName(str(data.get("current_marker_id", current_marker_id)))
+
+
+func get_state_version() -> int:
+	return 1

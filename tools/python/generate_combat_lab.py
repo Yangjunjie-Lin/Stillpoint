@@ -21,6 +21,12 @@ COMBAT_LAB = """[gd_scene load_steps=12 format=3 uid="uid://combatlab001"]
 [ext_resource type="Script" path="res://scripts/components/energy_component.gd" id="10"]
 [ext_resource type="Script" path="res://scripts/components/combat_component.gd" id="11"]
 [ext_resource type="Resource" path="res://resources/attacks/basic_melee.tres" id="12"]
+[ext_resource type="Script" path="res://scripts/combat/hurtbox_3d.gd" id="13"]
+[ext_resource type="Script" path="res://scripts/components/faction_component.gd" id="14"]
+[ext_resource type="Script" path="res://scripts/components/relationship_component.gd" id="15"]
+[ext_resource type="Script" path="res://scripts/components/interaction_component.gd" id="16"]
+[ext_resource type="Script" path="res://scripts/components/skill_component.gd" id="17"]
+[ext_resource type="Script" path="res://scripts/components/status_effect_component.gd" id="18"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(30, 0.2, 30)
@@ -77,6 +83,7 @@ transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 6, 8)
 [node name="TrainingDummy" type="CharacterBody3D" parent="." groups=["combat_lab_target"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("5")
+wander_radius = 0.0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TrainingDummy"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
@@ -88,8 +95,31 @@ script = ExtResource("9")
 [node name="EnergyComponent" type="Node" parent="TrainingDummy"]
 script = ExtResource("10")
 
+[node name="FactionComponent" type="Node" parent="TrainingDummy"]
+script = ExtResource("14")
+
+[node name="RelationshipComponent" type="Node" parent="TrainingDummy"]
+script = ExtResource("15")
+
+[node name="InteractionComponent" type="Node" parent="TrainingDummy"]
+script = ExtResource("16")
+
 [node name="CombatComponent" type="Node" parent="TrainingDummy"]
 script = ExtResource("11")
+
+[node name="SkillComponent" type="Node" parent="TrainingDummy"]
+script = ExtResource("17")
+
+[node name="StatusEffectComponent" type="Node" parent="TrainingDummy"]
+script = ExtResource("18")
+
+[node name="Hurtbox3D" type="Area3D" parent="TrainingDummy"]
+script = ExtResource("13")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TrainingDummy/Hurtbox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_npc")
 
 [node name="PushableCrate" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.6, 1)
@@ -126,9 +156,32 @@ script = ExtResource("9")
 [node name="EnergyComponent" type="Node" parent="Bandit"]
 script = ExtResource("10")
 
+[node name="FactionComponent" type="Node" parent="Bandit"]
+script = ExtResource("14")
+
+[node name="RelationshipComponent" type="Node" parent="Bandit"]
+script = ExtResource("15")
+
+[node name="InteractionComponent" type="Node" parent="Bandit"]
+script = ExtResource("16")
+
 [node name="CombatComponent" type="Node" parent="Bandit"]
 script = ExtResource("11")
 attack = ExtResource("12")
+
+[node name="SkillComponent" type="Node" parent="Bandit"]
+script = ExtResource("17")
+
+[node name="StatusEffectComponent" type="Node" parent="Bandit"]
+script = ExtResource("18")
+
+[node name="Hurtbox3D" type="Area3D" parent="Bandit"]
+script = ExtResource("13")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bandit/Hurtbox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_npc")
 
 [node name="CombatFeedback" type="Node" parent="."]
 script = ExtResource("3")

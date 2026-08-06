@@ -3,7 +3,8 @@ extends Node
 
 const MAIN_MENU := "res://scenes/ui/main_menu.tscn"
 const GAMEPLAY := "res://scenes/gameplay/gameplay.tscn"
-const VERTICAL_SLICE := "res://scenes/world/vertical_slice.tscn"
+const VERTICAL_SLICE := "res://scenes/world/world_session.tscn"
+const WORLD_SESSION := "res://scenes/world/world_session.tscn"
 const COMBAT_LAB := "res://scenes/combat/combat_lab.tscn"
 const SURVIVAL_PROTOTYPE := "res://scenes/gameplay/gameplay.tscn"
 
@@ -19,7 +20,11 @@ func go_to_gameplay() -> void:
 
 
 func go_to_vertical_slice() -> void:
-	change_scene(VERTICAL_SLICE)
+	change_scene(WORLD_SESSION)
+
+
+func go_to_world_session() -> void:
+	change_scene(WORLD_SESSION)
 
 
 func go_to_combat_lab() -> void:
@@ -41,7 +46,12 @@ func change_scene(scene_path: String) -> void:
 		get_tree().change_scene_to_packed(packed)
 		return
 	var slot: Node = root.get_node("CurrentScene")
+	var exiting_index := 0
 	for child in slot.get_children():
+		# Release the authored root name immediately so a synchronously routed
+		# replacement can retain it while the old node awaits end-of-frame deletion.
+		child.name = "_ExitingScene%d" % exiting_index
+		exiting_index += 1
 		child.queue_free()
 	_current_scene = packed.instantiate()
 	slot.add_child(_current_scene)

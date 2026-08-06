@@ -72,7 +72,7 @@ func run() -> bool:
 	ok = ok and not item_ids.is_empty()
 	ok = ok and enemy_ids.has(&"chase")
 	ok = ok and item_ids.has(&"shield")
-	ok = ok and region_ids.has(&"town")
+	ok = ok and region_ids.has(&"base:town")
 	ok = ok and npc_ids.has(&"mira")
 
 	if ResourceRegistry.get_enemy(&"chase") == null:
@@ -81,8 +81,11 @@ func run() -> bool:
 	if ResourceRegistry.get_item(&"shield") == null:
 		push_error("ResourceRegistry missing shield")
 		ok = false
+	if ResourceRegistry.get_region(&"base:town") == null:
+		push_error("ResourceRegistry missing base:town region")
+		ok = false
 	if ResourceRegistry.get_region(&"town") == null:
-		push_error("ResourceRegistry missing town region")
+		push_error("ResourceRegistry missing legacy town alias")
 		ok = false
 	if ResourceRegistry.get_npc(&"mira") == null:
 		push_error("ResourceRegistry missing mira npc")

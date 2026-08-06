@@ -9,6 +9,8 @@ var _mount: MountController
 func _ready() -> void:
 	if mount_path != NodePath():
 		_mount = get_node_or_null(mount_path) as MountController
+	if _mount == null:
+		_mount = _find_session_mount()
 
 
 func can_interact(actor: CharacterController, _context: InteractionContext) -> bool:
@@ -29,3 +31,12 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 		_mount.dismount()
 	else:
 		_mount.mount(player)
+
+
+func _find_session_mount() -> MountController:
+	var node := get_parent()
+	while node != null:
+		if node is WorldSession:
+			return (node as WorldSession).companion_root.get_node_or_null("Mount") as MountController
+		node = node.get_parent()
+	return null

@@ -1,10 +1,13 @@
-[gd_resource type="Resource" script_class="RegionDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RegionDefinition" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/region_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/regions/town/town_region.tscn" id="2"]
 
 [resource]
 script = ExtResource("1")
-id = &"town"
+id = &"base:town"
 display_name = "Stillpoint Town"
 region_type = &"town"
+parent_world_id = &"base:world"
 default_spawn_id = &"spawn"
+scene = ExtResource("2")
