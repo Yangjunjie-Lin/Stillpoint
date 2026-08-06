@@ -24,6 +24,22 @@ Examples:
 5. Node renames do not affect saves — identity is the persistent ID, not the node name.
 6. Talk proxies / portals without state may use `PersistencePolicy.NONE` deliberately.
 
+## Actor Region Invariant
+
+For a loaded actor:
+
+```text
+WorldEntityIdentity.region_id
+== CharacterController.region_id
+== EntitySnapshot.region_id
+```
+
+Restore snapshot region wins over spawn context; spawn context wins over the live `RegionRuntimeService`. `ActorFactory` rejects an empty region or a missing explicit persistent ID before scene instantiation, and synchronizes Identity and Controller before `_ready()`.
+
+## Runtime Snapshot Metadata
+
+Runtime actors persist `runtime_spawned=true`, a `pending_spawn_id` for unloaded-region placement, and `entity_category="actor"`. The repository preserves these fields while recapturing live transforms/components. A permanent destroy sets `destroyed=true` without clearing `runtime_spawned`; later region loads retain the snapshot but never instantiate it.
+
 ## Chunk Filenames
 
 `RegionIdUtil.to_chunk_filename("base:town")` → `base_town`  
@@ -33,4 +49,4 @@ Manifest `region_chunks` stores the authoritative ID → filename map.
 
 ## Migration
 
-Legacy v3 saves map node names to persistent IDs only inside `SaveV3MigrationMapping`.
+Legacy v3 saves map node names to persistent IDs only inside `SaveV3MigrationMapping`. The same migration converts NPC data into `components.character`, Chest data into `components.chest`, and Pickup data into `components.pickup`; runtime ID generation never uses node names.

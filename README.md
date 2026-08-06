@@ -4,6 +4,8 @@
 
 Stillpoint **0.7.0** hardens world architecture: dynamic region loading, persistent entity IDs, event-driven quests, Save v4, and data-driven dialogue/effects — on top of **0.6.0** Jolt combat and the **0.5.1** vertical slice.
 
+Save v4 validates the manifest and player core before Continue, recovers critical files from `.bak`, and returns safely to the menu if restore cannot complete. Runtime actors can be queued into an unloaded region, materialized under that region's `DynamicEntities`, saved across restart, and permanently destroyed without respawning. Required quest/dialogue effect failures are surfaced and retryable instead of being silently committed.
+
 ## Modes
 
 | Menu | Scene |
@@ -30,6 +32,7 @@ Stillpoint **0.7.0** hardens world architecture: dynamic region loading, persist
 | Jump | K |
 | Guard | Shift |
 | Crouch | Ctrl |
+| Pause / return menu | Esc |
 | Combat debug overlay | F10 (diagnostics toggle) |
 | Hotbar | Q / E |
 
@@ -39,7 +42,7 @@ Main menu → **Combat Lab**. Demonstrates combo attacks, sweep hits, guard, kno
 
 ## Vertical Slice (life sim)
 
-Town → Mira quest → wilderness herb → deliver; relationships, pets, mounts, autosave, Continue.
+Town → Mira quest → wilderness herb → deliver; relationships, pets, mounts, autosave, and a real Main Menu → Continue → WorldSession restore path.
 
 ## Placeholder / not yet implemented
 

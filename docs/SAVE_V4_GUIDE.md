@@ -24,10 +24,13 @@ user://saves/slot_01/
 `SaveSlotService` (autoload) queries the filesystem without a live `WorldSession`:
 
 - `has_adventure_save()`
-- `inspect_adventure_summary()` — player name, region, day/time, or `future_version` / `corrupt_manifest`
+- `validate_adventure_save()` — one authoritative validation result
+- `inspect_adventure_summary()` — delegates to validation and adds safe summary defaults
 - `clear_adventure_save()`
 
-`GameManager.has_resumable_adventure()` / `continue_adventure()` / `start_new_adventure()` use `SaveSlotService` only. Main Menu Continue prefers Save v4 Adventure, then falls back to Legacy Survival.
+Validation parses `manifest.json` (then `.bak` for corruption), requires a legal non-future `save_version`, non-empty `current_region_id`, and Dictionary `region_chunks`. It parses `player.json` (then `.bak`) and requires Dictionary `player` and `inventory` sections. `global_world.json` may fall back to its backup or warned defaults. Results always include `valid`, `reason`, `warnings`, `used_player_backup`, and `used_manifest_backup`; summary name/date/time fields use safe defaults.
+
+Main Menu distinguishes `missing`, `future_version`, `corrupt_manifest`, `missing_player`, and `corrupt_player`. A valid backup enables Continue and displays “Save recovered from backup”. A corrupt Adventure slot disables Adventure Continue and does not fall through to Legacy Survival; Legacy Survival is considered only when no Adventure slot exists.
 
 ## Dirty Tracking
 
@@ -36,6 +39,7 @@ user://saves/slot_01/
 - Leaving a region emits `region_chunk_captured` and marks the previous region dirty.
 - Autosave may always refresh `manifest` / `global_world` / `player`, but only dirty regions are rewritten.
 - Each successful section/region write clears only that dirty bit.
+- The manifest is the final commit. A failed manifest replace makes the save call fail, leaves a retry marker, restores the prior file, and removes the temporary file.
 
 ## Player Position
 
@@ -47,14 +51,19 @@ Continue restores the exact saved player transform after the region loads (`Regi
 
 ## Corruption Recovery
 
-- Invalid / missing `player.json` → slot rejected (try `.bak` first).
+Restore consumes the exact manifest/player primary-or-backup source selected by structural validation; a parseable but structurally invalid primary cannot override its validated backup.
+
+- Invalid / missing `player.json` → try `.bak`; reject the slot as `missing_player` or `corrupt_player` if neither is usable.
 - Corrupt region chunk → try `.bak`; if still bad, warn and use region defaults; other regions continue.
 - Corrupt entity snapshot entry → skip that entity and log its persistent ID.
 - Manifest corruption → try `.bak`.
+- Missing/corrupt global-world primary and backup → continue with safe defaults and a warning.
+
+`WorldSession` checks the boolean returned by `restore_session()`. Failure clears `resume_requested`, disables player input and autosave, prevents further session saves, unloads any partial region, emits `restore_failed(reason)`, and routes to the menu. It never creates a replacement default save or overwrites the damaged source.
 
 ## Migration from v3
 
-On Continue, if `user://world_save.json` exists it is migrated to `user://saves/slot_01/` and renamed to `world_save_v3_imported.bak`. A second Continue does not migrate again.
+On Continue, if `user://world_save.json` exists it is migrated to `user://saves/slot_01/` and renamed to `world_save_v3_imported.bak`. Legacy NPC data becomes `components.character` with nested health/state fields (including `is_downed` and `is_permanently_dead`); Chest and Pickup data become `components.chest` and `components.pickup`. A second Continue does not migrate again.
 
 ## Deferred
 
