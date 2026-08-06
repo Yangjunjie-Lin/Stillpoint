@@ -1,5 +1,7 @@
 # Save v4 Guide
 
+Stillpoint 0.7.1 keeps `save_version = 4`; no save schema migration is required. Save v4 data created by 0.7.0 can be continued directly. Relationship JSON objects are normalized on restore so NPC IDs are stored as runtime `StringName` keys, while serialized JSON continues to use ordinary string keys.
+
 ## Layout
 
 ```

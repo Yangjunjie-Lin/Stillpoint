@@ -23,12 +23,7 @@ func ensure_registered(npc_id: StringName, default_disposition: StringName = &"n
 			affinity = -30.0
 		_:
 			affinity = 0.0
-	_states[npc_id] = {
-		"affinity": affinity,
-		"temporary_hostile": false,
-		"anger": 0.0,
-		"last_aggression_time": 0.0,
-	}
+	_states[npc_id] = _make_default_state(affinity)
 
 
 func get_affinity(npc_id: StringName) -> float:
@@ -40,14 +35,16 @@ func peek_affinity(npc_id: StringName) -> float:
 	var state: Variant = _states.get(npc_id)
 	if not state is Dictionary:
 		return 0.0
-	return float((state as Dictionary).get("affinity", 0.0))
+	return _safe_float((state as Dictionary).get("affinity", 0.0), 0.0)
 
 
 func change_affinity(npc_id: StringName, amount: float, _reason: StringName = &"") -> void:
+	if npc_id == &"":
+		return
 	ensure_registered(npc_id)
 	var old := get_affinity(npc_id)
 	var old_disp := get_disposition(npc_id)
-	var new_value := clampf(old + amount, -100.0, 100.0)
+	var new_value := clampf(old + _safe_float(amount, 0.0), -100.0, 100.0)
 	_states[npc_id]["affinity"] = new_value
 	affinity_changed.emit(npc_id, old, new_value)
 	var new_disp := get_disposition(npc_id)
@@ -57,21 +54,32 @@ func change_affinity(npc_id: StringName, amount: float, _reason: StringName = &"
 
 func get_anger(npc_id: StringName) -> float:
 	ensure_registered(npc_id)
-	return float(_states[npc_id].get("anger", 0.0))
+	var state: Variant = _states.get(npc_id)
+	if not state is Dictionary:
+		return 0.0
+	return _safe_float((state as Dictionary).get("anger", 0.0), 0.0)
 
 
 func add_anger(npc_id: StringName, amount: float) -> void:
+	if npc_id == &"":
+		return
 	ensure_registered(npc_id)
-	_states[npc_id]["anger"] = clampf(get_anger(npc_id) + amount, 0.0, 100.0)
+	_states[npc_id]["anger"] = clampf(
+		get_anger(npc_id) + _safe_float(amount, 0.0),
+		0.0,
+		100.0,
+	)
 
 
 func is_temporarily_hostile(npc_id: StringName) -> bool:
+	if npc_id == &"":
+		return false
 	ensure_registered(npc_id)
 	var state: Dictionary = _states[npc_id]
-	if bool(state.get("temporary_hostile", false)) and not _peek_state_temporary_hostile(state):
+	if _safe_bool(state.get("temporary_hostile", false), false) and not _peek_state_temporary_hostile(state):
 		state["temporary_hostile"] = false
 		return false
-	return bool(state.get("temporary_hostile", false))
+	return _safe_bool(state.get("temporary_hostile", false), false)
 
 
 func peek_temporary_hostile(npc_id: StringName) -> bool:
@@ -86,6 +94,8 @@ func set_temporary_hostile(
 	value: bool,
 	from_aggression: bool = false,
 ) -> void:
+	if npc_id == &"":
+		return
 	ensure_registered(npc_id)
 	var old_disp := get_disposition(npc_id)
 	_states[npc_id]["temporary_hostile"] = value
@@ -121,12 +131,12 @@ func _disposition_from_affinity(affinity: float) -> RelationshipComponent.Dispos
 
 
 func _peek_state_temporary_hostile(state: Dictionary) -> bool:
-	if not bool(state.get("temporary_hostile", false)):
+	if not _safe_bool(state.get("temporary_hostile", false), false):
 		return false
 	# Aggression-created refusal expires across travel/save boundaries. Pure
 	# queries observe that expiry without cleaning the stored record; regular
 	# gameplay getters retain their historical cleanup behavior.
-	var last_aggression := float(state.get("last_aggression_time", 0.0))
+	var last_aggression := _safe_float(state.get("last_aggression_time", 0.0), 0.0)
 	if last_aggression <= 0.0:
 		return true
 	return (
@@ -136,10 +146,13 @@ func _peek_state_temporary_hostile(state: Dictionary) -> bool:
 
 
 func register_aggression(npc_id: StringName, damage: float, _context: Dictionary = {}) -> void:
+	if npc_id == &"":
+		return
 	ensure_registered(npc_id)
 	var disposition := get_disposition(npc_id)
-	var penalty := -maxf(1.0, damage * 0.5)
-	add_anger(npc_id, maxf(5.0, damage * 0.4))
+	var safe_damage := _safe_float(damage, 0.0)
+	var penalty := -maxf(1.0, safe_damage * 0.5)
+	add_anger(npc_id, maxf(5.0, safe_damage * 0.4))
 	_states[npc_id]["last_aggression_time"] = Time.get_unix_time_from_system()
 
 	if disposition == RelationshipComponent.Disposition.FRIENDLY:
@@ -166,22 +179,83 @@ func reset_all() -> void:
 
 
 func to_dict() -> Dictionary:
-	return {"states": _states.duplicate(true)}
+	var serialized_states: Dictionary = {}
+	for raw_key in _states.keys():
+		var npc_id := StringName(str(raw_key).strip_edges())
+		if npc_id == &"":
+			continue
+		var state := _normalize_state(_states[raw_key])
+		if state.is_empty():
+			continue
+		serialized_states[String(npc_id)] = state
+	return {"states": serialized_states}
 
 
 func from_dict(data: Dictionary) -> void:
-	if data.has("states"):
-		_states = data.get("states", {}).duplicate(true)
-	elif data.has("player_affinity"):
-		# Legacy migrate from affinity-only dict.
-		_states.clear()
-		var legacy: Dictionary = data.get("player_affinity", {})
-		for key in legacy.keys():
-			_states[StringName(str(key))] = {
-				"affinity": float(legacy[key]),
-				"temporary_hostile": false,
-				"anger": 0.0,
-				"last_aggression_time": 0.0,
-			}
-	else:
-		_states = {}
+	_states.clear()
+
+	var raw_states: Variant = data.get("states", null)
+	if typeof(raw_states) == TYPE_DICTIONARY:
+		_states = _normalize_states(raw_states)
+		return
+
+	var legacy: Variant = data.get("player_affinity", null)
+	if typeof(legacy) != TYPE_DICTIONARY:
+		return
+	for raw_key in (legacy as Dictionary).keys():
+		var npc_id := StringName(str(raw_key).strip_edges())
+		if npc_id == &"":
+			continue
+		_states[npc_id] = _make_default_state(
+			_safe_float((legacy as Dictionary)[raw_key], 0.0),
+		)
+
+
+func _normalize_states(raw_states: Variant) -> Dictionary:
+	var normalized: Dictionary = {}
+	if typeof(raw_states) != TYPE_DICTIONARY:
+		return normalized
+	for raw_key in (raw_states as Dictionary).keys():
+		var npc_id := StringName(str(raw_key).strip_edges())
+		if npc_id == &"":
+			continue
+		var state := _normalize_state((raw_states as Dictionary)[raw_key])
+		if state.is_empty():
+			continue
+		normalized[npc_id] = state
+	return normalized
+
+
+func _normalize_state(raw_state: Variant) -> Dictionary:
+	if typeof(raw_state) != TYPE_DICTIONARY:
+		return {}
+	var state := raw_state as Dictionary
+	return {
+		"affinity": clampf(_safe_float(state.get("affinity", 0.0), 0.0), -100.0, 100.0),
+		"temporary_hostile": _safe_bool(state.get("temporary_hostile", false), false),
+		"anger": clampf(_safe_float(state.get("anger", 0.0), 0.0), 0.0, 100.0),
+		"last_aggression_time": maxf(
+			0.0,
+			_safe_float(state.get("last_aggression_time", 0.0), 0.0),
+		),
+	}
+
+
+func _make_default_state(affinity: float = 0.0) -> Dictionary:
+	return {
+		"affinity": clampf(_safe_float(affinity, 0.0), -100.0, 100.0),
+		"temporary_hostile": false,
+		"anger": 0.0,
+		"last_aggression_time": 0.0,
+	}
+
+
+func _safe_float(value: Variant, fallback: float) -> float:
+	if typeof(value) != TYPE_FLOAT and typeof(value) != TYPE_INT:
+		return fallback
+	var converted := float(value)
+	return converted if is_finite(converted) else fallback
+
+
+func _safe_bool(value: Variant, fallback: bool) -> bool:
+	return bool(value) if typeof(value) == TYPE_BOOL else fallback

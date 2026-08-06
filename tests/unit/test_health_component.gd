@@ -20,6 +20,7 @@ func run() -> bool:
 	ok = ok and health.death_recorded
 	var again := health.apply_damage_at(DamageInfo.make(10.0), 11.0, false)
 	ok = ok and again == 0.0
+	health.free()
 	if not ok:
 		push_error("HealthComponent assertions failed")
 	return ok

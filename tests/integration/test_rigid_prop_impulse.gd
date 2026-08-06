@@ -10,6 +10,7 @@ func run() -> bool:
 	mesh.shape = shape
 	crate.add_child(mesh)
 	tree.root.add_child(crate)
+	await tree.physics_frame
 	crate.global_position = Vector3(0, 1, 0)
 	crate.apply_attack_impulse(Vector3(1, 0, 0), 5.0)
 	await tree.physics_frame

@@ -1,6 +1,6 @@
-# World Architecture (Stillpoint 0.7.0)
+# World Architecture (Stillpoint 0.7.1)
 
-Stillpoint 0.7.0 replaces the monolithic `WorldManager` vertical slice with a **World Session** and dedicated **World Services**.
+Stillpoint 0.7.1 retains the 0.7 **World Session** and dedicated **World Services** architecture. This release only hardens runtime persistence and test reliability.
 
 ## WorldSession
 

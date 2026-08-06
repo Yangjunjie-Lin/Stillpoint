@@ -2,6 +2,7 @@ extends RefCounted
 
 
 func run() -> bool:
+	var tree := Engine.get_main_loop() as SceneTree
 	var ok := true
 	var scenes := _collect("res://scenes/", ".tscn")
 	ok = ok and not scenes.is_empty()
@@ -16,16 +17,31 @@ func run() -> bool:
 			push_error("Failed to instantiate scene: %s" % path)
 			ok = false
 			continue
-		instance.free()
+		if path == "res://scenes/combat/combat_lab.tscn":
+			tree.root.add_child(instance)
+			await tree.process_frame
+			instance.queue_free()
+			await tree.process_frame
+		else:
+			instance.free()
+		instance = null
+		packed = null
 
 	var main := load("res://scenes/bootstrap/main.tscn") as PackedScene
-	ok = ok and main != null and main.instantiate() != null
+	var main_instance := main.instantiate() if main != null else null
+	ok = ok and main_instance != null
+	if main_instance != null:
+		main_instance.free()
+	main_instance = null
+	main = null
 	var gameplay := load("res://scenes/gameplay/gameplay.tscn") as PackedScene
 	ok = ok and gameplay != null
 	var gp := gameplay.instantiate()
 	ok = ok and gp != null
 	if gp != null:
 		gp.free()
+	gp = null
+	gameplay = null
 
 	var player := load("res://scenes/actors/player/player.tscn") as PackedScene
 	var player_node := player.instantiate()
@@ -34,6 +50,8 @@ func run() -> bool:
 	ok = ok and player_node.get_node_or_null("MovementComponent") != null
 	ok = ok and player_node.get_node_or_null("StatusEffectComponent") != null
 	player_node.free()
+	player_node = null
+	player = null
 
 	var enemy := load("res://scenes/actors/enemies/enemy_base.tscn") as PackedScene
 	var enemy_node := enemy.instantiate()
@@ -41,6 +59,8 @@ func run() -> bool:
 	ok = ok and enemy_node.get_node_or_null("Hitbox") != null
 	ok = ok and enemy_node.get_node_or_null("Hurtbox") != null
 	enemy_node.free()
+	enemy_node = null
+	enemy = null
 
 	if not ok:
 		push_error("Scene integrity assertions failed")

@@ -54,11 +54,21 @@ jobs:
             "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
           unzip -o godot.zip -d godot
           chmod +x godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
-      - name: Import then test
+      - name: Import project
         run: |
           GODOT=godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
           "$GODOT" --headless --path . --editor --quit
-          "$GODOT" --headless --path . --script res://tests/test_runner.gd
+      - name: Run tests with log validation
+        run: |
+          GODOT=godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
+          python tools/python/run_godot_tests.py --godot "$GODOT" --expected-tests 224
+      - name: Upload Godot test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-test-log
+          path: artifacts/godot-test.log
+          if-no-files-found: error
 
   export-linux:
     runs-on: ubuntu-latest

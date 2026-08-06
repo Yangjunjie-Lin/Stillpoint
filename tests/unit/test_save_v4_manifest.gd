@@ -8,4 +8,5 @@ func run() -> bool:
 	var ok := int(manifest.get("save_version", 0)) == 4
 	ok = ok and manifest.get("current_region_id", "") == "base:town"
 	coordinator.clear_save()
+	coordinator.free()
 	return ok

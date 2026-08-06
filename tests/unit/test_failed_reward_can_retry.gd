@@ -39,6 +39,7 @@ func run() -> bool:
 		push_error("reward retry failed or replayed a previously successful reward effect")
 	coordinator.free()
 	player.free()
+	ResourceRegistry.clear_test_registrations()
 	return ok
 
 

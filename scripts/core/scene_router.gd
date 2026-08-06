@@ -55,3 +55,7 @@ func change_scene(scene_path: String) -> void:
 		child.queue_free()
 	_current_scene = packed.instantiate()
 	slot.add_child(_current_scene)
+
+
+func reset_for_tests() -> void:
+	_current_scene = null

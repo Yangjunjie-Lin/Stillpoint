@@ -8,4 +8,6 @@ func run() -> bool:
 		return false
 	var before := energy.current_energy
 	energy.tick(0.5, true, false)
-	return energy.current_energy < before
+	var ok := energy.current_energy < before
+	energy.free()
+	return ok

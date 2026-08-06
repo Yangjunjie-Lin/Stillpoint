@@ -1,6 +1,6 @@
-# Architecture (Godot 0.7.0)
+# Architecture (Godot 0.7.1)
 
-Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [docs/WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the 0.7.0 world service split, Save v4, and region dynamic loading.
+Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [docs/WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the 0.7 world service split, Save v4, and region dynamic loading. Version 0.7.1 contains runtime and test-harness hygiene fixes only; the WorldSession, Region, Quest, Dialogue, ActorFactory, and Save v4 architecture is unchanged.
 
 ## Jolt Physics Foundation
 
