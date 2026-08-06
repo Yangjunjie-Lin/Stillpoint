@@ -1,0 +1,10 @@
+# Exact, known negative-path diagnostics emitted by the test suite.
+^ERROR:\s+ActorFactory: refusing persistent actor with no persistent_id \(bandit\)$
+^ERROR:\s+ActorFactory: scene root is not CharacterController for bandit$
+^ERROR:\s+ActorSceneValidator:\s+missing (HealthComponent|EnergyComponent|FactionComponent|RelationshipComponent|InteractionComponent|CombatComponent|Hurtbox3D)$
+^ERROR:\s+WorldEntityRepository: duplicate persistent_id base:town/npc/test_a$
+^ERROR:\s+Parse JSON failed\. Error at line 0: Expected key$
+^ERROR:\s+SaveService: cannot backup user://stillpoint_test_atomic_fail\.json$
+^ERROR:\s+WorldSaveCoordinator: atomic replace failed for user://(saves/slot_01/(manifest|player|regions/base_(town|wilderness))\.json|stillpoint_test_world_atomic\.json) \(Can't create\)$
+^ERROR:\s+WorldSaveCoordinator: v3 migration aborted: (player section write failed|region chunk write failed)$
+^ERROR:\s+WorldSession: restore failed \(corrupt_player\); returning to the main menu without saving$
