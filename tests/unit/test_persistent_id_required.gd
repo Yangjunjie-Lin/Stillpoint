@@ -3,4 +3,6 @@ extends RefCounted
 
 func run() -> bool:
 	var identity := WorldEntityIdentity.new()
-	return not identity.is_valid()
+	var ok := not identity.is_valid()
+	identity.free()
+	return ok

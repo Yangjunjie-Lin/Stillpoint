@@ -25,6 +25,7 @@ func run() -> bool:
 		push_error("failed required reward was marked claimed")
 	coordinator.free()
 	player.free()
+	ResourceRegistry.clear_test_registrations()
 	return ok
 
 

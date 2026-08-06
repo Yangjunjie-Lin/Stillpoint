@@ -17,10 +17,12 @@ var _attacks: Dictionary = {}
 var _enemies: Dictionary = {}
 var _weapons: Dictionary = {}
 var _levels: Dictionary = {}
+var _default_keys: Dictionary = {}
 
 
 func _ready() -> void:
 	load_defaults()
+	_capture_default_keys()
 
 
 func register_character(def: CharacterDefinition) -> void:
@@ -193,6 +195,73 @@ func load_defaults() -> void:
 	_register_dir("res://resources/enemies/", register_enemy)
 	_register_dir("res://resources/weapons/", register_weapon)
 	_register_dir("res://resources/levels/", register_level)
+
+
+func clear_all() -> void:
+	## Test-runner teardown hook; normal gameplay keeps the default index alive.
+	_characters.clear()
+	_npcs.clear()
+	_factions.clear()
+	_skills.clear()
+	_items.clear()
+	_dialogues.clear()
+	_quests.clear()
+	_regions.clear()
+	_pets.clear()
+	_mounts.clear()
+	_schedules.clear()
+	_attacks.clear()
+	_enemies.clear()
+	_weapons.clear()
+	_levels.clear()
+	_default_keys.clear()
+
+
+func clear_test_registrations() -> void:
+	## Keep authored content while releasing definitions registered by a test.
+	var buckets := {
+		"characters": _characters,
+		"npcs": _npcs,
+		"factions": _factions,
+		"skills": _skills,
+		"items": _items,
+		"dialogues": _dialogues,
+		"quests": _quests,
+		"regions": _regions,
+		"pets": _pets,
+		"mounts": _mounts,
+		"schedules": _schedules,
+		"attacks": _attacks,
+		"enemies": _enemies,
+		"weapons": _weapons,
+		"levels": _levels,
+	}
+	for bucket_name in buckets.keys():
+		var bucket: Dictionary = buckets[bucket_name]
+		var defaults: Dictionary = _default_keys.get(bucket_name, {})
+		for key in bucket.keys():
+			if not defaults.has(key):
+				bucket.erase(key)
+
+
+func _capture_default_keys() -> void:
+	_default_keys = {
+		"characters": _characters.duplicate(false),
+		"npcs": _npcs.duplicate(false),
+		"factions": _factions.duplicate(false),
+		"skills": _skills.duplicate(false),
+		"items": _items.duplicate(false),
+		"dialogues": _dialogues.duplicate(false),
+		"quests": _quests.duplicate(false),
+		"regions": _regions.duplicate(false),
+		"pets": _pets.duplicate(false),
+		"mounts": _mounts.duplicate(false),
+		"schedules": _schedules.duplicate(false),
+		"attacks": _attacks.duplicate(false),
+		"enemies": _enemies.duplicate(false),
+		"weapons": _weapons.duplicate(false),
+		"levels": _levels.duplicate(false),
+	}
 
 
 func _register_dir(dir_path: String, registrar: Callable, recursive: bool = false) -> void:

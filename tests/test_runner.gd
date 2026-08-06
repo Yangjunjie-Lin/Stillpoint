@@ -24,10 +24,11 @@ func _run_all() -> void:
 		quit(1)
 		return
 
+	await _reset_global_state()
 	for path in paths:
-		_reset_global_state()
+		await _reset_global_state()
 		var ok := await _run_one(path)
-		_reset_global_state()
+		await _reset_global_state()
 		if ok:
 			print("PASS ", path)
 			passed += 1
@@ -35,8 +36,14 @@ func _run_all() -> void:
 			print("FAIL ", path)
 			failed += 1
 
+	await _settle_frames(2)
+	_autoload("SceneRouter").call("reset_for_tests")
+	_autoload("ResourceRegistry").call("clear_all")
+	await _settle_frames(2)
 	_cleanup_temp_user_files()
 	print("Stillpoint tests: %d passed, %d failed" % [passed, failed])
+	_free_autoloads()
+	await _settle_frames(1)
 	quit(1 if failed > 0 else 0)
 
 
@@ -68,7 +75,9 @@ func _run_one(path: String) -> bool:
 	# Always await: sync tests return immediately; async tests resume properly.
 	var result: Variant = await instance.call("run")
 	_free_instance(instance)
-	return bool(result)
+	var passed := bool(result)
+	instance = null
+	return passed
 
 
 func _free_instance(instance: Variant) -> void:
@@ -81,10 +90,13 @@ func _autoload(name: String) -> Node:
 
 
 func _reset_global_state() -> void:
+	await _settle_frames(2)
 	paused = false
+	_autoload("SceneRouter").call("reset_for_tests")
 	_autoload("WorldSaveService").call("clear_world")
 	_clear_save_slots()
 	_autoload("SaveService").call("clear_run")
+	_autoload("ResourceRegistry").call("clear_test_registrations")
 	_autoload("RelationshipService").call("reset_all")
 	_autoload("QuestManager").call("reset_all")
 	var time_svc: Node = _autoload("WorldTimeService")
@@ -95,29 +107,35 @@ func _reset_global_state() -> void:
 	gm.set("run_active", false)
 	gm.set("resume_requested", false)
 	gm.set("player_name", "Player")
-	# Remove leftover test scenes under root (never free Autoloads).
+	# Remove every non-autoload root child. Tests may route scenes or leave a
+	# deferred replacement behind, so free and settle before the next test.
 	const AUTOLOADS := [
 		"EventBus", "ResourceRegistry", "InputBindingService", "WorldTimeService",
 		"RelationshipService", "QuestManager", "GameManager", "SceneRouter",
-		"SaveService", "WorldSaveService", "AudioManager",
+		"SaveService", "SaveSlotService", "WorldSaveService",
+		"PhysicsSettingsService", "AudioManager",
 	]
 	var to_free: Array = []
 	for child in root.get_children():
 		var n := String(child.name)
 		if n in AUTOLOADS:
 			continue
-		if (
-			n.begins_with("Test")
-			or n == "VerticalSlice"
-			or n == "WorldSession"
-			or n.begins_with("WorldRoot")
-			or child.is_in_group("world_manager")
-			or child.is_in_group("gameplay")
-		):
-			to_free.append(child)
+		to_free.append(child)
 	for node in to_free:
 		if is_instance_valid(node):
 			node.free()
+	await _settle_frames(2)
+
+
+func _settle_frames(count: int) -> void:
+	for _i in count:
+		await process_frame
+
+
+func _free_autoloads() -> void:
+	for child in root.get_children():
+		if is_instance_valid(child):
+			child.free()
 
 
 func _clear_save_slots() -> void:

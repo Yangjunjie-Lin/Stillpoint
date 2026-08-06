@@ -27,4 +27,5 @@ func run() -> bool:
 	ok = ok and FileAccess.file_exists("user://saves/slot_01/manifest.json")
 	ok = ok and FileAccess.file_exists("user://world_save_v3_imported.bak")
 	coordinator.clear_save()
+	coordinator.free()
 	return ok
