@@ -34,8 +34,8 @@ func run() -> bool:
 	var herb_pid := String(SaveV3MigrationMapping.interactable_persistent_id("HerbPickup", &"base:wilderness"))
 	var chest_entry: Dictionary = town.get("entities", {}).get(chest_pid, {})
 	var herb_entry: Dictionary = wild.get("entities", {}).get(herb_pid, {})
-	var chest_open := bool(chest_entry.get("components", {}).get("entity", {}).get("opened", false))
-	var herb_collected := bool(herb_entry.get("components", {}).get("entity", {}).get("collected", false))
+	var chest_open := bool(chest_entry.get("components", {}).get("chest", {}).get("opened", false))
+	var herb_collected := bool(herb_entry.get("components", {}).get("pickup", {}).get("collected", false))
 	if not chest_open or not herb_collected:
 		push_error("migrated interactable state missing (chest=%s herb=%s)" % [chest_open, herb_collected])
 		world.free()

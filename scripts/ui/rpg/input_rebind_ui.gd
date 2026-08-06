@@ -1,5 +1,5 @@
 extends Control
-## Keyboard rebind panel for InputBindingService.
+## Keyboard and mouse rebind panel for InputBindingService.
 
 @onready var rows: VBoxContainer = %ActionRows
 @onready var status_label: Label = %StatusLabel
@@ -17,7 +17,7 @@ func _ready() -> void:
 	_rebuild()
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if _listening_action == &"":
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -72,14 +72,19 @@ func _rebuild() -> void:
 		var button := Button.new()
 		button.text = "Rebind"
 		var captured := action
-		button.pressed.connect(func() -> void:
-			_listening_action = captured
-			status_label.text = "Press a key for %s (Esc cancel)" % String(captured)
-		)
+		button.pressed.connect(_begin_rebind.bind(captured))
 		row.add_child(name_label)
 		row.add_child(bind_label)
 		row.add_child(button)
 		rows.add_child(row)
+
+
+func _begin_rebind(action: StringName) -> void:
+	_listening_action = action
+	status_label.text = "Press a key for %s (Esc cancel)" % String(action)
+	var focus_owner := get_viewport().gui_get_focus_owner()
+	if focus_owner != null:
+		focus_owner.release_focus()
 
 
 func _on_reset_all() -> void:

@@ -19,6 +19,13 @@ func _ready() -> void:
 		debug_overlay.bind_player(player)
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if not event.is_action_pressed(&"pause"):
+		return
+	get_viewport().set_input_as_handled()
+	exit_to_menu()
+
+
 func _spawn_player() -> void:
 	var packed: PackedScene = load("res://scenes/characters/player_3d.tscn") as PackedScene
 	player = packed.instantiate() as PlayerController3D

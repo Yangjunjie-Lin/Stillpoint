@@ -41,9 +41,17 @@ func run() -> bool:
 		GameManager.resume_requested = false
 		return false
 	var components: Dictionary = (entry as Dictionary).get("components", {})
-	var entity_state: Dictionary = components.get("entity", {})
-	if not is_equal_approx(float(entity_state.get("health", {}).get("current_health", 0.0)), 37.0):
+	var character_state: Dictionary = components.get("character", {})
+	if not is_equal_approx(float(character_state.get("health", {}).get("current_health", 0.0)), 37.0):
 		push_error("migrated npc health wrong")
+		world.free()
+		GameManager.resume_requested = false
+		return false
+	if not bool(character_state.get("state", {}).get("is_downed", false)):
+		push_error("migrated npc downed state wrong")
+		world.free()
+		GameManager.resume_requested = false
+		return false
 
 	world.free()
 	GameManager.resume_requested = false

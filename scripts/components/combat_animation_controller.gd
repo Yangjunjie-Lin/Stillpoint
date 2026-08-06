@@ -18,7 +18,9 @@ var _locomotion_state: StringName = &"idle"
 
 func _ready() -> void:
 	_owner = get_parent() as CharacterController
-	_combat = _owner.combat if _owner != null else null
+	# Child _ready() runs before the parent's @onready fields are assigned.
+	if _owner != null:
+		_combat = _owner.get_node_or_null("CombatComponent") as CombatComponent
 	_player = get_node_or_null(animation_player_path) as AnimationPlayer
 	_tree = get_node_or_null(animation_tree_path) as AnimationTree
 	if _player == null and _owner != null:
@@ -216,5 +218,6 @@ func _make_attack_placeholder(anim_name: String) -> Animation:
 
 func _add_method_key(anim: Animation, time: float, method: String) -> void:
 	var track := anim.add_track(Animation.TYPE_METHOD)
-	anim.track_set_path(track, NodePath("../../CombatAnimationController"))
+	# AnimationPlayer's default root is this controller, so method tracks target it directly.
+	anim.track_set_path(track, NodePath("."))
 	anim.track_insert_key(track, time, {"method": method, "args": []})

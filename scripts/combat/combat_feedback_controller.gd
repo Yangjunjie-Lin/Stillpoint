@@ -39,7 +39,8 @@ func on_hit_confirmed(result: CombatHitResult) -> void:
 		var anim := result.defender.get_node_or_null("VisualRoot/CharacterModel/AnimationPlayer")
 		if anim != null:
 			targets.append(anim)
-	_hit_stop.trigger(duration, targets)
+	# Area overlap callbacks run during the physics flush; defer process-mode changes.
+	_hit_stop.call_deferred("trigger", duration, targets)
 	if shake_enabled and not reduced_motion and duration > 0.0:
 		_shake_remaining = duration
 		_shake_strength = shake_intensity * clampf(result.damage_dealt / 20.0, 0.2, 1.0)

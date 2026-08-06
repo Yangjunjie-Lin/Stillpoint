@@ -18,13 +18,17 @@ func run() -> bool:
 		"chapter1:capital": "chapter1_capital.json",
 	}
 	for key in expected.keys():
-		var mapped := str(coordinator._region_chunk_map.get(key, ""))
-		if mapped != expected[key]:
-			push_error("region_chunks map wrong for %s: got %s want %s" % [key, mapped, expected[key]])
+		var pending_name := RegionIdUtil.to_chunk_filename(StringName(key)) + ".json"
+		if pending_name != expected[key]:
+			push_error("region chunk filename wrong for %s: got %s want %s" % [key, pending_name, expected[key]])
 			coordinator.clear_save()
 			return false
-		if mapped.begins_with("base:base:") or key in mapped:
-			push_error("region_chunks map must not contain base:base:* or raw region id: %s" % mapped)
+		if coordinator._region_chunk_map.has(key):
+			push_error("dirty region entered committed chunk map before its write: %s" % key)
+			coordinator.clear_save()
+			return false
+		if pending_name.begins_with("base:base:") or key in pending_name:
+			push_error("region chunk filename must not contain raw region id: %s" % pending_name)
 			coordinator.clear_save()
 			return false
 
@@ -40,6 +44,12 @@ func run() -> bool:
 		push_error("save_dirty_sections failed")
 		coordinator.clear_save()
 		return false
+	for key in expected.keys():
+		var mapped := str(coordinator._region_chunk_map.get(key, ""))
+		if mapped != expected[key]:
+			push_error("successful chunk missing committed map for %s" % key)
+			coordinator.clear_save()
+			return false
 
 	var manifest := coordinator._read_json("user://saves/slot_01/manifest.json")
 	var chunks: Dictionary = manifest.get("region_chunks", {})
