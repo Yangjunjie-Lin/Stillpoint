@@ -110,6 +110,9 @@ class CognitionRepository(Protocol):
     ) -> None: ...
     def daily_cost(self, player: str, usage_day: date | None = None) -> float: ...
     def deploy_profile(self, profile: NpcProfile, player: str, save: str, npc: str) -> None: ...
+    def resolve_npc_definition_id(
+        self, player: str, save: str, npc: str
+    ) -> str | None: ...
     def graph_edges_for(self, player: str, save: str, npc: str) -> list[GraphEdge]: ...
     def graph_nodes_for_edges(self, edges: list[GraphEdge]) -> list[GraphNode]: ...
     def add_graph_edge(self, edge: GraphEdge) -> GraphEdge: ...
@@ -169,6 +172,13 @@ class InMemoryRepository:
                 values["player_profile_id"], values["world_save_id"], values["npc_persistent_id"]
             ):
                 raise ValueError("session_scope_conflict")
+            requested_definition = str(values.get("npc_definition_id", ""))
+            if (
+                requested_definition
+                and existing.npc_definition_id
+                and requested_definition != existing.npc_definition_id
+            ):
+                raise ValueError("npc_definition_scope_mismatch")
             return existing
         now = _now().isoformat()
         session = ConversationSession(
@@ -191,8 +201,16 @@ class InMemoryRepository:
         save: str | None = None,
         npc: str | None = None,
     ) -> ConversationSession | None:
-        del player, save, npc
-        return self.sessions.get(session_id)
+        session = self.sessions.get(session_id)
+        if session is None:
+            return None
+        if player is not None and session.player_profile_id != player:
+            return None
+        if save is not None and session.world_save_id != save:
+            return None
+        if npc is not None and session.npc_persistent_id != npc:
+            return None
+        return session
 
     def add_turn(
         self,
@@ -327,11 +345,40 @@ class InMemoryRepository:
         )
 
     def deploy_profile(self, profile: NpcProfile, player: str, save: str, npc: str) -> None:
+        existing_definition = self.resolve_npc_definition_id(player, save, npc)
+        if existing_definition is not None and existing_definition != profile.npc_definition_id:
+            raise ValueError("npc_definition_scope_mismatch")
         deployment = (player, save, npc, profile.npc_definition_id, profile.catalog_revision)
         if deployment in self.profile_deployments:
             return
+        self.profile_deployments = {
+            item for item in self.profile_deployments if item[:3] != (player, save, npc)
+        }
         self.profile_deployments.add(deployment)
         _seed_graph(self, profile, player, save, npc)
+
+    def resolve_npc_definition_id(self, player: str, save: str, npc: str) -> str | None:
+        scope = scope_key(player, save, npc)
+        definitions = {
+            deployment[3]
+            for deployment in self.profile_deployments
+            if deployment[:3] == scope
+        }
+        if not definitions:
+            definitions = {
+                session.npc_definition_id
+                for session in self.sessions.values()
+                if (
+                    session.player_profile_id,
+                    session.world_save_id,
+                    session.npc_persistent_id,
+                )
+                == scope
+                and session.npc_definition_id
+            }
+        if len(definitions) > 1:
+            raise ValueError("npc_profile_deployment_conflict")
+        return next(iter(definitions), None)
 
     def add_graph_node(self, node: GraphNode) -> GraphNode:
         existing = self.graph.nodes.get(_graph_memory_key(node))
@@ -357,8 +404,13 @@ class InMemoryRepository:
         return edge
 
     def graph_edges_for(self, player: str, save: str, npc: str) -> list[GraphEdge]:
-        return self.graph.visible_edges(
-            npc, player_profile_id=player, world_save_id=save
+        return _relevant_graph_edges(
+            self.graph.visible_edges(
+                npc, player_profile_id=player, world_save_id=save
+            ),
+            player,
+            save,
+            npc,
         )
 
     def graph_nodes_for_edges(self, edges: list[GraphEdge]) -> list[GraphNode]:
@@ -552,6 +604,12 @@ class PostgresCognitionRepository:
                 ),
                 {"session_id": session_id, "player": player, "save": save, "npc": npc},
             ).mappings().first()
+            if (
+                existing
+                and values.get("npc_definition_id")
+                and existing["npc_definition_id"] != values["npc_definition_id"]
+            ):
+                raise ValueError("npc_definition_scope_mismatch")
             if not existing:
                 connection.execute(
                     text(
@@ -893,14 +951,22 @@ class PostgresCognitionRepository:
         return float(value)
 
     def deploy_profile(self, profile: NpcProfile, player: str, save: str, npc: str) -> None:
+        existing_definition = self.resolve_npc_definition_id(player, save, npc)
+        if existing_definition is not None and existing_definition != profile.npc_definition_id:
+            raise ValueError("npc_definition_scope_mismatch")
         with self.engine.begin() as connection:
             result = connection.execute(
                 text(
                     "INSERT INTO npc_profile_deployments (deployment_id, player_profile_id, "
                     "world_save_id, npc_persistent_id, npc_definition_id, catalog_revision, profile_json, deployed_at) "
                     "VALUES (:id, :player, :save, :npc, :definition, :revision, CAST(:profile AS jsonb), :now) "
-                    "ON CONFLICT (player_profile_id, world_save_id, npc_persistent_id, npc_definition_id, catalog_revision) "
-                    "DO NOTHING RETURNING deployment_id"
+                    "ON CONFLICT (player_profile_id, world_save_id, npc_persistent_id) "
+                    "DO UPDATE SET catalog_revision=EXCLUDED.catalog_revision, "
+                    "profile_json=EXCLUDED.profile_json, deployed_at=EXCLUDED.deployed_at "
+                    "WHERE npc_profile_deployments.npc_definition_id=EXCLUDED.npc_definition_id "
+                    "AND (npc_profile_deployments.catalog_revision IS DISTINCT FROM EXCLUDED.catalog_revision "
+                    "OR npc_profile_deployments.profile_json IS DISTINCT FROM EXCLUDED.profile_json) "
+                    "RETURNING deployment_id"
                 ),
                 {
                     "id": uuid.uuid4(),
@@ -915,6 +981,35 @@ class PostgresCognitionRepository:
             ).first()
         if result:
             _seed_graph(self, profile, player, save, npc)
+        deployed_definition = self.resolve_npc_definition_id(player, save, npc)
+        if deployed_definition != profile.npc_definition_id:
+            raise ValueError("npc_definition_scope_mismatch")
+
+    def resolve_npc_definition_id(self, player: str, save: str, npc: str) -> str | None:
+        player, save, npc = scope_key(player, save, npc)
+        params = {"player": player, "save": save, "npc": npc}
+        with self.engine.connect() as connection:
+            definitions = connection.execute(
+                text(
+                    "SELECT DISTINCT npc_definition_id FROM npc_profile_deployments "
+                    "WHERE player_profile_id=:player AND world_save_id=:save "
+                    "AND npc_persistent_id=:npc"
+                ),
+                params,
+            ).scalars().all()
+            if not definitions:
+                definitions = connection.execute(
+                    text(
+                        "SELECT DISTINCT npc_definition_id FROM conversation_sessions "
+                        "WHERE player_profile_id=:player AND world_save_id=:save "
+                        "AND npc_persistent_id=:npc AND npc_definition_id<>''"
+                    ),
+                    params,
+                ).scalars().all()
+        unique = {str(value) for value in definitions if value}
+        if len(unique) > 1:
+            raise ValueError("npc_profile_deployment_conflict")
+        return next(iter(unique), None)
 
     def add_graph_node(self, node: GraphNode) -> GraphNode:
         canonical = node.player_profile_id is None
@@ -991,7 +1086,12 @@ class PostgresCognitionRepository:
                 ),
                 {"player": player, "save": save, "npc": npc},
             ).mappings().all()
-        return [_edge_from_row(row) for row in rows if row["visibility"] != "private" or not row["canonical"]]
+        visible = [
+            _edge_from_row(row)
+            for row in rows
+            if row["visibility"] != "private" or not row["canonical"]
+        ]
+        return _relevant_graph_edges(visible, player, save, npc)
 
     def graph_nodes_for_edges(self, edges: list[GraphEdge]) -> list[GraphNode]:
         ids = sorted({value for edge in edges for value in (edge.subject_node_id, edge.object_node_id)})
@@ -1097,11 +1197,12 @@ class PostgresCognitionRepository:
         with self.engine.connect() as connection:
             sessions = connection.execute(
                 text(
-                    "SELECT session_id FROM conversation_sessions WHERE player_profile_id=:player "
+                    "SELECT session_id, npc_persistent_id FROM conversation_sessions "
+                    "WHERE player_profile_id=:player "
                     "AND world_save_id=:save ORDER BY started_at"
                 ),
                 {"player": player, "save": save},
-            ).scalars().all()
+            ).mappings().all()
         return {
             "player_profile_id": player,
             "world_save_id": save,
@@ -1113,7 +1214,15 @@ class PostgresCognitionRepository:
             "sessions": [
                 session.to_dict()
                 for item in sessions
-                if (session := self.get_session(item, player, save)) is not None
+                if (
+                    session := self.get_session(
+                        item["session_id"],
+                        player,
+                        save,
+                        item["npc_persistent_id"],
+                    )
+                )
+                is not None
             ],
         }
 
@@ -1408,6 +1517,38 @@ def _scoped_edge(
         world_save_id=save,
         catalog_revision=revision,
     )
+
+
+def _relevant_graph_edges(
+    edges: list[GraphEdge], player: str, save: str, npc: str
+) -> list[GraphEdge]:
+    """Return scoped beliefs plus canonical facts attached to this deployment."""
+    scoped = [
+        edge
+        for edge in edges
+        if (
+            edge.player_profile_id,
+            edge.world_save_id,
+            edge.owner_npc_persistent_id,
+        )
+        == (player, save, npc)
+    ]
+    definition_nodes = {
+        node_id
+        for edge in scoped
+        for node_id in (edge.subject_node_id, edge.object_node_id)
+        if node_id.startswith("npc_definition:")
+    }
+    canonical = [
+        edge
+        for edge in edges
+        if edge.owner_npc_persistent_id in (None, "")
+        and (
+            edge.subject_node_id in definition_nodes
+            or edge.object_node_id in definition_nodes
+        )
+    ]
+    return scoped + canonical
 
 
 def _graph_memory_key(node: GraphNode) -> str:

@@ -11,12 +11,15 @@ signal sync_completed(result: Dictionary)
 @export var max_retries: int = 1
 
 var client_install_id: String = ""
+var client_secret: String = ""
 var _http: HTTPRequest
 var _active_request_id: String = ""
 var _active_payload: Dictionary = {}
 var _active_kind: String = ""
 var _phase: String = ""
 var _session_token: String = ""
+var _session_player_profile_id: String = ""
+var _session_world_save_id: String = ""
 var _retry_count: int = 0
 var _auth_retry_used: bool = false
 
@@ -24,6 +27,7 @@ func _init() -> void:
 	var configured := OS.get_environment("NPC_BACKEND_URL").strip_edges()
 	if not configured.is_empty():
 		backend_base_url = configured
+	client_secret = OS.get_environment("NPC_CLIENT_SECRET")
 
 func _ready() -> void:
 	if _http != null:
@@ -35,8 +39,12 @@ func _ready() -> void:
 	add_child(_http)
 	_http.request_completed.connect(_on_http_completed)
 
-func configure(p_client_install_id: String) -> void:
+func configure(p_client_install_id: String, p_client_secret: String = "") -> void:
+	if client_install_id != p_client_install_id:
+		_clear_session_token()
 	client_install_id = p_client_install_id
+	if not p_client_secret.is_empty():
+		client_secret = p_client_secret
 
 func is_busy() -> bool:
 	return not _active_kind.is_empty()
@@ -54,8 +62,9 @@ func request_sync(payload: Dictionary) -> Error:
 	return _begin_request("sync", "sync-%s" % Time.get_ticks_usec(), payload)
 
 func cancel() -> void:
-	if _http != null:
-		_http.cancel_request()
+	if not is_busy():
+		return
+	_replace_http_transport()
 	_finish({"ok": false, "error_code": "cancelled", "request_id": _active_request_id})
 
 static func validate_turn_request(payload: Dictionary) -> Dictionary:
@@ -117,6 +126,8 @@ func _begin_request(kind: String, request_id: String, payload: Dictionary) -> Er
 	_active_payload = payload.duplicate(true)
 	_retry_count = 0
 	_auth_retry_used = false
+	if not _session_scope_matches(_active_payload):
+		_clear_session_token()
 	if _session_token.is_empty():
 		return _send_auth()
 	return _send_active()
@@ -129,9 +140,12 @@ func _send_auth() -> Error:
 		"world_save_id": str(_active_payload.get("world_save_id", "")),
 		"client_install_id": client_install_id,
 	}
+	var headers := ["Content-Type: application/json", "X-Client-Install-ID: %s" % client_install_id]
+	if not client_secret.is_empty():
+		headers.append("X-Client-Secret: %s" % client_secret)
 	var error := _http.request(
 		endpoint,
-		["Content-Type: application/json", "X-Client-Install-ID: %s" % client_install_id],
+		headers,
 		HTTPClient.METHOD_POST,
 		JSON.stringify(payload),
 	)
@@ -148,7 +162,7 @@ func _send_active() -> Error:
 		endpoint += "/v1/sync/npc-cognition"
 	var headers := [
 		"Content-Type: application/json",
-		"Authorization: Bearer %s" % _session_token,
+		"Authorization: %s%s" % ["Bearer ", _session_token],
 		"X-Client-Install-ID: %s" % client_install_id,
 	]
 	var error := _http.request(
@@ -180,7 +194,7 @@ func _on_http_completed(
 		return
 	if _phase == "request" and response_code == 401 and not _auth_retry_used:
 		_auth_retry_used = true
-		_session_token = ""
+		_clear_session_token()
 		_send_auth()
 		return
 	if response_code < 200 or response_code >= 300:
@@ -193,6 +207,8 @@ func _on_http_completed(
 		if not bool(auth.get("ok", false)) or _session_token.is_empty():
 			_finish({"ok": false, "error_code": "auth_failed", "request_id": _active_request_id})
 			return
+		_session_player_profile_id = str(_active_payload.get("player_profile_id", ""))
+		_session_world_save_id = str(_active_payload.get("world_save_id", ""))
 		_retry_count = 0
 		_send_active()
 		return
@@ -220,3 +236,24 @@ func _valid_backend_url() -> bool:
 	var loopback := backend_base_url.begins_with("http://127.0.0.1") \
 		or backend_base_url.begins_with("http://localhost")
 	return loopback and (OS.is_debug_build() or Engine.is_editor_hint())
+
+func _session_scope_matches(payload: Dictionary) -> bool:
+	return not _session_token.is_empty() \
+		and _session_player_profile_id == str(payload.get("player_profile_id", "")) \
+		and _session_world_save_id == str(payload.get("world_save_id", ""))
+
+func _clear_session_token() -> void:
+	_session_token = ""
+	_session_player_profile_id = ""
+	_session_world_save_id = ""
+
+func _replace_http_transport() -> void:
+	if _http != null:
+		if _http.request_completed.is_connected(_on_http_completed):
+			_http.request_completed.disconnect(_on_http_completed)
+		_http.cancel_request()
+		if _http.get_parent() == self:
+			remove_child(_http)
+		_http.queue_free()
+	_http = null
+	_ready()

@@ -7,6 +7,8 @@ from dataclasses import dataclass
 @dataclass(frozen=True, slots=True)
 class Settings:
     app_env: str = "development"
+    auth_mode: str = "local_loopback"
+    paired_client_credentials_json: str = ""
     npc_repository: str = "postgres"
     llm_provider: str = "fake"
     openai_api_key: str = ""
@@ -57,6 +59,10 @@ class Settings:
             budget = 1.0
         return cls(
             app_env=os.getenv("APP_ENV", "development").lower(),
+            auth_mode=os.getenv("AUTH_MODE", "local_loopback").lower(),
+            paired_client_credentials_json=os.getenv(
+                "NPC_PAIRED_CLIENT_CREDENTIALS_JSON", ""
+            ),
             npc_repository=os.getenv("NPC_REPOSITORY", "postgres").lower(),
             llm_provider=os.getenv("LLM_PROVIDER", "fake").lower(),
             openai_api_key=os.getenv("OPENAI_API_KEY", ""),
@@ -105,3 +111,14 @@ class Settings:
         if self.npc_repository != "postgres":
             raise ValueError("unsupported_npc_repository")
         return False
+
+    def validate_auth_mode(self) -> None:
+        if self.auth_mode not in {"local_loopback", "paired_client"}:
+            raise ValueError("unsupported_auth_mode")
+        if self.auth_mode == "paired_client" and not self.paired_client_credentials_json:
+            raise ValueError("paired_client_registry_required")
+
+    def validate_embedding_configuration(self) -> None:
+        # Save schema 4 / migration 0001 owns a PostgreSQL vector(1536) column.
+        if self.embedding_dimensions != 1536:
+            raise ValueError("embedding_dimension_must_match_schema")

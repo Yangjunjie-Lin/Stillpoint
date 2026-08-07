@@ -4,6 +4,7 @@ import base64
 import hashlib
 import hmac
 import json
+import ipaddress
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -82,6 +83,62 @@ class SessionTokenService:
         return claims
 
 
+class ClientAuthenticator:
+    """Authorize token issuance without treating a client-supplied scope as proof."""
+
+    def __init__(self, settings: Settings) -> None:
+        settings.validate_auth_mode()
+        self._mode = settings.auth_mode
+        self._clients: dict[str, Any] = {}
+        if self._mode == "paired_client":
+            try:
+                parsed = json.loads(settings.paired_client_credentials_json)
+            except (TypeError, json.JSONDecodeError) as exc:
+                raise ValueError("paired_client_registry_invalid") from exc
+            if not isinstance(parsed, dict):
+                raise ValueError("paired_client_registry_invalid")
+            _validate_paired_registry(parsed)
+            self._clients = parsed
+
+    def authorize_issue(
+        self,
+        *,
+        client_host: str,
+        header_client_install_id: str,
+        client_secret: str,
+        player_profile_id: str,
+        world_save_id: str,
+        requested_client_install_id: str,
+    ) -> None:
+        if not header_client_install_id or not hmac.compare_digest(
+            header_client_install_id, requested_client_install_id
+        ):
+            raise ValueError("client_install_mismatch")
+        if self._mode == "local_loopback":
+            if not _is_loopback(client_host):
+                raise ValueError("loopback_source_required")
+            return
+
+        if not client_secret:
+            raise ValueError("paired_client_credentials_required")
+        credential = self._clients.get(requested_client_install_id)
+        if not isinstance(credential, dict):
+            raise ValueError("invalid_client_credentials")
+        expected_hash = str(credential.get("secret_sha256", "")).lower()
+        supplied_hash = hashlib.sha256(client_secret.encode("utf-8")).hexdigest()
+        if len(expected_hash) != 64 or not hmac.compare_digest(expected_hash, supplied_hash):
+            raise ValueError("invalid_client_credentials")
+        scopes = credential.get("scopes", [])
+        authorized = any(
+            isinstance(scope, dict)
+            and hmac.compare_digest(str(scope.get("player_profile_id", "")), player_profile_id)
+            and hmac.compare_digest(str(scope.get("world_save_id", "")), world_save_id)
+            for scope in scopes
+        )
+        if not authorized:
+            raise ValueError("client_scope_not_authorized")
+
+
 def _encode(value: bytes) -> str:
     return base64.urlsafe_b64encode(value).rstrip(b"=").decode("ascii")
 
@@ -89,3 +146,31 @@ def _encode(value: bytes) -> str:
 def _decode(value: str) -> bytes:
     padding = "=" * (-len(value) % 4)
     return base64.urlsafe_b64decode(value + padding)
+
+
+def _is_loopback(host: str) -> bool:
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def _validate_paired_registry(registry: dict[str, Any]) -> None:
+    for install_id, credential in registry.items():
+        if not install_id or not isinstance(credential, dict):
+            raise ValueError("paired_client_registry_invalid")
+        if any(key in credential for key in ("secret", "client_secret", "raw_secret")):
+            raise ValueError("paired_client_registry_contains_raw_secret")
+        secret_hash = str(credential.get("secret_sha256", ""))
+        if len(secret_hash) != 64 or any(character not in "0123456789abcdef" for character in secret_hash):
+            raise ValueError("paired_client_registry_invalid")
+        scopes = credential.get("scopes")
+        if not isinstance(scopes, list) or not scopes:
+            raise ValueError("paired_client_registry_invalid")
+        if any(
+            not isinstance(scope, dict)
+            or not str(scope.get("player_profile_id", ""))
+            or not str(scope.get("world_save_id", ""))
+            for scope in scopes
+        ):
+            raise ValueError("paired_client_registry_invalid")

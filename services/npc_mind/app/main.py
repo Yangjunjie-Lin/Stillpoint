@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 
-from .auth import SessionClaims, SessionTokenService
+from .auth import ClientAuthenticator, SessionClaims, SessionTokenService
 from .schemas import (
     ConversationRequest,
     MemoryQuery,
@@ -17,6 +17,7 @@ def create_app(service: NpcCognitionService | None = None) -> FastAPI:
     app = FastAPI(title="Stillpoint NPC Mind", version="0.8.0")
     cognition = service or NpcCognitionService()
     tokens = SessionTokenService(cognition.settings)
+    clients = ClientAuthenticator(cognition.settings)
 
     def authenticate(
         authorization: str | None = Header(default=None),
@@ -55,12 +56,20 @@ def create_app(service: NpcCognitionService | None = None) -> FastAPI:
 
     @app.post("/v1/auth/session")
     async def create_session_token(
+        http_request: Request,
         request: SessionTokenRequest,
         x_client_install_id: str | None = Header(default=None),
+        x_client_secret: str | None = Header(default=None),
     ) -> dict[str, str | int]:
-        if not x_client_install_id or x_client_install_id != request.client_install_id:
-            raise HTTPException(status_code=403, detail="client_install_mismatch")
         try:
+            clients.authorize_issue(
+                client_host=http_request.client.host if http_request.client else "",
+                header_client_install_id=x_client_install_id or "",
+                client_secret=x_client_secret or "",
+                player_profile_id=request.player_profile_id,
+                world_save_id=request.world_save_id,
+                requested_client_install_id=request.client_install_id,
+            )
             token, expires_at = tokens.issue(
                 request.player_profile_id,
                 request.world_save_id,
@@ -68,6 +77,13 @@ def create_app(service: NpcCognitionService | None = None) -> FastAPI:
             )
         except RuntimeError as error:
             raise HTTPException(status_code=503, detail=str(error)) from error
+        except ValueError as error:
+            code = str(error)
+            status = 401 if code in {
+                "paired_client_credentials_required",
+                "invalid_client_credentials",
+            } else 403
+            raise HTTPException(status_code=status, detail=code) from error
         return {"token": token, "expires_at": expires_at, "token_type": "Bearer"}
 
     @app.post("/v1/conversations")
@@ -88,7 +104,7 @@ def create_app(service: NpcCognitionService | None = None) -> FastAPI:
             raise HTTPException(status_code=409, detail=str(error)) from error
         return session.to_dict()
 
-    @app.post("/v1/conversations/{session_id}/turns")
+    @app.post("/v1/conversations/{session_id:path}/turns")
     async def create_turn(
         session_id: str,
         request: NpcGenerationRequest,
@@ -104,12 +120,17 @@ def create_app(service: NpcCognitionService | None = None) -> FastAPI:
             status = 404 if code == "unknown_npc_definition" else 429 if "limited" in code else 400
             raise HTTPException(status_code=status, detail=code) from error
 
-    @app.get("/v1/conversations/{session_id}")
+    @app.get("/v1/conversations/{session_id:path}")
     async def get_conversation(
-        session_id: str, claims: SessionClaims = Depends(authenticate)
+        session_id: str,
+        npc_persistent_id: str = Query(min_length=1),
+        claims: SessionClaims = Depends(authenticate),
     ) -> dict:
         session = cognition.repository.get_session(
-            session_id, claims.player_profile_id, claims.world_save_id
+            session_id,
+            claims.player_profile_id,
+            claims.world_save_id,
+            npc_persistent_id,
         )
         if session is None:
             raise HTTPException(status_code=404, detail="session_not_found")
@@ -125,17 +146,42 @@ def create_app(service: NpcCognitionService | None = None) -> FastAPI:
         require_scope(claims, query.player_profile_id, query.world_save_id)
         if cognition.budget_exhausted(claims.player_profile_id):
             raise HTTPException(status_code=429, detail="daily_budget_exceeded")
+        try:
+            npc_definition_id = cognition.repository.resolve_npc_definition_id(
+                claims.player_profile_id,
+                claims.world_save_id,
+                npc_persistent_id,
+            )
+        except ValueError as error:
+            raise HTTPException(status_code=409, detail=str(error)) from error
+        if npc_definition_id is None:
+            raise HTTPException(status_code=404, detail="unknown_npc_instance")
+        if (
+            query.npc_definition_id is not None
+            and query.npc_definition_id != npc_definition_id
+        ):
+            raise HTTPException(status_code=409, detail="npc_definition_scope_mismatch")
+        try:
+            profile = cognition.catalog.get_profile(npc_definition_id)
+        except ValueError as error:
+            raise HTTPException(status_code=409, detail="npc_profile_not_deployed") from error
         request = NpcGenerationRequest(
             request_id=f"query:{npc_persistent_id}",
             player_profile_id=claims.player_profile_id,
             world_save_id=claims.world_save_id,
-            npc_definition_id="mira",
+            npc_definition_id=npc_definition_id,
             npc_persistent_id=npc_persistent_id,
             session_id="query",
             text=query.query,
             world_context={"visible_entity_ids": query.entity_ids},
+            npc_profile=profile.payload,
         )
-        memories = await cognition.retrieve_memories_async(request, query.limit)
+        try:
+            memories = await cognition.retrieve_memories_async(request, query.limit)
+        except (RuntimeError, TimeoutError) as error:
+            raise HTTPException(
+                status_code=503, detail="memory_retrieval_unavailable"
+            ) from error
         return {
             "npc_persistent_id": npc_persistent_id,
             "memories": [memory.to_dict() for memory in memories],

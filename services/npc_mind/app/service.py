@@ -63,6 +63,7 @@ class NpcCognitionService:
         catalog: NpcCatalogRepository | None = None,
     ) -> None:
         self.settings = settings or Settings.from_env()
+        self.settings.validate_embedding_configuration()
         if repository is not None:
             self.repository = repository
         elif self.settings.repository_is_in_memory():
@@ -128,7 +129,15 @@ class NpcCognitionService:
             return self._fallback_response(
                 trusted_request, session, "daily_budget_exceeded", store=True
             )
-        memories = await self.retrieve_memories_async(trusted_request)
+        degradation_reasons: list[str] = []
+        try:
+            memories = await self.retrieve_memories_async(trusted_request)
+        except (RuntimeError, TimeoutError):
+            self.metrics["memory_retrieval_error"] = self.metrics.get(
+                "memory_retrieval_error", 0
+            ) + 1
+            memories = []
+            degradation_reasons.append("memory_retrieval_unavailable")
         trusted_request = trusted_request.model_copy(
             update={"retrieved_memories": [memory.to_dict() for memory in memories]}
         )
@@ -150,9 +159,16 @@ class NpcCognitionService:
         memory_writes: list[dict[str, Any]] = []
         evidence_aliases: dict[str, str] = {}
         if request.allow_memory_personalization and generated.memory_candidates:
-            vectors = await self.embeddings.embed(
-                [candidate.content for candidate in generated.memory_candidates]
-            )
+            try:
+                vectors = await self.embeddings.embed(
+                    [candidate.content for candidate in generated.memory_candidates]
+                )
+            except (RuntimeError, TimeoutError):
+                self.metrics["memory_embedding_error"] = self.metrics.get(
+                    "memory_embedding_error", 0
+                ) + 1
+                vectors = []
+                degradation_reasons.append("memory_embedding_unavailable")
             for candidate, vector in zip(generated.memory_candidates, vectors):
                 memory = MemoryRecord(
                     memory_id=str(uuid.uuid4()),
@@ -192,6 +208,8 @@ class NpcCognitionService:
             memory_writes=memory_writes,
             proposed_intents=generated.proposed_intents,
             usage=usage,
+            degraded=bool(degradation_reasons),
+            degradation_reason=",".join(degradation_reasons),
         )
         self._store_response_and_usage(trusted_request, response)
         return response

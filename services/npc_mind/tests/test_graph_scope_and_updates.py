@@ -81,6 +81,33 @@ def test_graph_endpoint_does_not_return_unrelated_nodes():
     assert "concept:unrelated" not in {node["node_id"] for node in payload["nodes"]}
 
 
+def test_graph_endpoint_does_not_return_other_profile_catalog_nodes():
+    repository = InMemoryRepository()
+    service = NpcCognitionService(repository=repository)
+    repository.deploy_profile(service.catalog.get_profile("mira"), "p", "w", "mira-1")
+    repository.deploy_profile(
+        service.catalog.get_profile("bandit"), "p", "w", "bandit-1"
+    )
+
+    payload = service.graph_payload("p", "w", "mira-1")
+    node_ids = {node["node_id"] for node in payload["nodes"]}
+
+    assert "npc_definition:mira" in node_ids
+    assert "npc_definition:bandit" not in node_ids
+    assert "skill:ambush" not in node_ids
+    assert "region:base:dungeon" not in node_ids
+
+
+def test_in_memory_session_lookup_enforces_full_scope():
+    repository = InMemoryRepository()
+    session = repository.create_session(_request().model_dump())
+
+    assert repository.get_session(session.session_id, "p", "w", "mira-1") is session
+    assert repository.get_session(session.session_id, "other", "w", "mira-1") is None
+    assert repository.get_session(session.session_id, "p", "other", "mira-1") is None
+    assert repository.get_session(session.session_id, "p", "w", "other") is None
+
+
 def test_private_canonical_node_is_not_a_valid_candidate_target():
     repository = InMemoryRepository()
     repository.add_graph_node(

@@ -157,12 +157,21 @@ class OpenAIEmbeddingProvider:
     async def embed(self, texts: list[str]) -> list[list[float]]:
         if not self.settings.openai_api_key or not self.settings.openai_embedding_model:
             raise RuntimeError("provider_not_configured")
+        payload: dict = {"model": self.settings.openai_embedding_model, "input": texts}
+        if self.settings.openai_embedding_model.startswith("text-embedding-3-"):
+            payload["dimensions"] = self.settings.embedding_dimensions
         raw = await _post_openai(
             self.settings,
             "/v1/embeddings",
-            {"model": self.settings.openai_embedding_model, "input": texts},
+            payload,
         )
-        vectors = [item["embedding"] for item in sorted(raw["data"], key=lambda item: item["index"])]
+        try:
+            vectors = [
+                item["embedding"]
+                for item in sorted(raw["data"], key=lambda item: item["index"])
+            ]
+        except (KeyError, TypeError, ValueError) as error:
+            raise RuntimeError("invalid_embedding_response") from error
         if any(len(vector) != self.settings.embedding_dimensions for vector in vectors):
             raise RuntimeError("embedding_dimension_mismatch")
         return vectors
@@ -193,7 +202,10 @@ async def _post_openai(settings: Settings, path: str, payload: dict) -> dict:
                         if size > settings.provider_max_response_bytes:
                             raise RuntimeError("provider_response_too_large")
                         chunks.append(chunk)
-                    return json.loads(b"".join(chunks))
+                    try:
+                        return json.loads(b"".join(chunks))
+                    except json.JSONDecodeError as error:
+                        raise RuntimeError("invalid_provider_json") from error
         except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError) as exc:
             last_error = exc
             if attempt < settings.provider_retries:

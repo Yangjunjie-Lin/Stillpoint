@@ -105,6 +105,7 @@ class ConversationResponse(BaseModel):
 class MemoryQuery(BaseModel):
     player_profile_id: str
     world_save_id: str
+    npc_definition_id: str | None = Field(default=None, min_length=1, max_length=200)
     query: str = Field(min_length=1, max_length=4000)
     limit: int = Field(default=10, ge=1, le=50)
     entity_ids: list[str] = Field(default_factory=list)
