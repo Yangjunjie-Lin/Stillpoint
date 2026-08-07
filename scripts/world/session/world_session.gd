@@ -166,8 +166,8 @@ func _handle_restore_failure(reason: StringName = &"restore_failed") -> void:
 	SceneRouter.call_deferred("go_to_main_menu")
 
 
-func start_dialogue(npc: NPCController) -> void:
-	dialogue_coordinator.start_dialogue(npc, player)
+func start_dialogue(npc: NPCController) -> bool:
+	return dialogue_coordinator.start_dialogue(npc, player)
 
 
 func apply_dialogue_choice(index: int) -> void:
@@ -180,6 +180,10 @@ func ask_active_npc(text: String) -> bool:
 
 func cancel_free_form_dialogue() -> void:
 	dialogue_coordinator.cancel_free_form()
+
+
+func cancel_active_dialogue() -> void:
+	dialogue_coordinator.cancel_dialogue()
 
 
 func capture_player_data() -> Dictionary:

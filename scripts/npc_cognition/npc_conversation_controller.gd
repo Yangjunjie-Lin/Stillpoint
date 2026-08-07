@@ -42,8 +42,8 @@ func ask(npc: NPCController, payload: Dictionary) -> bool:
 	var error := gateway.request_turn(payload)
 	if error != OK:
 		_restore_npc_state()
-		_pending_payload.clear()
 		_emit_fallback("backend_unavailable")
+		_pending_payload.clear()
 		return false
 	return true
 
@@ -82,5 +82,17 @@ func _restore_npc_state() -> void:
 	_active_npc = null
 
 func _emit_fallback(reason: String) -> void:
+	var player_text := str(_pending_payload.get("text", ""))
+	var fallback_text := "Hello. I'm here, but I need a moment before I can answer."
+	if _contains_cjk(player_text):
+		fallback_text = "我在这里，只是现在需要一点时间才能回答。"
 	reply_ready.emit({"ok": false, "fallback": true, "error_code": reason,
-		"reply_text": "Let's speak about that another time."})
+		"reply_text": fallback_text})
+
+
+static func _contains_cjk(text: String) -> bool:
+	for index in range(text.length()):
+		var codepoint := text.unicode_at(index)
+		if codepoint >= 0x4E00 and codepoint <= 0x9FFF:
+			return true
+	return false

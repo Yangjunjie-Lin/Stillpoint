@@ -27,7 +27,27 @@ func _init() -> void:
 	var configured := OS.get_environment("NPC_BACKEND_URL").strip_edges()
 	if not configured.is_empty():
 		backend_base_url = configured
+	timeout_seconds = parse_timeout_config(
+		OS.get_environment("NPC_DIALOGUE_TIMEOUT_SECONDS"), timeout_seconds
+	)
+	max_retries = parse_retry_config(
+		OS.get_environment("NPC_DIALOGUE_MAX_RETRIES"), max_retries
+	)
 	client_secret = OS.get_environment("NPC_CLIENT_SECRET")
+
+
+static func parse_timeout_config(value: String, fallback: float = 8.0) -> float:
+	var cleaned := value.strip_edges()
+	if not cleaned.is_valid_float():
+		return fallback
+	return clampf(cleaned.to_float(), 1.0, 180.0)
+
+
+static func parse_retry_config(value: String, fallback: int = 1) -> int:
+	var cleaned := value.strip_edges()
+	if not cleaned.is_valid_int():
+		return fallback
+	return clampi(cleaned.to_int(), 0, 3)
 
 func _ready() -> void:
 	if _http != null:

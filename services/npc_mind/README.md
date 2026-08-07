@@ -33,3 +33,16 @@ debug builds.
 The PostgreSQL schema owns `vector(1536)`. Startup rejects any other
 `NPC_EMBEDDING_DIMENSIONS` value. For OpenAI `text-embedding-3-*` models, the provider sends
 `dimensions=1536` explicitly; every returned vector is checked before repository access.
+
+OpenAI-compatible text providers use `OPENAI_BASE_URL`, `OPENAI_API_KEY`, and
+`OPENAI_TEXT_MODEL`. External base URLs must use HTTPS. Text and embedding providers are
+configured independently: set `NPC_EMBEDDING_PROVIDER=fake` when an OpenAI-compatible text
+provider does not offer a schema-compatible 1536-dimensional embedding model. This preserves
+the database contract without truncating or padding vectors.
+
+`OPENAI_RESPONSE_FORMAT` defaults to `json_object`. Set it to `json_schema` only for a
+compatible endpoint that supports schema-constrained responses; the result still passes through
+the same Pydantic and gameplay-boundary validation. For compatible models that do not reliably
+emit the structured contract (for example SiliconFlow Qwen 7B), `text` mode asks the provider
+for only the spoken reply and fills safe server-owned defaults for emotion and candidate arrays;
+it never accepts model-authored memory, graph, or gameplay intents.

@@ -42,6 +42,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_cancel_free_form()
 		elif _showing_ai_reply:
 			_on_finished()
+		else:
+			_close_dialogue()
 		get_viewport().set_input_as_handled()
 		return
 	for i in mini(_choices.size(), 9):
@@ -88,6 +90,12 @@ func _on_choices(choices: Array) -> void:
 		ask_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		ask_button.pressed.connect(_show_free_form)
 		choices_container.add_child(ask_button)
+		if choices.is_empty():
+			var leave_button := Button.new()
+			leave_button.text = "Leave"
+			leave_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			leave_button.pressed.connect(_close_dialogue)
+			choices_container.add_child(leave_button)
 
 
 func _on_finished() -> void:
@@ -149,6 +157,14 @@ func _cancel_free_form() -> void:
 	free_form_submit.disabled = false
 	free_form_input.editable = true
 	request_status.text = ""
+
+
+func _close_dialogue() -> void:
+	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
+	if world != null:
+		world.cancel_active_dialogue()
+	else:
+		_on_finished()
 
 
 func _on_ai_dialogue_reply(speaker: String, text: String) -> void:

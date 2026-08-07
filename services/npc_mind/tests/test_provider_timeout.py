@@ -25,4 +25,5 @@ def test_provider_timeout_falls_back_without_blocking_gameplay():
             )
         )
     )
-    assert result.reply_text.startswith("I can't reach")
+    assert result.reply_text.startswith("Hello. I'm here")
+    assert "memory" not in result.reply_text.lower()

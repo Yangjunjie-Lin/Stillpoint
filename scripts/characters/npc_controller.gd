@@ -124,6 +124,13 @@ func can_talk_to(actor: CharacterController) -> bool:
 	return RelationshipService.get_disposition(character_id) != RelationshipComponent.Disposition.HOSTILE
 
 
+func can_engage_free_form(actor: CharacterController) -> bool:
+	## Cognitive dialogue remains available to any living NPC, including hostile
+	## characters that have no authored dialogue. Combat is paused by the dialogue
+	## coordinator while the free-form exchange is active.
+	return actor != null and not is_downed and not is_permanently_dead
+
+
 func _handle_aggression_from(attacker: CharacterController, damage: float, _context: Dictionary) -> void:
 	react_to_aggression(attacker, damage)
 

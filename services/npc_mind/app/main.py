@@ -52,6 +52,17 @@ def create_app(service: NpcCognitionService | None = None) -> FastAPI:
             "service": "stillpoint-npc-mind",
             "version": "0.8.0",
             "repository": type(cognition.repository).__name__,
+            "llm_provider": cognition.settings.llm_provider,
+            "text_model": (
+                cognition.settings.openai_text_model
+                if cognition.settings.llm_provider == "openai"
+                else "fake"
+            ),
+            "response_format": cognition.settings.openai_response_format,
+            "embedding_provider": (
+                "openai" if cognition.settings.use_remote_embeddings() else "fake"
+            ),
+            "embedding_dimensions": str(cognition.settings.embedding_dimensions),
         }
 
     @app.post("/v1/auth/session")

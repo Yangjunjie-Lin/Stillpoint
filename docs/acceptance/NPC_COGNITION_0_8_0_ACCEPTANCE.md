@@ -13,8 +13,9 @@ recorded here.
 - Branch: `feat/0.8.0-npc-cognitive-foundation`
 - Base at stabilization start: `fd63f1d93641c44cb18f0101ef81c238cd28a76d`
 - Starting Head: `0eced1f1f93bf0710c8a07dc38ab05cda4a61ede`
-- Godot acceptance commit: pending final acceptance commit
-- Backend acceptance commit: pending final acceptance commit
+- Current automated evidence Head: `85ceef2796cea92aa30cfd338ae77dab0e018151`
+- Godot automated acceptance commit: `85ceef2796cea92aa30cfd338ae77dab0e018151`
+- Backend automated acceptance commit: `85ceef2796cea92aa30cfd338ae77dab0e018151`
 - Game version: `0.8.0`
 - Save schema: `save_version = 4`
 - NPC cognition section: `section_version = 1`
@@ -24,14 +25,14 @@ recorded here.
 - Godot 4.7.1: 249 passed, 0 failed
 - Unexpected SCRIPT ERROR / ERROR: 0 / 0
 - ObjectDB / Resource leaks: 0 / 0
-- Backend in-memory: 69 passed, 7 PostgreSQL-only skipped
-- Backend PostgreSQL/pgvector: 76 passed
+- Backend in-memory: 70 passed, 7 PostgreSQL-only skipped
+- Backend PostgreSQL/pgvector: 77 passed
 - Alembic downgrade base and upgrade head: passed
 - Cross-process Godot → HTTP → Uvicorn → PostgreSQL E2E: passed
 - Cross-process phases: seed, Backend restart recall, offline save, recovery/Ack flush
 - Catalog: 3 profiles, passed
 - Contract and repository validation: passed
-- Linux and Windows Debug Export plus binary secret/source scan: passed
+- Linux and Windows Debug Export plus binary secret/source scan: passed (local release-closure artifacts)
 - Evidence logs: `artifacts/npc-cognition-cross-process-e2e/` (local, intentionally untracked)
 
 ## Manual A16 — 30 Required Steps

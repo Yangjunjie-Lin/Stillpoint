@@ -249,7 +249,7 @@ func _spawn_markers(region_id: StringName) -> void:
 			continue
 		if snap != null:
 			var restored := _actor_factory.restore_actor(snap, _get_entity_parent())
-			_wire_actor_gameplay_events(restored)
+			_register_entity_tree(restored, region_id, true)
 			continue
 		var ctx := ActorSpawnContext.new()
 		ctx.definition_id = def.definition_id
@@ -258,7 +258,7 @@ func _spawn_markers(region_id: StringName) -> void:
 		ctx.parent = _get_entity_parent()
 		ctx.transform = marker.global_transform
 		var actor := _actor_factory.spawn_actor(def.definition_id, ctx)
-		_wire_actor_gameplay_events(actor)
+		_register_entity_tree(actor, region_id, true)
 
 
 func _restore_runtime_spawned_entities(region_id: StringName) -> void:
@@ -299,7 +299,7 @@ func _restore_runtime_spawned_entities(region_id: StringName) -> void:
 			)
 			continue
 		materialized[snapshot.persistent_id] = true
-		_wire_actor_gameplay_events(actor)
+		_register_entity_tree(actor, region_id, true)
 
 
 func _register_static_entities(region_root: Node3D, region_id: StringName) -> void:
@@ -319,6 +319,8 @@ func _register_interactables(region_root: Node3D, region_id: StringName) -> void
 
 
 func _register_entity_tree(node: Node, region_id: StringName, register_interactables: bool) -> void:
+	if node == null:
+		return
 	if node.is_queued_for_deletion():
 		return
 	var identity := _find_identity(node)

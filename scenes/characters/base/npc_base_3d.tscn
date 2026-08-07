@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/characters/npc_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="2"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/components/knockback_component.gd" id="14"]
 [ext_resource type="Script" path="res://scripts/components/combat_animation_controller.gd" id="15"]
 [ext_resource type="Resource" path="res://resources/attacks/basic_melee.tres" id="16"]
+[ext_resource type="Script" path="res://scripts/interaction/npc_interactable.gd" id="17"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_npc"]
 radius = 0.4
@@ -58,6 +59,10 @@ script = ExtResource("6")
 
 [node name="InteractionComponent" type="Node" parent="."]
 script = ExtResource("7")
+
+[node name="NPCInteractable" type="Node3D" parent="."]
+script = ExtResource("17")
+npc_path = NodePath("..")
 
 [node name="CombatComponent" type="Node" parent="."]
 script = ExtResource("8")

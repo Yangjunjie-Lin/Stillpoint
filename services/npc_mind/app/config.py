@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 
 @dataclass(frozen=True, slots=True)
@@ -11,7 +12,10 @@ class Settings:
     paired_client_credentials_json: str = ""
     npc_repository: str = "postgres"
     llm_provider: str = "fake"
+    embedding_provider: str = "auto"
     openai_api_key: str = ""
+    openai_base_url: str = "https://api.openai.com"
+    openai_response_format: str = "json_object"
     openai_text_model: str = ""
     openai_embedding_model: str = ""
     database_url: str = "postgresql+psycopg://stillpoint:stillpoint@127.0.0.1:5432/stillpoint"
@@ -65,7 +69,12 @@ class Settings:
             ),
             npc_repository=os.getenv("NPC_REPOSITORY", "postgres").lower(),
             llm_provider=os.getenv("LLM_PROVIDER", "fake").lower(),
+            embedding_provider=os.getenv("NPC_EMBEDDING_PROVIDER", "auto").lower(),
             openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+            openai_base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com"),
+            openai_response_format=os.getenv(
+                "OPENAI_RESPONSE_FORMAT", "json_object"
+            ).lower(),
             openai_text_model=os.getenv("OPENAI_TEXT_MODEL", ""),
             openai_embedding_model=os.getenv("OPENAI_EMBEDDING_MODEL", ""),
             database_url=os.getenv(
@@ -122,3 +131,26 @@ class Settings:
         # Save schema 4 / migration 0001 owns a PostgreSQL vector(1536) column.
         if self.embedding_dimensions != 1536:
             raise ValueError("embedding_dimension_must_match_schema")
+
+    def validate_provider_configuration(self) -> None:
+        if self.llm_provider not in {"fake", "openai"}:
+            raise ValueError("unsupported_llm_provider")
+        if self.embedding_provider not in {"auto", "fake", "openai"}:
+            raise ValueError("unsupported_embedding_provider")
+        if self.openai_response_format not in {"json_object", "json_schema", "text"}:
+            raise ValueError("unsupported_provider_response_format")
+        if self.llm_provider != "openai" and self.embedding_provider != "openai":
+            return
+        parsed = urlparse(self.openai_base_url.strip())
+        if not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
+            raise ValueError("invalid_provider_base_url")
+        is_loopback = parsed.hostname in {"127.0.0.1", "localhost", "::1"}
+        if parsed.scheme != "https" and not (parsed.scheme == "http" and is_loopback):
+            raise ValueError("provider_base_url_must_use_https")
+
+    def use_remote_embeddings(self) -> bool:
+        if self.embedding_provider == "fake":
+            return False
+        if self.embedding_provider == "openai":
+            return True
+        return self.llm_provider == "openai" and bool(self.openai_embedding_model)

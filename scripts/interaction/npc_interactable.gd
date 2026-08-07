@@ -23,7 +23,14 @@ func can_interact(actor: CharacterController, context: InteractionContext) -> bo
 		return false
 	if _npc == null:
 		return false
-	return _npc.can_talk_to(actor)
+	if _npc.can_talk_to(actor):
+		return true
+	if _session == null:
+		_session = _find_session()
+	return _session != null \
+		and _session.cognition_service != null \
+		and _session.cognition_service.can_use_free_form(_npc) \
+		and _npc.can_engage_free_form(actor)
 
 
 func get_interaction_text(_actor: CharacterController) -> String:
@@ -50,7 +57,8 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 	if not effect_result.success:
 		EventBus.notice_requested.emit("Interaction effect failed: %s" % effect_result.message)
 		return
-	_session.start_dialogue(_npc)
+	if not _session.start_dialogue(_npc):
+		return
 	var ev := GameplayEvent.make(
 		GameplayEventTypes.NPC_TALKED,
 		&"base:player/main",

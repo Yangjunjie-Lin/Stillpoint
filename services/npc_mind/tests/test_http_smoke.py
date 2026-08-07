@@ -47,6 +47,9 @@ def test_local_http_health_and_session_token_smoke():
         )
     assert health.status_code == 200
     assert health.json()["repository"] == "InMemoryRepository"
+    assert health.json()["llm_provider"] == "fake"
+    assert health.json()["text_model"] == "fake"
+    assert health.json()["embedding_provider"] == "fake"
     assert token.status_code == 200
     assert token.json()["token_type"] == "Bearer"
     assert token.json()["token"]

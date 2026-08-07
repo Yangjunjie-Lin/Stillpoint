@@ -35,7 +35,7 @@ from .schemas import (
 )
 
 
-SAFE_FALLBACK = "I can't reach my thoughts right now. Let's continue with what we know."
+SAFE_FALLBACK = "Hello. I'm here, but I need a moment before I can answer."
 ALLOWED_GRAPH_VISIBILITY = {"public", "witnessed", "told", "skill", "private"}
 
 
@@ -64,6 +64,7 @@ class NpcCognitionService:
     ) -> None:
         self.settings = settings or Settings.from_env()
         self.settings.validate_embedding_configuration()
+        self.settings.validate_provider_configuration()
         if repository is not None:
             self.repository = repository
         elif self.settings.repository_is_in_memory():
@@ -77,7 +78,7 @@ class NpcCognitionService:
         )
         self.embeddings = embeddings or (
             OpenAIEmbeddingProvider(self.settings)
-            if self.settings.llm_provider == "openai"
+            if self.settings.use_remote_embeddings()
             else FakeEmbeddingProvider()
         )
         self.catalog = catalog or NpcCatalogRepository()
@@ -546,9 +547,10 @@ class NpcCognitionService:
         *,
         store: bool,
     ) -> ConversationResponse:
+        reply_text = _safe_fallback_text(request.text)
         usage = {
             "input_tokens": _token_count(request.text),
-            "output_tokens": _token_count(SAFE_FALLBACK),
+            "output_tokens": _token_count(reply_text),
         }
         if request.allow_conversation_storage:
             self.repository.add_turn(
@@ -563,7 +565,7 @@ class NpcCognitionService:
         response = ConversationResponse(
             request_id=request.request_id,
             session_id=session.session_id,
-            reply_text=SAFE_FALLBACK,
+            reply_text=reply_text,
             usage=usage,
             degraded=True,
             degradation_reason=reason,
@@ -622,6 +624,12 @@ def validate_generation(value: Any) -> NpcGenerationResult:
 
 def _token_count(value: str) -> int:
     return max(1, len(re.findall(r"\S+", value)))
+
+
+def _safe_fallback_text(player_text: str) -> str:
+    if re.search(r"[\u4e00-\u9fff]", player_text):
+        return "我在这里，只是现在需要一点时间才能回答。"
+    return SAFE_FALLBACK
 
 
 def _explicit_entity_query(request: NpcGenerationRequest, memory: MemoryRecord) -> bool:

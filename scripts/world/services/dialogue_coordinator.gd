@@ -16,6 +16,7 @@ var _cognition_service: NPCCognitionService
 var _free_form_npc: NPCController
 var _free_form_player: PlayerController3D
 var _free_form_npc_previous_state: NPCController.NPCState = NPCController.NPCState.IDLE
+var _authored_choices_presented: bool = false
 
 
 func setup(context: WorldSessionContext, cognition_service: NPCCognitionService = null) -> void:
@@ -41,18 +42,21 @@ func get_active_npc() -> NPCController:
 func start_dialogue(npc: NPCController, player: PlayerController3D) -> bool:
 	if npc == null or player == null:
 		return false
-	if not npc.can_talk_to(player):
+	var can_use_authored := npc.can_talk_to(player)
+	var can_use_free_form := _can_offer_free_form(npc, player)
+	if not can_use_authored and not can_use_free_form:
 		EventBus.notice_requested.emit("They refuse to speak with you.")
 		return false
 	var dialogue := _resolve_dialogue(npc)
-	if dialogue == null:
-		return false
-	_npc = npc
-	_player = player
-	_npc_state_before_dialogue = npc.npc_state
-	_player_input_before_dialogue = player.state.input_enabled
-	player.set_input_enabled(false)
-	npc.set_npc_state(NPCController.NPCState.TALK)
+	if dialogue == null or not can_use_authored:
+		if not can_use_free_form:
+			return false
+		_begin_dialogue(npc, player)
+		_on_line(_display_name(npc), "What would you like to ask?")
+		_on_choices([])
+		dialogue_started.emit(npc)
+		return true
+	_begin_dialogue(npc, player)
 	if not _runner.start(dialogue, npc, player, _session_context):
 		_restore_actor_state()
 		_npc = null
@@ -81,7 +85,7 @@ func start_free_form_dialogue(
 		if NPCIdentityResolver.resolve_persistent_id(npc) == &"":
 			EventBus.notice_requested.emit("AI dialogue unavailable: this NPC has no persistent identity.")
 		return false
-	if player == null or text.strip_edges().is_empty() or not npc.can_talk_to(player):
+	if text.strip_edges().is_empty() or not _can_offer_free_form(npc, player):
 		return false
 	_free_form_npc = npc
 	_free_form_player = player
@@ -102,7 +106,7 @@ func start_free_form_dialogue(
 func start_free_form_from_active(text: String) -> bool:
 	var npc := _npc
 	var player := _player
-	if npc == null or player == null or NPCIdentityResolver.resolve_persistent_id(npc) == &"":
+	if not _can_offer_free_form(npc, player):
 		return false
 	_runner.abandon()
 	_restore_actor_state()
@@ -115,6 +119,11 @@ func cancel_free_form() -> void:
 	if _cognition_service != null:
 		_cognition_service.conversation_controller.cancel()
 	_restore_free_form_state()
+
+
+func cancel_dialogue() -> void:
+	_runner.abandon()
+	_finish_authored_dialogue()
 
 
 func _resolve_dialogue(npc: NPCController) -> DialogueDefinition:
@@ -133,15 +142,27 @@ func _on_line(speaker: String, text: String) -> void:
 
 
 func _on_choices(choices: Array) -> void:
+	if not choices.is_empty():
+		_authored_choices_presented = true
 	EventBus.dialogue_choices.emit(choices)
 
 
 func _on_finished() -> void:
+	if not _authored_choices_presented and _can_offer_free_form(_npc, _player):
+		# Keep terminal authored lines visible and append the universal free-form
+		# entry instead of closing the panel synchronously.
+		_on_choices([])
+		return
+	_finish_authored_dialogue()
+
+
+func _finish_authored_dialogue() -> void:
 	_restore_actor_state()
 	EventBus.dialogue_finished.emit()
 	dialogue_ended.emit()
 	_npc = null
 	_player = null
+	_authored_choices_presented = false
 
 
 func _on_choice_effect_failed(_choice: DialogueChoice, reason: String) -> void:
@@ -157,8 +178,31 @@ func _restore_actor_state() -> void:
 		_npc.set_npc_state(_npc_state_before_dialogue)
 
 
+func _begin_dialogue(npc: NPCController, player: PlayerController3D) -> void:
+	_npc = npc
+	_player = player
+	_npc_state_before_dialogue = npc.npc_state
+	_player_input_before_dialogue = player.state.input_enabled
+	_authored_choices_presented = false
+	player.set_input_enabled(false)
+	npc.set_npc_state(NPCController.NPCState.TALK)
+
+
+func _can_offer_free_form(npc: NPCController, player: PlayerController3D) -> bool:
+	return _cognition_service != null \
+		and _cognition_service.can_use_free_form(npc) \
+		and npc != null \
+		and npc.can_engage_free_form(player)
+
+
+func _display_name(npc: NPCController) -> String:
+	if npc != null and npc.npc_definition != null:
+		return npc.npc_definition.display_name
+	return "NPC"
+
+
 func _on_free_form_reply(reply: Dictionary) -> void:
-	var speaker: String = str(_free_form_npc.get("display_name")) if _free_form_npc != null else "NPC"
+	var speaker := _display_name(_free_form_npc)
 	EventBus.ai_dialogue_reply.emit(speaker, str(reply.get("reply_text", "Let's speak later.")))
 	_restore_free_form_state()
 
