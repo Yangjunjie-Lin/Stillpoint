@@ -42,10 +42,18 @@ knowledge references, explicit tools, and response constraints.
 
 ## Graph and memory
 
-PostgreSQL stores relational node/edge tables and optional pgvector embeddings.
+PostgreSQL is the production-default repository and stores sessions, turns,
+memories, recall history, idempotency responses, usage, profile deployment
+revisions, graph data, sync revisions, outbox receipts, and conflicts. The
+`vector` extension is installed by Alembic and every retrieval embeds the live
+query before running a scope-filtered pgvector cosine search. In-memory storage
+is available only when both `APP_ENV=test` and `NPC_REPOSITORY=in_memory` are
+explicitly configured; connection failure never falls back silently.
 Canonical facts use a null graph owner; NPC beliefs use the NPC persistent id.
-Retrieval filters owner, visibility, witness/told provenance, skill domains, and
-graph depth (at most two). It never returns a complete world graph.
+Memory retrieval filters the full player/save/NPC scope. Prompt graph traversal
+starts from the NPC instance and currently visible entity ids and is bounded to
+two hops; graph API node results are limited to nodes referenced by the scoped,
+visible edge result. It never returns the database's complete node table.
 
 Memory records retain source ids, salience, confidence, embeddings, recall
 history, and optional supersession. Recency uses:
@@ -71,3 +79,29 @@ blocks quests, trade, combat, transition, save, or Continue.
 
 Players can disable AI, conversation storage, or personalization; the backend
 exposes deletion and export endpoints for NPC-scoped and player-scoped data.
+
+## Local development
+
+The development transport is plain HTTP on loopback; production TLS belongs at
+the reverse proxy, ingress, or deployment platform:
+
+```text
+Godot NPC_BACKEND_URL=http://127.0.0.1:8443
+Docker/PostgreSQL host port=55432
+Backend container PostgreSQL port=5432
+Production NPC_BACKEND_URL=https://...
+```
+
+From `services/npc_mind`:
+
+```bash
+docker compose up -d postgres
+DATABASE_URL=postgresql+psycopg://stillpoint:stillpoint@127.0.0.1:55432/stillpoint alembic -c alembic.ini upgrade head
+uvicorn app.main:app --host 127.0.0.1 --port 8443
+```
+
+The client first requests a short-lived HMAC-signed session token. The token is
+bound to player profile, world save, client installation, and expiry. Every
+conversation, memory, graph, sync, export, and deletion route enforces that
+scope. `NPC_MIND_SIGNING_KEY` and provider credentials remain backend-only and
+the export presets exclude backend, test, tool, artifact, and build trees.

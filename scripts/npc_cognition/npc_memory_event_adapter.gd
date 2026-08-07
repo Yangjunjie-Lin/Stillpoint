@@ -3,7 +3,7 @@ extends RefCounted
 
 const REMEMBERED_EVENTS: Array[StringName] = [
 	&"npc_talked", &"npc_attacked", &"item_given", &"item_received",
-	&"quest_started", &"quest_completed", &"quest_failed", &"region_entered",
+	&"quest_started", &"quest_completed", &"quest_failed",
 	&"entity_destroyed", &"relationship_changed", &"trade_completed", &"promise_made",
 ]
 

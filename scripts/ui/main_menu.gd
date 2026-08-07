@@ -11,6 +11,9 @@ extends Control
 @onready var music_slider: HSlider = %MusicSlider
 @onready var sfx_slider: HSlider = %SfxSlider
 @onready var fullscreen_check: CheckBox = %FullscreenCheck
+@onready var ai_dialogue_check: CheckBox = %AIDialogueCheck
+@onready var conversation_storage_check: CheckBox = %ConversationStorageCheck
+@onready var memory_personalization_check: CheckBox = %MemoryPersonalizationCheck
 
 
 func _ready() -> void:
@@ -28,6 +31,9 @@ func _load_settings_widgets() -> void:
 	music_slider.value = float(SaveService.settings.get("music_volume_db", -6.0))
 	sfx_slider.value = float(SaveService.settings.get("sfx_volume_db", -3.0))
 	fullscreen_check.button_pressed = bool(SaveService.settings.get("fullscreen", true))
+	ai_dialogue_check.button_pressed = bool(SaveService.settings.get("ai_dialogue_enabled", false))
+	conversation_storage_check.button_pressed = bool(SaveService.settings.get("allow_conversation_storage", false))
+	memory_personalization_check.button_pressed = bool(SaveService.settings.get("allow_memory_personalization", false))
 
 
 func _on_continue_pressed() -> void:
@@ -151,6 +157,9 @@ func _on_settings_close() -> void:
 	SaveService.settings["music_volume_db"] = music_slider.value
 	SaveService.settings["sfx_volume_db"] = sfx_slider.value
 	SaveService.settings["fullscreen"] = fullscreen_check.button_pressed
+	SaveService.settings["ai_dialogue_enabled"] = ai_dialogue_check.button_pressed
+	SaveService.settings["allow_conversation_storage"] = conversation_storage_check.button_pressed
+	SaveService.settings["allow_memory_personalization"] = memory_personalization_check.button_pressed
 	SaveService.save_settings()
 	settings_panel.visible = false
 

@@ -54,6 +54,19 @@ func choose(index: int) -> EffectResult:
 	return EffectResult.ok()
 
 
+func cancel() -> void:
+	if _current_node == null:
+		return
+	_current_node = null
+	_available_choices.clear()
+	dialogue_finished.emit()
+
+
+func abandon() -> void:
+	_current_node = null
+	_available_choices.clear()
+
+
 func _present_node() -> void:
 	if _current_node == null:
 		dialogue_finished.emit()

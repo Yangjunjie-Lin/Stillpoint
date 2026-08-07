@@ -2,6 +2,8 @@ class_name NPCMemoryCache
 extends RefCounted
 ## Small offline cache/outbox only. The backend database remains authoritative.
 
+signal changed(reason: StringName)
+
 const SECTION_VERSION := 1
 const MAX_CACHE_PER_NPC := 32
 
@@ -34,13 +36,17 @@ func remember(
 	var memory_id := str(memory.get("memory_id"))
 	for index in bucket.size():
 		if str((bucket[index] as Dictionary).get("memory_id", "")) == memory_id:
+			if bucket[index] == memory:
+				return true
 			bucket[index] = memory.duplicate(true)
 			_memories[key] = bucket
+			changed.emit(&"memory_updated")
 			return true
 	bucket.append(memory.duplicate(true))
 	if bucket.size() > MAX_CACHE_PER_NPC:
 		bucket = bucket.slice(bucket.size() - MAX_CACHE_PER_NPC)
 	_memories[key] = bucket
+	changed.emit(&"memory_added")
 	return true
 
 func memories_for(
@@ -62,7 +68,10 @@ func set_session(
 ) -> bool:
 	var key := isolation_key(player_profile_id, world_save_id, npc_persistent_id)
 	if key.is_empty() or session_id.is_empty(): return false
+	if str(_session_index.get(key, "")) == session_id:
+		return true
 	_session_index[key] = session_id
+	changed.emit(&"session_updated")
 	return true
 
 func get_session(player_profile_id: String, world_save_id: String, npc_persistent_id: String) -> String:
@@ -75,12 +84,48 @@ func enqueue_turn(turn: Dictionary) -> bool:
 	for existing in pending_turn_outbox:
 		if str(existing.get("request_id", "")) == request_id: return true
 	pending_turn_outbox.append(turn.duplicate(true))
+	changed.emit(&"turn_outbox_added")
 	return true
 
 func enqueue_event(event: Dictionary) -> bool:
 	if not _valid_scope(event): return false
+	var event_id := str(event.get("event_id", event.get("source_id", "")))
+	if event_id.is_empty(): return false
+	for existing in pending_event_outbox:
+		if str(existing.get("event_id", existing.get("source_id", ""))) == event_id:
+			return true
 	pending_event_outbox.append(event.duplicate(true))
+	changed.emit(&"event_outbox_added")
 	return true
+
+func acknowledge_turn(request_id: String) -> bool:
+	var before := pending_turn_outbox.size()
+	pending_turn_outbox = pending_turn_outbox.filter(func(item: Dictionary) -> bool:
+		return str(item.get("request_id", "")) != request_id)
+	if pending_turn_outbox.size() != before:
+		changed.emit(&"turn_outbox_acked")
+		return true
+	return false
+
+func apply_sync_ack(response: Dictionary) -> void:
+	var accepted_turns: Array = response.get("accepted_turn_ids", [])
+	var accepted_events: Array = response.get("accepted_event_ids", [])
+	var before_turns := pending_turn_outbox.size()
+	var before_events := pending_event_outbox.size()
+	pending_turn_outbox = pending_turn_outbox.filter(func(item: Dictionary) -> bool:
+		return not accepted_turns.has(str(item.get("request_id", ""))))
+	pending_event_outbox = pending_event_outbox.filter(func(item: Dictionary) -> bool:
+		return not accepted_events.has(str(item.get("event_id", item.get("source_id", "")))))
+	var new_revision := maxi(0, int(response.get("revision", last_sync_revision)))
+	var new_conflicts := _dict_array(response.get("conflicts", []))
+	var mutated := before_turns != pending_turn_outbox.size() \
+		or before_events != pending_event_outbox.size() \
+		or new_revision != last_sync_revision \
+		or new_conflicts != sync_conflicts
+	last_sync_revision = new_revision
+	sync_conflicts = new_conflicts
+	if mutated:
+		changed.emit(&"sync_ack_applied")
 
 func delete_npc(player_profile_id: String, world_save_id: String, npc_persistent_id: String) -> void:
 	var key := isolation_key(player_profile_id, world_save_id, npc_persistent_id)
@@ -90,6 +135,7 @@ func delete_npc(player_profile_id: String, world_save_id: String, npc_persistent
 		return isolation_key(str(item.get("player_profile_id", "")), str(item.get("world_save_id", "")), str(item.get("npc_persistent_id", ""))) != key)
 	pending_event_outbox = pending_event_outbox.filter(func(item: Dictionary) -> bool:
 		return isolation_key(str(item.get("player_profile_id", "")), str(item.get("world_save_id", "")), str(item.get("npc_persistent_id", ""))) != key)
+	changed.emit(&"npc_memory_deleted")
 
 func delete_player(player_profile_id: String) -> void:
 	for key in _memories.keys():
@@ -100,6 +146,7 @@ func delete_player(player_profile_id: String) -> void:
 		return str(item.get("player_profile_id", "")) != player_profile_id)
 	pending_event_outbox = pending_event_outbox.filter(func(item: Dictionary) -> bool:
 		return str(item.get("player_profile_id", "")) != player_profile_id)
+	changed.emit(&"player_memory_deleted")
 
 func to_dict() -> Dictionary:
 	return {"section_version": SECTION_VERSION, "last_sync_revision": last_sync_revision,
@@ -111,7 +158,7 @@ func to_dict() -> Dictionary:
 
 func from_dict(data: Dictionary) -> bool:
 	if data.is_empty():
-		clear()
+		clear(false)
 		return true
 	if int(data.get("section_version", SECTION_VERSION)) > SECTION_VERSION: return false
 	var memory_data: Variant = data.get("compact_memory_cache", {})
@@ -137,13 +184,15 @@ func export_player_data(player_profile_id: String) -> Dictionary:
 	exported["conversation_session_index"] = sessions
 	return exported
 
-func clear() -> void:
+func clear(notify: bool = true) -> void:
 	_memories.clear()
 	_session_index.clear()
 	pending_event_outbox.clear()
 	pending_turn_outbox.clear()
 	sync_conflicts.clear()
 	last_sync_revision = 0
+	if notify:
+		changed.emit(&"cache_cleared")
 
 func _valid_scope(item: Dictionary) -> bool:
 	return not isolation_key(str(item.get("player_profile_id", "")), str(item.get("world_save_id", "")), str(item.get("npc_persistent_id", ""))).is_empty()

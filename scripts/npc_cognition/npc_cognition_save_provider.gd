@@ -1,6 +1,8 @@
 class_name NPCCognitionSaveProvider
 extends SaveSectionProvider
 
+signal dirty_changed
+
 const SECTION_ID := &"npc_cognition"
 const SECTION_VERSION := 1
 
@@ -8,6 +10,14 @@ var backend_player_profile_id: String = ""
 var world_save_id: String = "slot-01"
 var cache := NPCMemoryCache.new()
 var _dirty: bool = false
+
+func _init() -> void:
+	cache.changed.connect(_on_cache_changed)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE and cache != null \
+		and cache.changed.is_connected(_on_cache_changed):
+		cache.changed.disconnect(_on_cache_changed)
 
 func get_section_id() -> StringName: return SECTION_ID
 func get_section_version() -> int: return SECTION_VERSION
@@ -25,7 +35,7 @@ func restore_save_data(data: Dictionary) -> bool:
 	if data.is_empty():
 		backend_player_profile_id = ""
 		world_save_id = "slot-01"
-		cache.clear()
+		cache.clear(false)
 		_dirty = false
 		return true
 	if int(data.get("section_version", 1)) > SECTION_VERSION: return false
@@ -35,7 +45,9 @@ func restore_save_data(data: Dictionary) -> bool:
 	_dirty = false
 	return true
 
-func mark_dirty() -> void: _dirty = true
+func mark_dirty() -> void:
+	_dirty = true
+	dirty_changed.emit()
 func clear_dirty() -> void: _dirty = false
 
 func delete_npc_memory(npc_persistent_id: String) -> void:
@@ -48,3 +60,6 @@ func delete_all_player_memory() -> void:
 
 func export_memory_data() -> Dictionary:
 	return cache.export_player_data(backend_player_profile_id)
+
+func _on_cache_changed(_reason: StringName) -> void:
+	mark_dirty()

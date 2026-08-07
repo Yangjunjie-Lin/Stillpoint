@@ -96,6 +96,10 @@ func _reset_global_state() -> void:
 	_autoload("WorldSaveService").call("clear_world")
 	_clear_save_slots()
 	_autoload("SaveService").call("clear_run")
+	var settings: Dictionary = _autoload("SaveService").get("settings")
+	settings["ai_dialogue_enabled"] = false
+	settings["allow_conversation_storage"] = false
+	settings["allow_memory_personalization"] = false
 	_autoload("ResourceRegistry").call("clear_test_registrations")
 	_autoload("RelationshipService").call("reset_all")
 	_autoload("QuestManager").call("reset_all")

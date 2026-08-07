@@ -52,6 +52,12 @@ class GraphNode:
     node_type: str
     label: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
+    player_profile_id: str | None = None
+    world_save_id: str | None = None
+    owner_npc_persistent_id: str | None = None
+    catalog_revision: str = ""
+    visibility: str = "public"
+    source: str = "authored"
 
 
 @dataclass(slots=True)
@@ -71,6 +77,9 @@ class GraphEdge:
     created_at: str = ""
     updated_at: str = ""
     supersedes_edge_id: str | None = None
+    player_profile_id: str | None = None
+    world_save_id: str | None = None
+    catalog_revision: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {name: getattr(self, name) for name in self.__dataclass_fields__}
@@ -94,12 +103,21 @@ class KnowledgeGraph:
         self.edges[edge.id] = edge
 
     def visible_edges(
-        self, npc_persistent_id: str, allowed_domains: set[str] | None = None
+        self,
+        npc_persistent_id: str,
+        allowed_domains: set[str] | None = None,
+        player_profile_id: str | None = None,
+        world_save_id: str | None = None,
     ) -> list[GraphEdge]:
         result: list[GraphEdge] = []
         for edge in self.edges.values():
             if edge.owner_npc_persistent_id not in (None, "", npc_persistent_id):
                 continue
+            if edge.owner_npc_persistent_id not in (None, ""):
+                if player_profile_id is not None and edge.player_profile_id != player_profile_id:
+                    continue
+                if world_save_id is not None and edge.world_save_id != world_save_id:
+                    continue
             if edge.visibility not in {"public", "witnessed", "told", "skill", "private"}:
                 continue
             if edge.owner_npc_persistent_id is None and edge.visibility == "private":
@@ -114,10 +132,19 @@ class KnowledgeGraph:
         return result
 
     def traverse(
-        self, start_node_ids: set[str], npc_persistent_id: str, depth: int = 2
+        self,
+        start_node_ids: set[str],
+        npc_persistent_id: str,
+        depth: int = 2,
+        player_profile_id: str | None = None,
+        world_save_id: str | None = None,
     ) -> list[GraphEdge]:
         depth = min(max(depth, 0), 2)
-        visible = self.visible_edges(npc_persistent_id)
+        visible = self.visible_edges(
+            npc_persistent_id,
+            player_profile_id=player_profile_id,
+            world_save_id=world_save_id,
+        )
         frontier = set(start_node_ids)
         seen_nodes = set(frontier)
         result: list[GraphEdge] = []

@@ -36,6 +36,7 @@ var _pending_player_transform: Dictionary = {}
 @onready var save_coordinator: WorldSaveCoordinator = $WorldServices/WorldSaveCoordinator
 @onready var simulation_service: WorldSimulationService = $WorldServices/WorldSimulationService
 @onready var world_flags: WorldFlagService = $WorldServices/WorldFlagService
+@onready var cognition_service: NPCCognitionService = $WorldServices/NPCCognitionService
 
 # Compatibility aliases for tests and legacy code paths.
 var regions_root: Node3D
@@ -173,6 +174,14 @@ func apply_dialogue_choice(index: int) -> void:
 	dialogue_coordinator.apply_choice(index)
 
 
+func ask_active_npc(text: String) -> bool:
+	return dialogue_coordinator.start_free_form_from_active(text)
+
+
+func cancel_free_form_dialogue() -> void:
+	dialogue_coordinator.cancel_free_form()
+
+
 func capture_player_data() -> Dictionary:
 	var inventory_data := player.inventory.to_dict() if player.inventory else {}
 	var player_data := player.to_dict()
@@ -279,7 +288,10 @@ func _setup_services() -> void:
 		self, null, entity_repository, region_service,
 		QuestManager, world_flags,
 	)
-	dialogue_coordinator.setup(_session_context)
+	cognition_service.setup(_session_context, event_bus, entity_repository)
+	if not save_coordinator.register_save_provider(cognition_service.save_provider):
+		push_error("WorldSession: failed to register the shared cognition save provider")
+	dialogue_coordinator.setup(_session_context, cognition_service)
 	quest_coordinator.setup(_session_context)
 	quest_event_router.setup(_session_context, event_bus, quest_coordinator)
 

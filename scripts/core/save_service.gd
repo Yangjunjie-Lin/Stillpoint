@@ -18,6 +18,8 @@ var settings: Dictionary = {
 	"ai_dialogue_enabled": false,
 	"allow_conversation_storage": false,
 	"allow_memory_personalization": false,
+	"client_install_id": "",
+	"player_profile_id": "",
 }
 
 ## Test-only: fail the next N atomic replace renames (tmp -> final).
@@ -215,6 +217,25 @@ func load_settings() -> void:
 	for key in settings.keys():
 		if payload.has(key):
 			settings[key] = payload[key]
+
+
+func get_or_create_client_install_id() -> String:
+	return _get_or_create_private_id("client_install_id", "install")
+
+
+func get_or_create_player_profile_id() -> String:
+	return _get_or_create_private_id("player_profile_id", "player")
+
+
+func _get_or_create_private_id(key: String, prefix: String) -> String:
+	var existing := str(settings.get(key, "")).strip_edges()
+	if not existing.is_empty():
+		return existing
+	var bytes := Crypto.new().generate_random_bytes(16)
+	existing = "%s-%s" % [prefix, bytes.hex_encode()]
+	settings[key] = existing
+	save_settings()
+	return existing
 
 
 func record_score(player_name: String, score: int) -> Array:

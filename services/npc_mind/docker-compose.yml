@@ -5,9 +5,13 @@ services:
       POSTGRES_USER: stillpoint
       POSTGRES_PASSWORD: stillpoint
       POSTGRES_DB: stillpoint
-    ports: ["5432:5432"]
+    ports: ["55432:5432"]
   npc-mind:
     build: .
-    env_file: .env
     depends_on: [postgres]
     ports: ["8443:8443"]
+    environment:
+      APP_ENV: development
+      NPC_REPOSITORY: postgres
+      DATABASE_URL: postgresql+psycopg://stillpoint:stillpoint@postgres:5432/stillpoint
+      NPC_MIND_SIGNING_KEY: development-only-change-me

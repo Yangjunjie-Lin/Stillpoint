@@ -68,6 +68,16 @@ func get_entities_in_region(region_id: StringName) -> Array[StringName]:
 	return result
 
 
+func get_loaded_entities_in_region(region_id: StringName) -> Array[Node]:
+	var norm := RegionIdUtil.normalize(region_id)
+	var result: Array[Node] = []
+	for entity in _loaded.values():
+		var identity := _find_identity(entity)
+		if identity != null and RegionIdUtil.normalize(identity.region_id) == norm:
+			result.append(entity as Node)
+	return result
+
+
 func get_snapshots_in_region(region_id: StringName) -> Array[EntitySnapshot]:
 	var norm := RegionIdUtil.normalize(region_id)
 	var result: Array[EntitySnapshot] = []

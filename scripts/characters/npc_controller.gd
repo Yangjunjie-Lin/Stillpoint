@@ -100,6 +100,7 @@ func react_to_aggression(attacker: CharacterController, damage: float = 10.0) ->
 	if attacker == null or is_downed or is_permanently_dead:
 		return
 	RelationshipService.register_aggression(character_id, damage, {})
+	_emit_cognition_attack_event(attacker, damage)
 	var disp := RelationshipService.get_disposition(character_id)
 	_attack_target = attacker
 	EventBus.affinity_changed_notice.emit(character_id, -maxf(1.0, damage * 0.5))
@@ -129,6 +130,36 @@ func _handle_aggression_from(attacker: CharacterController, damage: float, _cont
 
 func _on_damaged(_amount: float, _source: Node) -> void:
 	pass
+
+
+func _emit_cognition_attack_event(attacker: Node, damage: float) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	var world := tree.get_first_node_in_group("world_manager") as WorldSession
+	if world == null or world.event_bus == null:
+		return
+	var source_id := _persistent_id_for(attacker)
+	var target_id := NPCIdentityResolver.resolve_persistent_id(self)
+	if target_id == &"":
+		return
+	var event := GameplayEvent.make(
+		GameplayEventTypes.NPC_ATTACKED,
+		source_id,
+		target_id,
+		character_id,
+		region_id,
+		damage,
+		{"position": {"x": global_position.x, "y": global_position.y, "z": global_position.z}},
+	)
+	world.event_bus.emit_event(event)
+
+
+func _persistent_id_for(node: Node) -> StringName:
+	if node == null:
+		return &""
+	var identity := node.get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
+	return identity.persistent_id if identity != null else &""
 
 
 func _on_downed(_source: Node) -> void:

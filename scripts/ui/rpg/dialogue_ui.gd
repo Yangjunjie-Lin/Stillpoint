@@ -8,9 +8,16 @@ signal choice_selected(index: int)
 @onready var body_label: Label = %BodyLabel
 @onready var choices_container: VBoxContainer = %ChoicesContainer
 @onready var continue_hint: Label = %ContinueHint
+@onready var free_form_container: VBoxContainer = %FreeFormContainer
+@onready var free_form_input: LineEdit = %FreeFormInput
+@onready var free_form_submit: Button = %FreeFormSubmit
+@onready var free_form_cancel: Button = %FreeFormCancel
+@onready var request_status: Label = %RequestStatus
 
 var _choices: Array = []
 var _active: bool = false
+var _requesting: bool = false
+var _showing_ai_reply: bool = false
 
 
 func _ready() -> void:
@@ -19,10 +26,23 @@ func _ready() -> void:
 	EventBus.dialogue_line.connect(_on_line)
 	EventBus.dialogue_choices.connect(_on_choices)
 	EventBus.dialogue_finished.connect(_on_finished)
+	EventBus.ai_dialogue_reply.connect(_on_ai_dialogue_reply)
+	free_form_submit.pressed.connect(_submit_free_form)
+	free_form_cancel.pressed.connect(_cancel_free_form)
+	free_form_input.text_submitted.connect(func(_text: String) -> void: _submit_free_form())
+	free_form_input.max_length = 4000
+	free_form_container.visible = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _active or not visible:
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		if free_form_container.visible or _requesting:
+			_cancel_free_form()
+		elif _showing_ai_reply:
+			_on_finished()
+		get_viewport().set_input_as_handled()
 		return
 	for i in mini(_choices.size(), 9):
 		if event is InputEventKey and event.pressed and not event.echo:
@@ -41,6 +61,7 @@ func _on_line(speaker: String, text: String) -> void:
 	_clear_choices()
 	continue_hint.visible = true
 	continue_hint.text = "..."
+	_showing_ai_reply = false
 
 
 func _on_choices(choices: Array) -> void:
@@ -59,6 +80,14 @@ func _on_choices(choices: Array) -> void:
 		var index := i
 		button.pressed.connect(func() -> void: _select(index))
 		choices_container.add_child(button)
+	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
+	if world != null and world.cognition_service != null \
+		and world.cognition_service.can_use_free_form(world.dialogue_coordinator.get_active_npc()):
+		var ask_button := Button.new()
+		ask_button.text = "Ask something else..."
+		ask_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		ask_button.pressed.connect(_show_free_form)
+		choices_container.add_child(ask_button)
 
 
 func _on_finished() -> void:
@@ -66,6 +95,9 @@ func _on_finished() -> void:
 	visible = false
 	_clear_choices()
 	_choices.clear()
+	free_form_container.visible = false
+	_requesting = false
+	_showing_ai_reply = false
 
 
 func _select(index: int) -> void:
@@ -78,3 +110,55 @@ func _select(index: int) -> void:
 func _clear_choices() -> void:
 	for child in choices_container.get_children():
 		child.queue_free()
+
+
+func _show_free_form() -> void:
+	free_form_container.visible = true
+	request_status.text = ""
+	free_form_submit.disabled = false
+	free_form_input.editable = true
+	free_form_input.grab_focus()
+
+
+func _submit_free_form() -> void:
+	if _requesting:
+		return
+	var text := free_form_input.text.strip_edges()
+	if text.is_empty():
+		request_status.text = "Enter a question."
+		return
+	_requesting = true
+	free_form_submit.disabled = true
+	free_form_input.editable = false
+	request_status.text = "Thinking..."
+	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
+	if world == null or not world.ask_active_npc(text):
+		if not _showing_ai_reply:
+			_requesting = false
+			free_form_submit.disabled = false
+			free_form_input.editable = true
+			request_status.text = "AI dialogue unavailable; use a dialogue choice."
+
+
+func _cancel_free_form() -> void:
+	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
+	if _requesting and world != null:
+		world.cancel_free_form_dialogue()
+	_requesting = false
+	free_form_container.visible = false
+	free_form_submit.disabled = false
+	free_form_input.editable = true
+	request_status.text = ""
+
+
+func _on_ai_dialogue_reply(speaker: String, text: String) -> void:
+	_active = true
+	visible = true
+	_requesting = false
+	_showing_ai_reply = true
+	speaker_label.text = speaker
+	body_label.text = text
+	_clear_choices()
+	free_form_container.visible = false
+	continue_hint.visible = true
+	continue_hint.text = "Esc to close"

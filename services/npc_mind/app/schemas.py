@@ -41,6 +41,7 @@ class GraphUpdateCandidate(BaseModel):
     visibility: str = "private"
     source_type: str = "conversation_turn"
     source_id: str = ""
+    evidence_memory_ids: list[str] = Field(default_factory=list)
 
 
 class ProposedIntent(BaseModel):
@@ -66,6 +67,8 @@ class NpcGenerationRequest(BaseModel):
     recent_turns: list[dict[str, Any]] = Field(default_factory=list)
     retrieved_memories: list[dict[str, Any]] = Field(default_factory=list)
     retrieved_graph: list[dict[str, Any]] = Field(default_factory=list)
+    allow_conversation_storage: bool = True
+    allow_memory_personalization: bool = True
 
 
 class NpcGenerationResult(BaseModel):
@@ -92,8 +95,11 @@ class ConversationResponse(BaseModel):
     animation_id: str = "talk"
     memory_citations: list[str] = Field(default_factory=list)
     memory_write_ids: list[str] = Field(default_factory=list)
+    memory_writes: list[dict[str, Any]] = Field(default_factory=list)
     proposed_intents: list[ProposedIntent] = Field(default_factory=list)
     usage: dict[str, int] = Field(default_factory=lambda: {"input_tokens": 0, "output_tokens": 0})
+    degraded: bool = False
+    degradation_reason: str = ""
 
 
 class MemoryQuery(BaseModel):
@@ -102,3 +108,25 @@ class MemoryQuery(BaseModel):
     query: str = Field(min_length=1, max_length=4000)
     limit: int = Field(default=10, ge=1, le=50)
     entity_ids: list[str] = Field(default_factory=list)
+
+
+class SessionTokenRequest(BaseModel):
+    player_profile_id: str = Field(min_length=1, max_length=200)
+    world_save_id: str = Field(min_length=1, max_length=200)
+    client_install_id: str = Field(min_length=8, max_length=200)
+
+
+class SyncRequest(BaseModel):
+    player_profile_id: str
+    world_save_id: str
+    pending_turn_outbox: list[dict[str, Any]] = Field(default_factory=list)
+    pending_event_outbox: list[dict[str, Any]] = Field(default_factory=list)
+    last_sync_revision: int = Field(default=0, ge=0)
+
+
+class SyncResponse(BaseModel):
+    accepted_turn_ids: list[str] = Field(default_factory=list)
+    accepted_event_ids: list[str] = Field(default_factory=list)
+    rejected: list[dict[str, Any]] = Field(default_factory=list)
+    revision: int = 0
+    conflicts: list[dict[str, Any]] = Field(default_factory=list)

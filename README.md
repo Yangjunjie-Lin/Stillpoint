@@ -68,4 +68,10 @@ python tools/python/run_godot_tests.py
 python tools/python/validate_repo.py
 ```
 
+The 0.8.0 gate currently runs 248 Godot tests with zero unexpected script
+errors, errors, ObjectDB leaks, or resource leaks, plus 62 NPC Mind backend
+tests (including real PostgreSQL/pgvector restart persistence). See
+[`docs/NPC_COGNITION_0_8_0.md`](docs/NPC_COGNITION_0_8_0.md) for backend,
+migration, authentication, privacy, and local transport setup.
+
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

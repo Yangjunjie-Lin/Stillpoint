@@ -15,10 +15,15 @@ var _player_input_before_dialogue: bool = true
 var _cognition_service: NPCCognitionService
 var _free_form_npc: NPCController
 var _free_form_player: PlayerController3D
+var _free_form_npc_previous_state: NPCController.NPCState = NPCController.NPCState.IDLE
 
 
-func setup(context: WorldSessionContext) -> void:
+func setup(context: WorldSessionContext, cognition_service: NPCCognitionService = null) -> void:
 	_session_context = context
+	_cognition_service = cognition_service
+	if _cognition_service != null \
+		and not _cognition_service.conversation_controller.reply_ready.is_connected(_on_free_form_reply):
+		_cognition_service.conversation_controller.reply_ready.connect(_on_free_form_reply)
 	_runner.line_presented.connect(_on_line)
 	_runner.choices_presented.connect(_on_choices)
 	_runner.dialogue_finished.connect(_on_finished)
@@ -27,6 +32,10 @@ func setup(context: WorldSessionContext) -> void:
 
 func get_runner() -> DialogueRunner:
 	return _runner
+
+
+func get_active_npc() -> NPCController:
+	return _npc
 
 
 func start_dialogue(npc: NPCController, player: PlayerController3D) -> bool:
@@ -61,49 +70,51 @@ func start_free_form_dialogue(
 	npc: NPCController,
 	player: PlayerController3D,
 	text: String,
-	player_profile_id: String = "player-001",
-	world_save_id: String = "slot-01",
-	session_id: String = "",
+	_player_profile_id: String = "",
+	_world_save_id: String = "",
+	_session_id: String = "",
 ) -> bool:
 	## Optional AI path. Authored/quest dialogue continues through start_dialogue.
 	if not bool(SaveService.settings.get("ai_dialogue_enabled", false)):
 		return false
-	_ensure_cognition_service()
 	if _cognition_service == null or not _cognition_service.can_use_free_form(npc):
+		if NPCIdentityResolver.resolve_persistent_id(npc) == &"":
+			EventBus.notice_requested.emit("AI dialogue unavailable: this NPC has no persistent identity.")
 		return false
 	if player == null or text.strip_edges().is_empty() or not npc.can_talk_to(player):
 		return false
 	_free_form_npc = npc
 	_free_form_player = player
+	_free_form_npc_previous_state = npc.npc_state
 	_player_input_before_dialogue = player.state.input_enabled
 	player.set_input_enabled(false)
 	npc.set_npc_state(NPCController.NPCState.TALK)
-	var persistent_id := str(npc.get("persistent_id"))
-	if persistent_id.is_empty():
-		persistent_id = str(npc.character_id)
-	var payload := {
-		"request_id": "%s-%s" % [session_id if not session_id.is_empty() else "turn", Time.get_ticks_usec()],
-		"player_profile_id": player_profile_id,
-		"world_save_id": world_save_id,
-		"npc_definition_id": String(npc.npc_definition.id),
-		"npc_persistent_id": persistent_id,
-		"session_id": session_id if not session_id.is_empty() else persistent_id,
-		"text": text,
-		"locale": "en",
-		"world_context": {"region_id": String(npc.region_id), "game_time": WorldTimeService.to_dict()},
-	}
+	var payload := _cognition_service.build_turn_payload(npc, text)
+	if payload.is_empty():
+		_restore_free_form_state()
+		return false
 	if not _cognition_service.conversation_controller.ask(npc, payload):
 		_restore_free_form_state()
 		return false
 	return true
 
 
-func _ensure_cognition_service() -> void:
+func start_free_form_from_active(text: String) -> bool:
+	var npc := _npc
+	var player := _player
+	if npc == null or player == null or NPCIdentityResolver.resolve_persistent_id(npc) == &"":
+		return false
+	_runner.abandon()
+	_restore_actor_state()
+	_npc = null
+	_player = null
+	return start_free_form_dialogue(npc, player, text)
+
+
+func cancel_free_form() -> void:
 	if _cognition_service != null:
-		return
-	_cognition_service = NPCCognitionService.new()
-	add_child(_cognition_service)
-	_cognition_service.conversation_controller.reply_ready.connect(_on_free_form_reply)
+		_cognition_service.conversation_controller.cancel()
+	_restore_free_form_state()
 
 
 func _resolve_dialogue(npc: NPCController) -> DialogueDefinition:
@@ -148,8 +159,7 @@ func _restore_actor_state() -> void:
 
 func _on_free_form_reply(reply: Dictionary) -> void:
 	var speaker: String = str(_free_form_npc.get("display_name")) if _free_form_npc != null else "NPC"
-	EventBus.dialogue_line.emit(speaker, str(reply.get("reply_text", "Let's speak later.")))
-	EventBus.dialogue_finished.emit()
+	EventBus.ai_dialogue_reply.emit(speaker, str(reply.get("reply_text", "Let's speak later.")))
 	_restore_free_form_state()
 
 
@@ -157,6 +167,6 @@ func _restore_free_form_state() -> void:
 	if _free_form_player != null and is_instance_valid(_free_form_player):
 		_free_form_player.set_input_enabled(_player_input_before_dialogue)
 	if _free_form_npc != null and is_instance_valid(_free_form_npc) and _free_form_npc.npc_state == NPCController.NPCState.TALK:
-		_free_form_npc.set_npc_state(NPCController.NPCState.IDLE)
+		_free_form_npc.set_npc_state(_free_form_npc_previous_state)
 	_free_form_npc = null
 	_free_form_player = null

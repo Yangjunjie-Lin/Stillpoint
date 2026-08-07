@@ -38,13 +38,24 @@ func setup(
 	_entity_repository = repository
 	_region_service = region_service
 	_world_flags = flags
-	if _npc_cognition_provider == null:
-		_npc_cognition_provider = NPCCognitionSaveProvider.new()
-		_npc_cognition_provider.name = "NPCCognitionSaveProvider"
-		add_child(_npc_cognition_provider)
 	if _region_service != null and not _region_service.region_chunk_captured.is_connected(_on_region_chunk_captured):
 		_region_service.region_chunk_captured.connect(_on_region_chunk_captured)
 	_connect_dirty_signals()
+
+
+func register_save_provider(provider: SaveSectionProvider) -> bool:
+	if provider == null or provider.get_section_id() != &"npc_cognition":
+		return false
+	var cognition_provider := provider as NPCCognitionSaveProvider
+	if cognition_provider == null:
+		return false
+	if _npc_cognition_provider != null and _npc_cognition_provider != cognition_provider:
+		push_error("WorldSaveCoordinator: duplicate npc_cognition provider rejected")
+		return false
+	_npc_cognition_provider = cognition_provider
+	if not _npc_cognition_provider.dirty_changed.is_connected(_on_cognition_dirty):
+		_npc_cognition_provider.dirty_changed.connect(_on_cognition_dirty)
+	return true
 
 
 func mark_dirty(section_id: StringName) -> void:
@@ -193,6 +204,10 @@ func _on_quests_dirty(_a = null, _b = null) -> void:
 
 func _on_flags_dirty(_a = null, _b = null) -> void:
 	mark_dirty(&"world_flags")
+
+
+func _on_cognition_dirty() -> void:
+	mark_dirty(&"npc_cognition")
 
 
 func _restore_v4(validation: Dictionary = {}) -> bool:

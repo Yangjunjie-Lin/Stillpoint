@@ -213,6 +213,21 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Fullscreen"
 
+[node name="AIDialogueCheck" type="CheckBox" parent="SettingsPanel/Panel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "AI Dialogue Enabled"
+
+[node name="ConversationStorageCheck" type="CheckBox" parent="SettingsPanel/Panel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Allow Conversation Storage"
+
+[node name="MemoryPersonalizationCheck" type="CheckBox" parent="SettingsPanel/Panel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Allow Memory Personalization"
+
 [node name="InputRebindUI" parent="SettingsPanel/Panel" instance=ExtResource("2")]
 
 [node name="SettingsClose" type="Button" parent="SettingsPanel/Panel"]

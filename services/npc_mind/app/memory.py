@@ -21,6 +21,15 @@ def lexical_similarity(query: str, text: str) -> float:
     return len(q & t) / len(q | t)
 
 
+def vector_similarity(left: list[float], right: list[float]) -> float:
+    if not left or not right or len(left) != len(right):
+        return 0.0
+    dot = sum(a * b for a, b in zip(left, right))
+    left_norm = math.sqrt(sum(value * value for value in left)) or 1.0
+    right_norm = math.sqrt(sum(value * value for value in right)) or 1.0
+    return max(0.0, min(1.0, dot / (left_norm * right_norm)))
+
+
 @dataclass(slots=True)
 class MemoryRecord:
     memory_id: str
@@ -56,19 +65,51 @@ class MemoryRecord:
         allowed = {name for name in cls.__dataclass_fields__}
         return cls(**{key: val for key, val in value.items() if key in allowed})
 
-    def score(self, query: str, now: datetime | None = None) -> float:
+    def score(
+        self,
+        query: str,
+        now: datetime | None = None,
+        *,
+        query_embedding: list[float] | None = None,
+        vector_score: float | None = None,
+        goal_relevance: float = 0.0,
+        graph_relevance: float = 0.0,
+        relationship_relevance: float = 0.0,
+        weights: dict[str, float] | None = None,
+    ) -> float:
         now = now or datetime.now(timezone.utc)
         created = _parse_time(self.created_at_real)
         age = max(0.0, (now - created).total_seconds() / 3600.0)
-        similarity = lexical_similarity(query, f"{self.content} {self.summary}")
+        lexical = lexical_similarity(query, f"{self.content} {self.summary}")
+        semantic = vector_score if vector_score is not None else vector_similarity(
+            query_embedding or [], self.embedding
+        )
         current_recency = recency(age, self.half_life_hours)
-        reinforcement = min(1.0, self.recall_count / 5.0) * self.retention_strength
+        reinforcement = min(
+            1.0,
+            min(1.0, self.recall_count / 5.0) * self.retention_strength,
+        )
+        configured = weights or {
+            "vector": 0.40,
+            "lexical": 0.08,
+            "salience": 0.12,
+            "confidence": 0.08,
+            "goal": 0.08,
+            "graph": 0.08,
+            "relationship": 0.06,
+            "recency": 0.06,
+            "reinforcement": 0.04,
+        }
         return (
-            similarity * 0.40
-            + self.salience * 0.15
-            + self.confidence * 0.10
-            + current_recency * 0.10
-            + reinforcement * 0.05
+            semantic * configured["vector"]
+            + lexical * configured["lexical"]
+            + self.salience * configured["salience"]
+            + self.confidence * configured["confidence"]
+            + goal_relevance * configured["goal"]
+            + graph_relevance * configured["graph"]
+            + relationship_relevance * configured["relationship"]
+            + current_recency * configured["recency"]
+            + reinforcement * configured["reinforcement"]
         )
 
 

@@ -15,6 +15,7 @@ signal player_status_changed(text: String)
 signal dialogue_line(speaker: String, text: String)
 signal dialogue_choices(choices: Array)
 signal dialogue_finished
+signal ai_dialogue_reply(speaker: String, text: String)
 signal request_world_save
 signal region_changed(region_id: StringName)
 signal affinity_changed_notice(npc_id: StringName, delta: float)

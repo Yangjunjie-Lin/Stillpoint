@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://worldsession001"]
+[gd_scene load_steps=25 format=3 uid="uid://worldsession001"]
 
 [ext_resource type="Script" path="res://scripts/world/session/world_session.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" path="res://scenes/characters/base/npc_base_3d.tscn" id="20"]
 [ext_resource type="Script" path="res://scripts/quests/quest_coordinator.gd" id="21"]
 [ext_resource type="Script" path="res://scripts/ui/rpg/world_pause_menu.gd" id="22"]
+[ext_resource type="Script" path="res://scripts/npc_cognition/npc_cognition_service.gd" id="23"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_companion"]
 radius = 0.4
@@ -116,6 +117,9 @@ script = ExtResource("11")
 [node name="WorldFlagService" type="Node" parent="WorldServices"]
 script = ExtResource("12")
 
+[node name="NPCCognitionService" type="Node" parent="WorldServices"]
+script = ExtResource("23")
+
 [node name="CameraRig" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 12)
 script = ExtResource("3")
@@ -198,6 +202,28 @@ unique_name_in_owner = true
 [node name="ContinueHint" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
 unique_name_in_owner = true
 text = "..."
+
+[node name="FreeFormContainer" type="VBoxContainer" parent="WorldUI/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+
+[node name="FreeFormInput" type="LineEdit" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer"]
+unique_name_in_owner = true
+placeholder_text = "Ask something else..."
+
+[node name="Buttons" type="HBoxContainer" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer"]
+
+[node name="FreeFormSubmit" type="Button" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer/Buttons"]
+unique_name_in_owner = true
+text = "Ask"
+
+[node name="FreeFormCancel" type="Button" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer/Buttons"]
+unique_name_in_owner = true
+text = "Cancel"
+
+[node name="RequestStatus" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer"]
+unique_name_in_owner = true
+text = ""
 
 [node name="PausePanel" type="Control" parent="WorldUI"]
 visible = false
