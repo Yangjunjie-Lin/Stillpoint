@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
 import time
 import uuid
@@ -37,6 +38,38 @@ from .schemas import (
 
 SAFE_FALLBACK = "Hello. I'm here, but I need a moment before I can answer."
 ALLOWED_GRAPH_VISIBILITY = {"public", "witnessed", "told", "skill", "private"}
+logger = logging.getLogger(__name__)
+_SAFE_PROVIDER_ERROR_CODES = frozenset(
+    {
+        "provider_not_configured",
+        "provider_timeout",
+        "provider_unavailable",
+        "provider_response_too_large",
+        "invalid_provider_json",
+        "invalid_provider_reply",
+        "invalid_model_json",
+        "provider_prompt_leak",
+    }
+)
+
+
+def _safe_provider_error_code(error: Exception) -> str:
+    """Expose only controlled provider codes; never log prompts or provider payloads."""
+
+    value = str(error).strip()
+    if value in _SAFE_PROVIDER_ERROR_CODES or re.fullmatch(
+        r"provider_http_[1-5][0-9]{2}", value
+    ):
+        return value
+    return "unclassified"
+
+
+def _memory_prompt_payload(memory: MemoryRecord) -> dict[str, Any]:
+    """Keep retrieval metadata useful without sending the vector to the LLM."""
+
+    payload = memory.to_dict()
+    payload.pop("embedding", None)
+    return payload
 
 
 class RateLimiter:
@@ -140,14 +173,19 @@ class NpcCognitionService:
             memories = []
             degradation_reasons.append("memory_retrieval_unavailable")
         trusted_request = trusted_request.model_copy(
-            update={"retrieved_memories": [memory.to_dict() for memory in memories]}
+            update={"retrieved_memories": [_memory_prompt_payload(memory) for memory in memories]}
         )
         try:
             generated = validate_generation(await self.llm.generate_npc_reply(trusted_request))
-        except Exception:
+        except Exception as error:
             self.metrics["provider_or_output_error"] = self.metrics.get(
                 "provider_or_output_error", 0
             ) + 1
+            logger.warning(
+                "NPC provider failed type=%s code=%s",
+                type(error).__name__,
+                _safe_provider_error_code(error),
+            )
             return self._fallback_response(trusted_request, session, "provider_unavailable", store=True)
         usage = {
             "input_tokens": _token_count(trusted_request.text)

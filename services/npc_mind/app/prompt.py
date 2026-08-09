@@ -42,11 +42,11 @@ def _serialize_data(value: Any, path: str = "data") -> str:
     if isinstance(value, dict):
         lines: list[str] = []
         for key in sorted(value):
-            lines.extend(_serialize_data(value[key], f"{path}.{key}"))
+            lines.append(_serialize_data(value[key], f"{path}.{key}"))
         return "\n".join(lines) or f"{path}=<empty>"
     if isinstance(value, list):
         lines = []
         for index, item in enumerate(value):
-            lines.extend(_serialize_data(item, f"{path}[{index}]"))
+            lines.append(_serialize_data(item, f"{path}[{index}]"))
         return "\n".join(lines) or f"{path}=<empty>"
     return f"{path}={json.dumps(value, ensure_ascii=False)}"
