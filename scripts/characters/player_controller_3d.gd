@@ -9,6 +9,7 @@ extends CharacterController
 
 var hotbar := HotbarController.new()
 var inventory: InventoryComponent
+var equipment: EquipmentComponent
 var current_region_id: StringName = &"town"
 
 var _camera: Camera3D
@@ -18,11 +19,14 @@ var _jump_velocity: float = 6.5
 var _walk_speed: float = 4.0
 var _run_speed: float = 7.0
 var _crouch_speed: float = 2.5
+var _base_defense: float = 0.0
+var _base_energy_regen: float = 0.0
 
 
 func _ready() -> void:
 	super._ready()
 	inventory = get_node_or_null("InventoryComponent") as InventoryComponent
+	equipment = get_node_or_null("EquipmentComponent") as EquipmentComponent
 	_collision_shape = get_node_or_null("CollisionShape3D") as CollisionShape3D
 	_resolve_camera()
 	if combat != null:
@@ -44,6 +48,11 @@ func _ready() -> void:
 		_walk_speed = definition.walk_speed
 		_run_speed = definition.run_speed
 		_crouch_speed = definition.crouch_speed
+	_base_defense = health.defense if health != null else 0.0
+	_base_energy_regen = energy.regen_per_second if energy != null else 0.0
+	if equipment != null and not equipment.equipment_changed.is_connected(apply_equipment_bonuses):
+		equipment.equipment_changed.connect(apply_equipment_bonuses)
+	apply_equipment_bonuses()
 
 
 func _physics_process(delta: float) -> void:
@@ -96,6 +105,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		hotbar.select_next()
 	elif event.is_action_pressed(&"hotbar_previous"):
 		hotbar.select_previous()
+	elif event.is_action_pressed(&"use_hotbar_item"):
+		use_selected_hotbar_item()
+	else:
+		for index in HotbarController.SLOT_COUNT:
+			if event.is_action_pressed(StringName("hotbar_slot_%d" % (index + 1))):
+				hotbar.select_index(index)
+				break
 
 	if combat != null:
 		combat.set_guarding(Input.is_action_pressed(&"guard") and state.can_attack())
@@ -188,6 +204,70 @@ func get_interaction_prompt() -> String:
 	return "[%s] %s" % [key, interaction.current_target.get_interaction_text(self)]
 
 
+func use_selected_hotbar_item() -> bool:
+	return use_inventory_slot(hotbar.get_inventory_slot_index())
+
+
+func use_inventory_slot(index: int) -> bool:
+	if inventory == null:
+		return false
+	var stack := inventory.get_slot(index)
+	if stack == null or stack.is_empty():
+		return false
+	var item_definition := ResourceRegistry.get_item(stack.item_id)
+	if item_definition == null:
+		return false
+	if item_definition.equip_slot != ItemDefinition.EquipSlot.NONE:
+		return equipment != null and equipment.equip_from_inventory(
+			inventory, index, int(item_definition.equip_slot)
+		)
+	if item_definition.use_kind == ItemDefinition.UseKind.TOOL_ACTION:
+		if combat == null or item_definition.tool_attack_id == &"":
+			return false
+		var activated := combat.request_attack(item_definition.tool_attack_id)
+		if activated:
+			EventBus.notice_requested.emit("Used %s." % item_definition.display_name)
+		return activated
+	if item_definition.use_kind != ItemDefinition.UseKind.CONSUME:
+		return false
+	var health_gain := 0.0
+	var energy_gain := 0.0
+	if health != null and not health.is_dead():
+		health_gain = minf(item_definition.health_restore, health.max_health - health.current_health)
+	if energy != null:
+		energy_gain = minf(item_definition.energy_restore, energy.max_energy - energy.current_energy)
+	if health_gain <= 0.0 and energy_gain <= 0.0:
+		return false
+	if not inventory.consume_one(index):
+		return false
+	if health_gain > 0.0:
+		health.heal(health_gain)
+	if energy_gain > 0.0:
+		energy.restore(energy_gain)
+	EventBus.notice_requested.emit("Used %s." % item_definition.display_name)
+	return true
+
+
+func apply_equipment_bonuses() -> void:
+	var attack_bonus := 0.0
+	var defense_bonus := 0.0
+	var regen_bonus := 0.0
+	if equipment != null:
+		for slot in EquipmentComponent.EQUIP_SLOTS:
+			var item_definition := equipment.get_equipped_definition(slot)
+			if item_definition == null:
+				continue
+			attack_bonus += item_definition.attack_bonus
+			defense_bonus += item_definition.defense_bonus
+			regen_bonus += item_definition.energy_regen_bonus
+	if health != null:
+		health.defense = maxf(0.0, _base_defense + defense_bonus)
+	if energy != null:
+		energy.regen_per_second = maxf(0.0, _base_energy_regen + regen_bonus)
+	if combat != null:
+		combat.damage_bonus = maxf(0.0, attack_bonus)
+
+
 func _resolve_camera() -> void:
 	if camera_rig_path != NodePath():
 		var rig := get_node_or_null(camera_rig_path)
@@ -199,8 +279,11 @@ func _resolve_camera() -> void:
 
 func to_dict() -> Dictionary:
 	var data := super.to_dict()
+	if data.has("health") and data["health"] is Dictionary:
+		(data["health"] as Dictionary)["defense"] = _base_defense
 	data["hotbar"] = hotbar.to_dict()
 	data["inventory"] = inventory.to_dict() if inventory else {}
+	data["equipment"] = equipment.to_dict() if equipment else {}
 	data["current_region_id"] = String(current_region_id)
 	data["game_time"] = game_time
 	return data
@@ -211,5 +294,10 @@ func from_dict(data: Dictionary) -> void:
 	hotbar.from_dict(data.get("hotbar", {}))
 	if inventory != null:
 		inventory.from_dict(data.get("inventory", {}))
+	if health != null:
+		_base_defense = health.defense
+	if equipment != null:
+		equipment.from_dict(data.get("equipment", {}))
+	apply_equipment_bonuses()
 	current_region_id = StringName(str(data.get("current_region_id", current_region_id)))
 	game_time = float(data.get("game_time", game_time))

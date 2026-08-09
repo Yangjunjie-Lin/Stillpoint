@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://player3d001"]
+[gd_scene load_steps=21 format=3 uid="uid://player3d001"]
 
 [ext_resource type="Script" path="res://scripts/characters/player_controller_3d.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2"]
@@ -20,6 +20,7 @@
 [ext_resource type="Script" path="res://scripts/components/ragdoll_controller.gd" id="17"]
 [ext_resource type="Script" path="res://scripts/combat/melee_sweep_3d.gd" id="18"]
 [ext_resource type="Resource" path="res://resources/attacks/attack_light_1.tres" id="19"]
+[ext_resource type="Script" path="res://scripts/components/equipment_component.gd" id="20"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -81,6 +82,9 @@ script = ExtResource("9")
 
 [node name="InventoryComponent" type="Node" parent="."]
 script = ExtResource("10")
+
+[node name="EquipmentComponent" type="Node" parent="."]
+script = ExtResource("20")
 
 [node name="Hurtbox3D" type="Area3D" parent="."]
 script = ExtResource("12")

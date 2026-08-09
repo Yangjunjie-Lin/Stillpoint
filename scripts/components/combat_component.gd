@@ -32,6 +32,7 @@ var is_attacking: bool = false
 var is_guarding: bool = false
 var combo_window_open: bool = false
 var hitbox_active: bool = false
+var damage_bonus: float = 0.0
 
 var _owner: CharacterController
 var _anim: CombatAnimationController
@@ -85,12 +86,12 @@ func open_attack_window() -> void:
 	hitbox_active = true
 	_hit_targets.clear()
 	if hitbox != null:
-		hitbox.damage = _current_attack.damage if _current_attack else attack.damage
+		hitbox.damage = (_current_attack.damage if _current_attack else attack.damage) + damage_bonus
 		hitbox.attack_id = _current_attack.id if _current_attack else attack.id
 		hitbox.maximum_targets = _current_attack.maximum_targets if _current_attack else 1
 		hitbox.set_active(true)
 	if melee_sweep != null:
-		melee_sweep.damage = hitbox.damage if hitbox != null else attack.damage
+		melee_sweep.damage = hitbox.damage if hitbox != null else attack.damage + damage_bonus
 		melee_sweep.attack_id = hitbox.attack_id if hitbox != null else attack.id
 		melee_sweep.maximum_targets = _current_attack.maximum_targets if _current_attack else 1
 		melee_sweep.begin_sweep()

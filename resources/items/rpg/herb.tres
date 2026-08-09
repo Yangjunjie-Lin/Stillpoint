@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/herb.svg" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -9,3 +10,4 @@ display_name = "Forest Herb"
 item_type = 3
 max_stack = 20
 description = "A fragrant herb from the wilderness."
+icon = ExtResource("2")

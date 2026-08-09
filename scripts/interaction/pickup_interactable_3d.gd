@@ -31,6 +31,9 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 	var player := actor as PlayerController3D
 	if player == null or player.inventory == null:
 		return
+	if item_id == &"" or quantity <= 0 or not player.inventory.can_add_item(item_id, quantity):
+		EventBus.notice_requested.emit("Backpack is full.")
+		return
 	if _session == null:
 		_session = _find_session()
 	var session_ctx: WorldSessionContext = null
@@ -47,7 +50,11 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 		if not effect_result.success:
 			EventBus.notice_requested.emit("Pickup effect failed: %s" % effect_result.message)
 			return
-	player.inventory.add_item(item_id, quantity)
+	var inventory_before := player.inventory.to_dict()
+	if player.inventory.add_item(item_id, quantity) != quantity:
+		player.inventory.from_dict(inventory_before)
+		EventBus.notice_requested.emit("Could not pick up item.")
+		return
 	_collected = true
 	interaction_enabled = false
 	visible = false

@@ -14,6 +14,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	# would pause the world before DialogueUI can close an AI reply or editor.
 	if not visible and _dialogue_panel_visible():
 		return
+	if not visible and _inventory_menu_visible():
+		return
 	if visible:
 		_resume()
 	else:
@@ -26,6 +28,14 @@ func _dialogue_panel_visible() -> bool:
 	if world == null:
 		return false
 	var panel := world.get_node_or_null("WorldUI/DialoguePanel") as Control
+	return panel != null and panel.visible
+
+
+func _inventory_menu_visible() -> bool:
+	var world := get_tree().get_first_node_in_group("world_manager")
+	if world == null:
+		return false
+	var panel := world.get_node_or_null("WorldUI/InventoryMenu") as Control
 	return panel != null and panel.visible
 
 

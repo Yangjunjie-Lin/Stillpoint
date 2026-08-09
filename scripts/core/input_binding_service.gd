@@ -6,7 +6,9 @@ const BINDINGS_PATH := "user://input_bindings.json"
 const DEFAULT_ACTIONS: Array[StringName] = [
 	&"move_forward", &"move_backward", &"move_left", &"move_right",
 	&"interact", &"toggle_walk_run", &"normal_attack", &"jump", &"guard", &"crouch",
-	&"hotbar_previous", &"hotbar_next",
+	&"hotbar_previous", &"hotbar_next", &"use_hotbar_item",
+	&"hotbar_slot_1", &"hotbar_slot_2", &"hotbar_slot_3", &"hotbar_slot_4",
+	&"hotbar_slot_5", &"hotbar_slot_6", &"hotbar_slot_7", &"hotbar_slot_8",
 	&"action_u", &"action_i", &"action_o", &"action_l",
 	&"pause", &"open_menu", &"open_map",
 ]

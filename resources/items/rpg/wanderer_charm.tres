@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/wanderer_charm.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"wanderer_charm"
+display_name = "Wanderer Charm"
+item_type = 11
+max_stack = 1
+description = "A warm stone charm that steadies a tired traveler."
+icon = ExtResource("2")
+equip_slot = 3
+energy_regen_bonus = 2.0

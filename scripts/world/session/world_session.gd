@@ -188,10 +188,16 @@ func cancel_active_dialogue() -> void:
 
 func capture_player_data() -> Dictionary:
 	var inventory_data := player.inventory.to_dict() if player.inventory else {}
+	var equipment_data := player.equipment.to_dict() if player.equipment else {}
 	var player_data := player.to_dict()
 	player_data.erase("inventory")
+	player_data.erase("equipment")
 	player_data["region_id"] = String(current_region_id)
-	return {"player": player_data, "inventory": inventory_data}
+	return {
+		"player": player_data,
+		"inventory": inventory_data,
+		"equipment": equipment_data,
+	}
 
 
 func restore_player_data(data: Dictionary) -> void:
@@ -205,6 +211,9 @@ func restore_player_data(data: Dictionary) -> void:
 	player.global_position = saved_pos
 	if player.inventory != null:
 		player.inventory.from_dict(data.get("inventory", {}))
+	if player.equipment != null:
+		player.equipment.from_dict(data.get("equipment", {}))
+	player.apply_equipment_bonuses()
 
 
 func apply_saved_player_transform(data: Dictionary) -> void:
@@ -315,6 +324,12 @@ func _spawn_player() -> void:
 	player.add_child(identity)
 	entity_repository.register_entity(player)
 	_session_context.player = player
+	if not GameManager.resume_requested:
+		_grant_starter_inventory()
+	if player.inventory != null and not player.inventory.inventory_changed.is_connected(_on_player_items_changed):
+		player.inventory.inventory_changed.connect(_on_player_items_changed)
+	if player.equipment != null and not player.equipment.equipment_changed.is_connected(_on_player_items_changed):
+		player.equipment.equipment_changed.connect(_on_player_items_changed)
 	var camera_rig := get_node_or_null("CameraRig") as CameraController3D
 	if camera_rig != null:
 		camera_rig.set_target(player)
@@ -332,6 +347,16 @@ func _spawn_companions() -> void:
 		var mid := mount.get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
 		if mid != null:
 			entity_repository.register_entity(mount)
+
+
+func _grant_starter_inventory() -> void:
+	if player == null or player.inventory == null:
+		return
+	player.inventory.add_item(&"training_sword", 1)
+	player.inventory.add_item(&"field_pick", 1)
+	player.inventory.add_item(&"trail_snack", 3)
+	player.inventory.add_item(&"padded_vest", 1)
+	player.inventory.add_item(&"wanderer_charm", 1)
 
 
 func _serialize_pet() -> Dictionary:
@@ -376,3 +401,8 @@ func _on_region_changed(_previous: StringName, current: StringName) -> void:
 		current,
 	)
 	event_bus.emit_event(ev)
+
+
+func _on_player_items_changed() -> void:
+	if save_coordinator != null:
+		save_coordinator.mark_dirty(&"player")

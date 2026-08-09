@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/trail_snack.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"trail_snack"
+display_name = "Trail Snack"
+item_type = 6
+max_stack = 10
+description = "Nuts, berries and oats. Restores a little health and plenty of energy."
+icon = ExtResource("2")
+use_kind = 1
+health_restore = 8.0
+energy_restore = 30.0

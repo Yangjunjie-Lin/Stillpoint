@@ -24,6 +24,16 @@ func select_previous() -> void:
 	selection_changed.emit(selected_index)
 
 
+func select_index(index: int) -> bool:
+	if index < 0 or index >= SLOT_COUNT:
+		return false
+	if selected_index == index:
+		return true
+	selected_index = index
+	selection_changed.emit(selected_index)
+	return true
+
+
 func get_inventory_slot_index() -> int:
 	if selected_index < 0 or selected_index >= slot_refs.size():
 		return 0

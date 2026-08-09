@@ -29,7 +29,14 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 	var player := actor as PlayerController3D
 	if player == null or player.inventory == null:
 		return
-	player.inventory.add_item(item_id, quantity)
+	if item_id == &"" or quantity <= 0 or not player.inventory.can_add_item(item_id, quantity):
+		EventBus.notice_requested.emit("Backpack is full.")
+		return
+	var inventory_before := player.inventory.to_dict()
+	if player.inventory.add_item(item_id, quantity) != quantity:
+		player.inventory.from_dict(inventory_before)
+		EventBus.notice_requested.emit("Could not collect chest reward.")
+		return
 	_opened = true
 	interaction_enabled = false
 	if _session == null:

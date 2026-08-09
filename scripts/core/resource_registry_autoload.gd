@@ -201,7 +201,7 @@ func load_defaults() -> void:
 	_register_dir("res://resources/npcs/", _register_npc_resource)
 	_register_dir("res://resources/factions/", register_faction)
 	_register_dir("res://resources/skills/", register_skill)
-	_register_dir("res://resources/items/", register_item)
+	_register_dir("res://resources/items/", register_item, true)
 	_register_dir("res://resources/dialogues/", register_dialogue)
 	_register_dir("res://resources/quests/", register_quest)
 	_register_dir("res://resources/regions/", register_region)

@@ -36,7 +36,9 @@ Save v4 validates the manifest and player core before Continue, recovers critica
 | Crouch | Ctrl |
 | Pause / return menu | Esc |
 | Combat debug overlay | F10 (diagnostics toggle) |
-| Hotbar | Q / E |
+| Backpack / equipment | Tab |
+| Select hotbar slot | 1–8, Q / E, mouse wheel |
+| Use or equip selected item | X |
 
 ## Combat Lab
 
