@@ -33,15 +33,35 @@ func capture_save_data() -> Dictionary:
 func restore_save_data(data: Dictionary) -> bool:
 	## Save v4 from 0.7.1 legitimately has no cognition section.
 	if data.is_empty():
-		backend_player_profile_id = ""
-		world_save_id = "slot-01"
+		# setup() has already supplied the private, install-owned identity for
+		# this runtime. An older save with no cognition section must not erase it.
 		cache.clear(false)
 		_dirty = false
 		return true
 	if int(data.get("section_version", 1)) > SECTION_VERSION: return false
-	backend_player_profile_id = str(data.get("backend_player_profile_id", ""))
-	world_save_id = str(data.get("world_save_id", "slot-01"))
+	var saved_player_profile_id := str(data.get("backend_player_profile_id", "")).strip_edges()
+	var saved_world_save_id := str(data.get("world_save_id", "")).strip_edges()
+	var runtime_player_profile_id := backend_player_profile_id.strip_edges()
+	var runtime_world_save_id := world_save_id.strip_edges()
+	var has_install_owned_runtime_scope := not runtime_player_profile_id.is_empty()
 	if not cache.from_dict(data): return false
+	# The install-owned runtime scope wins whenever setup() supplied it. This
+	# prevents a copied or stale save from splitting dialogue and gameplay-event
+	# cognition across different player identities.
+	if has_install_owned_runtime_scope:
+		backend_player_profile_id = runtime_player_profile_id
+		world_save_id = runtime_world_save_id
+		if saved_player_profile_id != runtime_player_profile_id \
+			or saved_world_save_id != runtime_world_save_id:
+			# Cognition state is private to its exact player/save scope. Never
+			# migrate memories, sessions or pending writes across identities.
+			cache.clear(false)
+			mark_dirty()
+			return true
+	else:
+		backend_player_profile_id = saved_player_profile_id
+		if not saved_world_save_id.is_empty():
+			world_save_id = saved_world_save_id
 	_dirty = false
 	return true
 

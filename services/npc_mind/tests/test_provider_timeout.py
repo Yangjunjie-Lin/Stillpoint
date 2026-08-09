@@ -59,3 +59,15 @@ def test_provider_error_log_code_never_echoes_arbitrary_credential(caplog):
     assert "code=unclassified" in caplog.text
     assert _safe_provider_error_code(RuntimeError("provider_timeout")) == "provider_timeout"
     assert _safe_provider_error_code(RuntimeError("provider_http_429")) == "provider_http_429"
+    assert (
+        _safe_provider_error_code(RuntimeError("provider_garbled_reply"))
+        == "provider_garbled_reply"
+    )
+    assert (
+        _safe_provider_error_code(RuntimeError("provider_internal_retrieval_status"))
+        == "provider_internal_retrieval_status"
+    )
+    assert (
+        _safe_provider_error_code(RuntimeError("provider_unhelpful_reply"))
+        == "provider_unhelpful_reply"
+    )

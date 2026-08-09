@@ -28,7 +28,9 @@ if ([string]::IsNullOrWhiteSpace($siliconFlowModel)) {
 $provider = "fake"
 $providerLabel = "fake"
 $embeddingProvider = "fake"
+$isSiliconFlow = $false
 if (-not [string]::IsNullOrWhiteSpace($siliconFlowKey)) {
+    $isSiliconFlow = $true
     $env:OPENAI_API_KEY = $siliconFlowKey
     $env:OPENAI_BASE_URL = "https://api.siliconflow.cn/v1"
     # Qwen/Qwen2.5-7B-Instruct can misspell or truncate structured fields on
@@ -60,9 +62,30 @@ $env:DATABASE_URL = $databaseUrl
 $env:NPC_MIND_SIGNING_KEY = [guid]::NewGuid().ToString("N")
 $env:LLM_PROVIDER = $provider
 $env:NPC_EMBEDDING_PROVIDER = $embeddingProvider
-$env:NPC_PROVIDER_READ_TIMEOUT_SECONDS = if ($provider -eq "openai") { "60" } else { "15" }
-$env:NPC_PROVIDER_RETRIES = if ($provider -eq "openai") { "1" } else { "2" }
-$env:NPC_MAX_OUTPUT_TOKENS = if ($provider -eq "openai") { "800" } else { "400" }
+$env:NPC_PROVIDER_READ_TIMEOUT_SECONDS = if ($isSiliconFlow) {
+    "17"
+} elseif ($provider -eq "openai") {
+    "60"
+} else {
+    "15"
+}
+# Text-quality retries happen only after a valid HTTP response. At most three
+# quality attempts, each with two 17-second reads plus a 3-second connect phase,
+# stay below the 130-second Godot request budget even on the combined worst path.
+$env:NPC_PROVIDER_RETRIES = if ($isSiliconFlow) {
+    "1"
+} elseif ($provider -eq "openai") {
+    "1"
+} else {
+    "2"
+}
+$env:NPC_MAX_OUTPUT_TOKENS = if ($isSiliconFlow) {
+    "400"
+} elseif ($provider -eq "openai") {
+    "800"
+} else {
+    "400"
+}
 $env:NPC_BACKEND_URL = "http://127.0.0.1:8443"
 $env:NPC_DIALOGUE_TIMEOUT_SECONDS = if ($provider -eq "openai") { "130" } else { "15" }
 $env:NPC_DIALOGUE_MAX_RETRIES = if ($provider -eq "openai") { "0" } else { "1" }
@@ -120,6 +143,14 @@ try {
         Get-Content -LiteralPath (Join-Path $runtimeDir "backend.stderr.log") -Tail 80 -ErrorAction SilentlyContinue
         throw "Backend did not become healthy."
     }
+
+    # Uvicorn has inherited its server-only configuration. Remove every secret
+    # from the launcher environment before spawning the Godot client.
+    Remove-Item Env:SILICONFLOW_API_KEY -ErrorAction SilentlyContinue
+    Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+    Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
+    Remove-Item Env:NPC_MIND_SIGNING_KEY -ErrorAction SilentlyContinue
+    $siliconFlowKey = $null
 
     Write-Host "[4/4] Opening Stillpoint Debug Build..." -ForegroundColor Cyan
     Write-Host "Provider: $providerLabel" -ForegroundColor Yellow

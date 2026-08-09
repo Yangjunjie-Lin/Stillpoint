@@ -49,6 +49,14 @@ _SAFE_PROVIDER_ERROR_CODES = frozenset(
         "invalid_provider_reply",
         "invalid_model_json",
         "provider_prompt_leak",
+        "provider_repetitive_reply",
+        "provider_reply_language_mismatch",
+        "provider_speaker_label",
+        "provider_narrated_reply",
+        "provider_incomplete_reply",
+        "provider_garbled_reply",
+        "provider_internal_retrieval_status",
+        "provider_unhelpful_reply",
     }
 )
 

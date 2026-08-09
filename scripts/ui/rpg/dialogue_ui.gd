@@ -103,7 +103,7 @@ func _on_finished() -> void:
 	visible = false
 	_clear_choices()
 	_choices.clear()
-	free_form_container.visible = false
+	_reset_free_form_editor()
 	_requesting = false
 	_showing_ai_reply = false
 
@@ -121,6 +121,7 @@ func _clear_choices() -> void:
 
 
 func _show_free_form() -> void:
+	free_form_input.clear()
 	free_form_container.visible = true
 	request_status.text = ""
 	free_form_submit.disabled = false
@@ -140,12 +141,13 @@ func _submit_free_form() -> void:
 	free_form_input.editable = false
 	request_status.text = "Thinking..."
 	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
-	if world == null or not world.ask_active_npc(text):
-		if not _showing_ai_reply:
-			_requesting = false
-			free_form_submit.disabled = false
-			free_form_input.editable = true
-			request_status.text = "AI dialogue unavailable; use a dialogue choice."
+	if world != null and world.ask_active_npc(text):
+		free_form_input.clear()
+	elif not _showing_ai_reply:
+		_requesting = false
+		free_form_submit.disabled = false
+		free_form_input.editable = true
+		request_status.text = "AI dialogue unavailable; use a dialogue choice."
 
 
 func _cancel_free_form() -> void:
@@ -153,10 +155,7 @@ func _cancel_free_form() -> void:
 	if _requesting and world != null:
 		world.cancel_free_form_dialogue()
 	_requesting = false
-	free_form_container.visible = false
-	free_form_submit.disabled = false
-	free_form_input.editable = true
-	request_status.text = ""
+	_reset_free_form_editor()
 
 
 func _close_dialogue() -> void:
@@ -175,6 +174,14 @@ func _on_ai_dialogue_reply(speaker: String, text: String) -> void:
 	speaker_label.text = speaker
 	body_label.text = text
 	_clear_choices()
-	free_form_container.visible = false
+	_reset_free_form_editor()
 	continue_hint.visible = true
 	continue_hint.text = "Esc to close"
+
+
+func _reset_free_form_editor() -> void:
+	free_form_input.clear()
+	free_form_container.visible = false
+	free_form_submit.disabled = false
+	free_form_input.editable = true
+	request_status.text = ""
