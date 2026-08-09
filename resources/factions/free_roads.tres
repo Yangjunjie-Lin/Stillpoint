@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="FactionDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/faction_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"free_roads"
+display_name = "自由行路会"
+description = "由信使、旅人和独立冒险者维系的松散网络，保护道路、消息与个人选择。"
+selectable = true
+accent_color = Color(0.31, 0.75, 0.72, 1)
+default_player_reputation = 5.0
+max_energy_bonus = 5.0
+move_speed_bonus = 0.1

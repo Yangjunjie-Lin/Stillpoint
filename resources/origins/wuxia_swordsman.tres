@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CharacterOriginDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_origin_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player/origins/wuxia_swordsman.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"wuxia_swordsman"
+display_name = "云游剑客"
+description = "出身于东方幻想江湖的游侠。重视承诺、分寸与自由，以轻灵步法寻找值得守护的人与事。外观只代表来历，不限制后续职业。"
+appearance_description = "束起长发，穿便于行动的层叠长衫与护腕，腰悬朴素长剑；青玉、墨色与云纹构成主要视觉语言。"
+model_scene = ExtResource("2")
+accent_color = Color(0.19, 0.72, 0.62, 1)
+recommended_profession_id = &"spirit_blade"
+recommended_faction_id = &"free_roads"
+max_energy_bonus = 10.0
+attack_bonus = 3.0
+move_speed_bonus = 0.25
+energy_regen_bonus = 0.2

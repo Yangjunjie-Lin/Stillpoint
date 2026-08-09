@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CharacterOriginDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_origin_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player/origins/ronin.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"ronin"
+display_name = "暮雨浪人"
+description = "来自群岛战乱年代的无主旅人，在旧日责任与新生道路之间保持克制。沉着观察后才出刀，但外观不限制后续职业。"
+appearance_description = "旧斗笠遮住半张脸，短羽织与旅行袴留有风雨磨痕，腰间双鞘以暗红绳结固定。"
+model_scene = ExtResource("2")
+accent_color = Color(0.63, 0.2, 0.23, 1)
+recommended_profession_id = &"duelist"
+recommended_faction_id = &"ash_watch"
+max_health_bonus = 5.0
+attack_bonus = 4.0
+defense_bonus = 0.5
+move_speed_bonus = 0.15

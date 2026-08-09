@@ -21,6 +21,7 @@
 [ext_resource type="Script" path="res://scripts/combat/melee_sweep_3d.gd" id="18"]
 [ext_resource type="Resource" path="res://resources/attacks/attack_light_1.tres" id="19"]
 [ext_resource type="Script" path="res://scripts/components/equipment_component.gd" id="20"]
+[ext_resource type="Script" path="res://scripts/characters/player/player_appearance_controller.gd" id="21"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -29,12 +30,6 @@ height = 1.8
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2"]
 radius = 0.5
 height = 1.6
-
-[sub_resource type="BoxMesh" id="BoxMesh_1"]
-size = Vector3(0.8, 1.6, 0.8)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
-albedo_color = Color(0.2, 0.6, 1, 1)
 
 [node name="Player3D" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1")
@@ -48,11 +43,7 @@ shape = SubResource("CapsuleShape3D_1")
 [node name="VisualRoot" type="Node3D" parent="."]
 
 [node name="CharacterModel" type="Node3D" parent="VisualRoot"]
-
-[node name="Visual" type="MeshInstance3D" parent="VisualRoot/CharacterModel"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
-mesh = SubResource("BoxMesh_1")
-surface_material_override/0 = SubResource("StandardMaterial3D_1")
+script = ExtResource("21")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2")

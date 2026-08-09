@@ -325,6 +325,7 @@ func _spawn_player() -> void:
 	entity_repository.register_entity(player)
 	_session_context.player = player
 	if not GameManager.resume_requested:
+		player.apply_character_build(GameManager.consume_pending_character_build(), true)
 		_grant_starter_inventory()
 	if player.inventory != null and not player.inventory.inventory_changed.is_connected(_on_player_items_changed):
 		player.inventory.inventory_changed.connect(_on_player_items_changed)

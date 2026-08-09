@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CharacterOriginDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_origin_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player/origins/steppe_rider.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"steppe_rider"
+display_name = "苍原骑手"
+description = "在辽阔草原与季风中长大的信使，珍视待客之道、伙伴关系与开阔视野。骑手来历不要求选择骑乘职业。"
+appearance_description = "短毛领旅行袍搭配层叠皮甲与高靴，衣摆使用几何织纹，弓袋和风铃刻画长途旅人的轮廓。"
+model_scene = ExtResource("2")
+accent_color = Color(0.36, 0.68, 0.78, 1)
+recommended_profession_id = &"wind_scout"
+recommended_faction_id = &"free_roads"
+max_health_bonus = 8.0
+max_energy_bonus = 5.0
+attack_bonus = 2.5
+move_speed_bonus = 0.35

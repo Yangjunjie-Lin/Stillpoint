@@ -111,6 +111,7 @@ func _reset_global_state() -> void:
 	gm.set("run_active", false)
 	gm.set("resume_requested", false)
 	gm.set("player_name", "Player")
+	gm.set("pending_character_build", {})
 	# Remove every non-autoload root child. Tests may route scenes or leave a
 	# deferred replacement behind, so free and settle before the next test.
 	const AUTOLOADS := [

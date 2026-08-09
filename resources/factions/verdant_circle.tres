@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="FactionDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/faction_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"verdant_circle"
+display_name = "苍翠环会"
+description = "研究土地、记忆与生命循环的协作团体，主张修复环境并谨慎使用古老力量。"
+selectable = true
+accent_color = Color(0.37, 0.72, 0.42, 1)
+default_player_reputation = 5.0
+max_energy_bonus = 5.0
+energy_regen_bonus = 0.25

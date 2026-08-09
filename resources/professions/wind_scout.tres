@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ProfessionDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/profession_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"wind_scout"
+display_name = "逐风斥候"
+description = "依靠速度和观察绕开正面压力，适合快速侦察与灵活交战。任何出身均可选择。"
+accent_color = Color(0.42, 0.75, 0.84, 1)
+recommended_origin_ids = Array[StringName]([&"steppe_rider"])
+max_health_bonus = 5.0
+max_energy_bonus = 5.0
+attack_bonus = 2.0
+move_speed_bonus = 0.3
+energy_regen_bonus = 0.2

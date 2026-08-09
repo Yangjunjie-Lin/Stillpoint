@@ -27,6 +27,8 @@ func run() -> bool:
 	var states := relationship_data.get("states", {}) as Dictionary
 	var prior_npc_state: Variant = states.get(&"new_adventure_reset_npc", states.get("new_adventure_reset_npc", null))
 	var ok := QuestManager.get_runtime(quest.id) == null
+	var routed_scene := main.get_node("CurrentScene/CharacterCreation")
+	ok = ok and routed_scene is CharacterCreationUI
 	ok = ok and prior_npc_state == null
 	ok = ok and WorldTimeService.day == 1
 	ok = ok and WorldTimeService.hour == 8

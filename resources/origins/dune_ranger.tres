@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CharacterOriginDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_origin_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player/origins/dune_ranger.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"dune_ranger"
+display_name = "逐沙游侠"
+description = "熟悉风向、星路与荒漠水脉的远行者，擅长在恶劣环境中保存体力并发现安全路径。沙海装束不限制后续职业。"
+appearance_description = "靛蓝面巾、浅沙色长披与多层轻甲隔绝烈日，腰带挂有罗盘、绳索和封蜡水囊。"
+model_scene = ExtResource("2")
+accent_color = Color(0.84, 0.62, 0.27, 1)
+recommended_profession_id = &"pathfinder"
+recommended_faction_id = &"verdant_circle"
+max_energy_bonus = 8.0
+attack_bonus = 2.0
+move_speed_bonus = 0.3
+energy_regen_bonus = 0.25

@@ -9,9 +9,13 @@ func run() -> bool:
 	var ok := _equip(player, &"training_sword")
 	ok = ok and _equip(player, &"padded_vest")
 	ok = ok and _equip(player, &"wanderer_charm")
-	ok = ok and is_equal_approx(player.combat.damage_bonus, 4.0)
-	ok = ok and is_equal_approx(player.health.defense, 3.0)
-	ok = ok and is_equal_approx(player.energy.regen_per_second, 10.0)
+	var build_bonuses := player.get_character_build_bonuses()
+	var expected_attack := 4.0 + float(build_bonuses.get(&"attack_bonus", 0.0))
+	var expected_defense := 3.0 + float(build_bonuses.get(&"defense_bonus", 0.0))
+	var expected_regen := 10.0 + float(build_bonuses.get(&"energy_regen_bonus", 0.0))
+	ok = ok and is_equal_approx(player.combat.damage_bonus, expected_attack)
+	ok = ok and is_equal_approx(player.health.defense, expected_defense)
+	ok = ok and is_equal_approx(player.energy.regen_per_second, expected_regen)
 	ok = ok and world.save_world_state()
 	world.free()
 
@@ -28,9 +32,9 @@ func run() -> bool:
 	ok = ok and restored_player.equipment.get_equipped_item(
 		ItemDefinition.EquipSlot.CHARM
 	) == &"wanderer_charm"
-	ok = ok and is_equal_approx(restored_player.combat.damage_bonus, 4.0)
-	ok = ok and is_equal_approx(restored_player.health.defense, 3.0)
-	ok = ok and is_equal_approx(restored_player.energy.regen_per_second, 10.0)
+	ok = ok and is_equal_approx(restored_player.combat.damage_bonus, expected_attack)
+	ok = ok and is_equal_approx(restored_player.health.defense, expected_defense)
+	ok = ok and is_equal_approx(restored_player.energy.regen_per_second, expected_regen)
 	restored.free()
 	GameManager.resume_requested = false
 	if not ok:

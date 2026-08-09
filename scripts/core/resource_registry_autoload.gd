@@ -4,6 +4,8 @@ extends Node
 var _characters: Dictionary = {}
 var _npcs: Dictionary = {}
 var _factions: Dictionary = {}
+var _origins: Dictionary = {}
+var _professions: Dictionary = {}
 var _skills: Dictionary = {}
 var _items: Dictionary = {}
 var _dialogues: Dictionary = {}
@@ -36,6 +38,14 @@ func register_npc(def: NPCDefinition) -> void:
 
 func register_faction(def: FactionDefinition) -> void:
 	_put(_factions, def.id if def else &"", def, "faction")
+
+
+func register_origin(def: CharacterOriginDefinition) -> void:
+	_put(_origins, def.id if def else &"", def, "origin")
+
+
+func register_profession(def: ProfessionDefinition) -> void:
+	_put(_professions, def.id if def else &"", def, "profession")
 
 
 func register_skill(def: SkillDefinition) -> void:
@@ -125,6 +135,63 @@ func get_faction(id: StringName) -> FactionDefinition:
 	return _factions.get(id) as FactionDefinition
 
 
+func get_all_factions() -> Array[FactionDefinition]:
+	var result: Array[FactionDefinition] = []
+	for id in _sorted_keys(_factions):
+		var definition := _factions[id] as FactionDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_selectable_factions() -> Array[FactionDefinition]:
+	var result: Array[FactionDefinition] = []
+	for definition in get_all_factions():
+		if definition.selectable:
+			result.append(definition)
+	return result
+
+
+func get_origin(id: StringName) -> CharacterOriginDefinition:
+	return _origins.get(id) as CharacterOriginDefinition
+
+
+func get_all_origins() -> Array[CharacterOriginDefinition]:
+	var result: Array[CharacterOriginDefinition] = []
+	for id in _sorted_keys(_origins):
+		var definition := _origins[id] as CharacterOriginDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_all_origin_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for definition in get_all_origins():
+		result.append(definition.id)
+	return result
+
+
+func get_profession(id: StringName) -> ProfessionDefinition:
+	return _professions.get(id) as ProfessionDefinition
+
+
+func get_all_professions() -> Array[ProfessionDefinition]:
+	var result: Array[ProfessionDefinition] = []
+	for id in _sorted_keys(_professions):
+		var definition := _professions[id] as ProfessionDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_all_profession_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for definition in get_all_professions():
+		result.append(definition.id)
+	return result
+
+
 func get_skill(id: StringName) -> SkillDefinition:
 	return _skills.get(id) as SkillDefinition
 
@@ -200,6 +267,8 @@ func load_defaults() -> void:
 	_register_dir("res://resources/characters/", register_character)
 	_register_dir("res://resources/npcs/", _register_npc_resource)
 	_register_dir("res://resources/factions/", register_faction)
+	_register_dir("res://resources/origins/", register_origin)
+	_register_dir("res://resources/professions/", register_profession)
 	_register_dir("res://resources/skills/", register_skill)
 	_register_dir("res://resources/items/", register_item, true)
 	_register_dir("res://resources/dialogues/", register_dialogue)
@@ -220,6 +289,8 @@ func clear_all() -> void:
 	_characters.clear()
 	_npcs.clear()
 	_factions.clear()
+	_origins.clear()
+	_professions.clear()
 	_skills.clear()
 	_items.clear()
 	_dialogues.clear()
@@ -241,6 +312,8 @@ func clear_test_registrations() -> void:
 		"characters": _characters,
 		"npcs": _npcs,
 		"factions": _factions,
+		"origins": _origins,
+		"professions": _professions,
 		"skills": _skills,
 		"items": _items,
 		"dialogues": _dialogues,
@@ -267,6 +340,8 @@ func _capture_default_keys() -> void:
 		"characters": _characters.duplicate(false),
 		"npcs": _npcs.duplicate(false),
 		"factions": _factions.duplicate(false),
+		"origins": _origins.duplicate(false),
+		"professions": _professions.duplicate(false),
 		"skills": _skills.duplicate(false),
 		"items": _items.duplicate(false),
 		"dialogues": _dialogues.duplicate(false),
@@ -321,3 +396,9 @@ func _put(bucket: Dictionary, id: StringName, value: Resource, kind: String) -> 
 		push_error("ResourceRegistry: duplicate %s id '%s'" % [kind, String(id)])
 		return
 	bucket[id] = value
+
+
+func _sorted_keys(bucket: Dictionary) -> Array:
+	var ids := bucket.keys()
+	ids.sort_custom(func(a: Variant, b: Variant) -> bool: return String(a) < String(b))
+	return ids

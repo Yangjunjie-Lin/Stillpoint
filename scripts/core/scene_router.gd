@@ -2,6 +2,7 @@ extends Node
 ## Owns scene transitions through the Main CurrentScene slot.
 
 const MAIN_MENU := "res://scenes/ui/main_menu.tscn"
+const CHARACTER_CREATION := "res://scenes/ui/character_creation.tscn"
 const GAMEPLAY := "res://scenes/gameplay/gameplay.tscn"
 const VERTICAL_SLICE := "res://scenes/world/world_session.tscn"
 const WORLD_SESSION := "res://scenes/world/world_session.tscn"
@@ -13,6 +14,10 @@ var _current_scene: Node = null
 
 func go_to_main_menu() -> void:
 	change_scene(MAIN_MENU)
+
+
+func go_to_character_creation() -> void:
+	change_scene(CHARACTER_CREATION)
 
 
 func go_to_gameplay() -> void:

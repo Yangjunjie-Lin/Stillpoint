@@ -1,6 +1,8 @@
 class_name PlayerController3D
 extends CharacterController
 
+const CHARACTER_BUILD_SECTION_VERSION: int = 1
+
 @export var camera_rig_path: NodePath
 @export var stand_height: float = 1.8
 @export var crouch_height: float = 1.0
@@ -11,22 +13,35 @@ var hotbar := HotbarController.new()
 var inventory: InventoryComponent
 var equipment: EquipmentComponent
 var current_region_id: StringName = &"town"
+var origin_id: StringName = GameManager.DEFAULT_ORIGIN_ID
+var selected_faction_id: StringName = GameManager.DEFAULT_FACTION_ID
+var profession_id: StringName = GameManager.DEFAULT_PROFESSION_ID
 
 var _camera: Camera3D
 var _collision_shape: CollisionShape3D
+var _appearance_controller: PlayerAppearanceController
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
 var _jump_velocity: float = 6.5
 var _walk_speed: float = 4.0
 var _run_speed: float = 7.0
 var _crouch_speed: float = 2.5
+var _base_max_health: float = 120.0
+var _base_max_energy: float = 100.0
+var _base_walk_speed: float = 4.0
+var _base_run_speed: float = 7.0
+var _base_crouch_speed: float = 2.5
 var _base_defense: float = 0.0
 var _base_energy_regen: float = 0.0
+var _character_build_bonuses: Dictionary = CharacterBuildCalculator.empty_bonuses()
 
 
 func _ready() -> void:
 	super._ready()
 	inventory = get_node_or_null("InventoryComponent") as InventoryComponent
 	equipment = get_node_or_null("EquipmentComponent") as EquipmentComponent
+	_appearance_controller = get_node_or_null(
+		"VisualRoot/CharacterModel"
+	) as PlayerAppearanceController
 	_collision_shape = get_node_or_null("CollisionShape3D") as CollisionShape3D
 	_resolve_camera()
 	if combat != null:
@@ -45,14 +60,16 @@ func _ready() -> void:
 		combat.light_attack_ids = [&"attack_light_1", &"attack_light_2", &"attack_light_3"]
 	if definition != null:
 		_jump_velocity = definition.jump_velocity
-		_walk_speed = definition.walk_speed
-		_run_speed = definition.run_speed
-		_crouch_speed = definition.crouch_speed
+		_base_max_health = definition.max_health
+		_base_max_energy = definition.max_energy
+		_base_walk_speed = definition.walk_speed
+		_base_run_speed = definition.run_speed
+		_base_crouch_speed = definition.crouch_speed
 	_base_defense = health.defense if health != null else 0.0
 	_base_energy_regen = energy.regen_per_second if energy != null else 0.0
 	if equipment != null and not equipment.equipment_changed.is_connected(apply_equipment_bonuses):
 		equipment.equipment_changed.connect(apply_equipment_bonuses)
-	apply_equipment_bonuses()
+	apply_character_build(GameManager.get_default_character_build(), true)
 
 
 func _physics_process(delta: float) -> void:
@@ -249,9 +266,9 @@ func use_inventory_slot(index: int) -> bool:
 
 
 func apply_equipment_bonuses() -> void:
-	var attack_bonus := 0.0
-	var defense_bonus := 0.0
-	var regen_bonus := 0.0
+	var attack_bonus := float(_character_build_bonuses.get(&"attack_bonus", 0.0))
+	var defense_bonus := float(_character_build_bonuses.get(&"defense_bonus", 0.0))
+	var regen_bonus := float(_character_build_bonuses.get(&"energy_regen_bonus", 0.0))
 	if equipment != null:
 		for slot in EquipmentComponent.EQUIP_SLOTS:
 			var item_definition := equipment.get_equipped_definition(slot)
@@ -266,6 +283,101 @@ func apply_equipment_bonuses() -> void:
 		energy.regen_per_second = maxf(0.0, _base_energy_regen + regen_bonus)
 	if combat != null:
 		combat.damage_bonus = maxf(0.0, attack_bonus)
+
+
+func apply_character_build(build_data: Dictionary, restore_to_full: bool = false) -> bool:
+	var requested_origin := StringName(str(
+		build_data.get("origin_id", GameManager.DEFAULT_ORIGIN_ID)
+	))
+	var requested_faction := StringName(str(
+		build_data.get("faction_id", GameManager.DEFAULT_FACTION_ID)
+	))
+	var requested_profession := StringName(str(
+		build_data.get("profession_id", GameManager.DEFAULT_PROFESSION_ID)
+	))
+	var origin := ResourceRegistry.get_origin(requested_origin)
+	var faction_definition := ResourceRegistry.get_faction(requested_faction)
+	var profession := ResourceRegistry.get_profession(requested_profession)
+	if (
+		origin == null
+		or faction_definition == null
+		or not faction_definition.selectable
+		or profession == null
+	):
+		requested_origin = GameManager.DEFAULT_ORIGIN_ID
+		requested_faction = GameManager.DEFAULT_FACTION_ID
+		requested_profession = GameManager.DEFAULT_PROFESSION_ID
+		origin = ResourceRegistry.get_origin(requested_origin)
+		faction_definition = ResourceRegistry.get_faction(requested_faction)
+		profession = ResourceRegistry.get_profession(requested_profession)
+	if origin == null or faction_definition == null or profession == null:
+		push_error("PlayerController3D: character build definitions are unavailable")
+		return false
+	origin_id = requested_origin
+	selected_faction_id = requested_faction
+	profession_id = requested_profession
+	_character_build_bonuses = CharacterBuildCalculator.calculate_bonuses(
+		origin,
+		faction_definition,
+		profession,
+	)
+	_recompute_character_build_stats(restore_to_full)
+	if faction != null:
+		faction.faction_id = selected_faction_id
+	if _appearance_controller != null:
+		_appearance_controller.apply_origin(origin_id)
+	apply_equipment_bonuses()
+	return true
+
+
+func get_character_build_data() -> Dictionary:
+	return {
+		"section_version": CHARACTER_BUILD_SECTION_VERSION,
+		"origin_id": String(origin_id),
+		"faction_id": String(selected_faction_id),
+		"profession_id": String(profession_id),
+	}
+
+
+func get_character_build_bonuses() -> Dictionary:
+	return _character_build_bonuses.duplicate(true)
+
+
+func get_effective_movement_speeds() -> Dictionary:
+	return {
+		"walk": _walk_speed,
+		"run": _run_speed,
+		"crouch": _crouch_speed,
+	}
+
+
+func _recompute_character_build_stats(restore_to_full: bool) -> void:
+	var saved_health := health.current_health if health != null else 0.0
+	var saved_energy := energy.current_energy if energy != null else 0.0
+	if health != null:
+		health.max_health = maxf(
+			1.0,
+			_base_max_health + float(_character_build_bonuses.get(&"max_health_bonus", 0.0)),
+		)
+		health.current_health = (
+			health.max_health if restore_to_full
+			else clampf(saved_health, 0.0, health.max_health)
+		)
+		health.health_changed.emit(health.current_health, health.max_health)
+	if energy != null:
+		energy.max_energy = maxf(
+			1.0,
+			_base_max_energy + float(_character_build_bonuses.get(&"max_energy_bonus", 0.0)),
+		)
+		energy.current_energy = (
+			energy.max_energy if restore_to_full
+			else clampf(saved_energy, 0.0, energy.max_energy)
+		)
+		energy.energy_changed.emit(energy.current_energy, energy.max_energy)
+	var move_bonus := float(_character_build_bonuses.get(&"move_speed_bonus", 0.0))
+	_walk_speed = maxf(0.5, _base_walk_speed + move_bonus)
+	_run_speed = maxf(_walk_speed, _base_run_speed + move_bonus)
+	_crouch_speed = maxf(0.25, _base_crouch_speed + move_bonus)
 
 
 func _resolve_camera() -> void:
@@ -284,6 +396,7 @@ func to_dict() -> Dictionary:
 	data["hotbar"] = hotbar.to_dict()
 	data["inventory"] = inventory.to_dict() if inventory else {}
 	data["equipment"] = equipment.to_dict() if equipment else {}
+	data["character_build"] = get_character_build_data()
 	data["current_region_id"] = String(current_region_id)
 	data["game_time"] = game_time
 	return data
@@ -294,10 +407,11 @@ func from_dict(data: Dictionary) -> void:
 	hotbar.from_dict(data.get("hotbar", {}))
 	if inventory != null:
 		inventory.from_dict(data.get("inventory", {}))
-	if health != null:
-		_base_defense = health.defense
 	if equipment != null:
 		equipment.from_dict(data.get("equipment", {}))
-	apply_equipment_bonuses()
+	var build_data: Variant = data.get("character_build", GameManager.get_default_character_build())
+	if typeof(build_data) != TYPE_DICTIONARY:
+		build_data = GameManager.get_default_character_build()
+	apply_character_build(build_data as Dictionary, false)
 	current_region_id = StringName(str(data.get("current_region_id", current_region_id)))
 	game_time = float(data.get("game_time", game_time))

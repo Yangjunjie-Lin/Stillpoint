@@ -11,6 +11,13 @@ func run() -> bool:
 	var start_button := menu.get_node("Center/VBox/StartButton") as Button
 	start_button.pressed.emit()
 	await WorldTestHelper.await_frames(tree, 3)
+	var creation := main.get_node("CurrentScene").get_child(0) as CharacterCreationUI
+	if creation == null:
+		push_error("Escape dialogue test did not open Character Creation")
+		main.free()
+		return false
+	(creation.get_node("Margin/Layout/Columns/SummaryPanel/SummaryLayout/ConfirmButton") as Button).pressed.emit()
+	await WorldTestHelper.await_frames(tree, 3)
 	var world := main.get_node("CurrentScene").get_child(0) as WorldSession
 	if world == null:
 		push_error("Escape dialogue test did not open WorldSession")

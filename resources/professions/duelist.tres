@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ProfessionDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/profession_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"duelist"
+display_name = "决斗家"
+description = "等待破绽后以单次强攻扭转局势，兼顾攻击强度与短距离调整。任何出身均可选择。"
+accent_color = Color(0.74, 0.28, 0.3, 1)
+recommended_origin_ids = Array[StringName]([&"ronin"])
+max_health_bonus = 3.0
+attack_bonus = 5.0
+move_speed_bonus = 0.1

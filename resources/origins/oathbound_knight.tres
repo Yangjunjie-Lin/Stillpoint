@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CharacterOriginDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_origin_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player/origins/oathbound_knight.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"oathbound_knight"
+display_name = "守誓骑士"
+description = "失去旧领地却没有放弃誓言的守护者，以可靠与耐力为同行者承担风险。甲胄形象不限制后续职业。"
+appearance_description = "磨砂板甲与深蓝罩袍保留修补痕迹，肩披旧誓带，盾徽被重新刻成象征共同体的晨星。"
+model_scene = ExtResource("2")
+accent_color = Color(0.3, 0.48, 0.78, 1)
+recommended_profession_id = &"guardian"
+recommended_faction_id = &"dawn_covenant"
+max_health_bonus = 15.0
+max_energy_bonus = -5.0
+defense_bonus = 3.0
+move_speed_bonus = -0.15

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="FactionDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/faction_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"dawn_covenant"
+display_name = "曙光盟约"
+description = "由守望者、医者与重建者组成的公开盟约，相信秩序的价值来自对普通人的保护。"
+selectable = true
+accent_color = Color(0.93, 0.72, 0.3, 1)
+default_player_reputation = 10.0
+max_health_bonus = 5.0
+defense_bonus = 1.0

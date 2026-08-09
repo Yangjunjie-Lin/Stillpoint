@@ -1,10 +1,16 @@
 extends Node
 ## Cross-scene run metadata. Combat actors are not owned here.
 
+const CHARACTER_BUILD_SECTION_VERSION: int = 1
+const DEFAULT_ORIGIN_ID: StringName = &"wuxia_swordsman"
+const DEFAULT_FACTION_ID: StringName = &"free_roads"
+const DEFAULT_PROFESSION_ID: StringName = &"spirit_blade"
+
 var player_name: String = "Player"
 var diagnostics_enabled: bool = false
 var run_active: bool = false
 var resume_requested: bool = false
+var pending_character_build: Dictionary = {}
 
 
 func _ready() -> void:
@@ -21,7 +27,68 @@ func start_new_adventure(requested_name: String = "Traveler") -> void:
 	RelationshipService.reset_all()
 	WorldTimeService.reset_all()
 	SaveSlotService.clear_adventure_save()
+	pending_character_build.clear()
+	SceneRouter.go_to_character_creation()
+
+
+func confirm_character_build(
+	origin_id: StringName,
+	faction_id: StringName,
+	profession_id: StringName,
+) -> bool:
+	if not is_valid_character_build(origin_id, faction_id, profession_id):
+		push_warning("GameManager: rejected invalid character build")
+		return false
+	pending_character_build = {
+		"section_version": CHARACTER_BUILD_SECTION_VERSION,
+		"origin_id": String(origin_id),
+		"faction_id": String(faction_id),
+		"profession_id": String(profession_id),
+	}
+	resume_requested = false
+	run_active = true
 	SceneRouter.go_to_world_session()
+	return true
+
+
+func is_valid_character_build(
+	origin_id: StringName,
+	faction_id: StringName,
+	profession_id: StringName,
+) -> bool:
+	var origin := ResourceRegistry.get_origin(origin_id)
+	var faction := ResourceRegistry.get_faction(faction_id)
+	var profession := ResourceRegistry.get_profession(profession_id)
+	return (
+		origin != null
+		and faction != null
+		and faction.selectable
+		and profession != null
+	)
+
+
+func get_default_character_build() -> Dictionary:
+	return {
+		"section_version": CHARACTER_BUILD_SECTION_VERSION,
+		"origin_id": String(DEFAULT_ORIGIN_ID),
+		"faction_id": String(DEFAULT_FACTION_ID),
+		"profession_id": String(DEFAULT_PROFESSION_ID),
+	}
+
+
+func consume_pending_character_build() -> Dictionary:
+	var result := pending_character_build.duplicate(true)
+	if result.is_empty():
+		result = get_default_character_build()
+	pending_character_build.clear()
+	return result
+
+
+func cancel_character_creation() -> void:
+	pending_character_build.clear()
+	run_active = false
+	resume_requested = false
+	SceneRouter.go_to_main_menu()
 
 
 func continue_adventure() -> void:
@@ -30,6 +97,7 @@ func continue_adventure() -> void:
 		return
 	run_active = true
 	resume_requested = true
+	pending_character_build.clear()
 	SceneRouter.go_to_world_session()
 
 
@@ -80,6 +148,7 @@ func return_to_menu() -> void:
 			world.save_world_state()
 	run_active = false
 	resume_requested = false
+	pending_character_build.clear()
 	get_tree().paused = false
 	SceneRouter.go_to_main_menu()
 

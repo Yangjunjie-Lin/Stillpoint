@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CharacterOriginDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_origin_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/characters/player/origins/lotus_ascetic.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"lotus_ascetic"
+display_name = "莲誓行者"
+description = "受南亚沉思与行脚传统启发的幻想修行者，以慈悲、自省和坚韧回应动荡世界。其设定不复刻任何现实宗教仪轨，且不限制后续职业。"
+appearance_description = "轻便赭金行衣外覆莲纹披巾，佩木珠与旅行水壶；莲粉、藏红与温暖金色构成沉静轮廓。"
+model_scene = ExtResource("2")
+accent_color = Color(0.91, 0.47, 0.39, 1)
+recommended_profession_id = &"vow_keeper"
+recommended_faction_id = &"verdant_circle"
+max_health_bonus = 5.0
+max_energy_bonus = 15.0
+defense_bonus = 1.5
+energy_regen_bonus = 0.5
