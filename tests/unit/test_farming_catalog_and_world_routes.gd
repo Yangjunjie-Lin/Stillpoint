@@ -10,7 +10,7 @@ func run() -> bool:
 	ok = ok and ResourceRegistry.get_item(&"turnip") != null
 	ok = ok and ResourceRegistry.get_house(&"building:player_farmhouse") != null
 	var regions := ResourceRegistry.get_all_regions()
-	ok = ok and regions.size() == 4
+	ok = ok and regions.size() == 5
 	var reachable: Dictionary = {}
 	var frontier: Array[StringName] = [&"base:town"]
 	while not frontier.is_empty():
@@ -27,7 +27,7 @@ func run() -> bool:
 			ok = ok and other != null and other.connected_region_ids.has(current)
 			if not reachable.has(neighbor):
 				frontier.append(neighbor)
-	ok = ok and reachable.size() == 4
+	ok = ok and reachable.size() == 5
 	var town := ResourceRegistry.get_region(&"base:town")
 	ok = ok and town.portal_region_ids.has(&"base:wilderness")
 	ok = ok and town.portal_region_ids.has(&"base:dungeon")
@@ -36,6 +36,7 @@ func run() -> bool:
 		&"base:farmland": 2,
 		&"base:wilderness": 2,
 		&"base:dungeon": 1,
+		&"base:player_home": 0,
 	}
 	for region_id in expected_roads:
 		var definition := ResourceRegistry.get_region(region_id)

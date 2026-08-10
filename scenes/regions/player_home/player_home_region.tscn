@@ -1,0 +1,156 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/interaction/private_house_door_3d.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/interaction/property_storage_interactable_3d.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/farming/farm_rest_spot.gd" id="3"]
+
+[sub_resource type="BoxMesh" id="FloorMesh"]
+size = Vector3(14, 0.2, 12)
+
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color = Color(0.42, 0.28, 0.17, 1)
+roughness = 0.85
+
+[sub_resource type="BoxShape3D" id="FloorShape"]
+size = Vector3(14, 0.2, 12)
+
+[sub_resource type="BoxMesh" id="WallLongMesh"]
+size = Vector3(14, 3.5, 0.3)
+
+[sub_resource type="BoxShape3D" id="WallLongShape"]
+size = Vector3(14, 3.5, 0.3)
+
+[sub_resource type="BoxMesh" id="WallSideMesh"]
+size = Vector3(0.3, 3.5, 12)
+
+[sub_resource type="BoxShape3D" id="WallSideShape"]
+size = Vector3(0.3, 3.5, 12)
+
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+albedo_color = Color(0.76, 0.68, 0.52, 1)
+roughness = 0.92
+
+[sub_resource type="Environment" id="InteriorEnvironment"]
+background_mode = 1
+background_color = Color(0.11, 0.085, 0.065, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.95, 0.8, 0.58, 1)
+ambient_light_energy = 0.7
+
+[node name="RegionRoot" type="Node3D"]
+
+[node name="Environment" type="Node3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Environment"]
+environment = SubResource("InteriorEnvironment")
+
+[node name="WarmLight" type="OmniLight3D" parent="Environment"]
+position = Vector3(0, 2.8, 0)
+light_color = Color(1, 0.72, 0.42, 1)
+light_energy = 1.5
+omni_range = 12.0
+
+[node name="Floor" type="MeshInstance3D" parent="Environment"]
+mesh = SubResource("FloorMesh")
+surface_material_override/0 = SubResource("FloorMaterial")
+
+[node name="StaticPhysics" type="Node3D" parent="."]
+
+[node name="FloorBody" type="StaticBody3D" parent="StaticPhysics"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="MeshInstance3D" parent="StaticPhysics/FloorBody"]
+mesh = SubResource("FloorMesh")
+surface_material_override/0 = SubResource("FloorMaterial")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticPhysics/FloorBody"]
+shape = SubResource("FloorShape")
+
+[node name="NorthWall" type="StaticBody3D" parent="StaticPhysics"]
+position = Vector3(0, 1.75, -5.85)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="MeshInstance3D" parent="StaticPhysics/NorthWall"]
+mesh = SubResource("WallLongMesh")
+surface_material_override/0 = SubResource("WallMaterial")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticPhysics/NorthWall"]
+shape = SubResource("WallLongShape")
+
+[node name="SouthWall" type="StaticBody3D" parent="StaticPhysics"]
+position = Vector3(0, 1.75, 5.85)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="MeshInstance3D" parent="StaticPhysics/SouthWall"]
+mesh = SubResource("WallLongMesh")
+surface_material_override/0 = SubResource("WallMaterial")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticPhysics/SouthWall"]
+shape = SubResource("WallLongShape")
+
+[node name="WestWall" type="StaticBody3D" parent="StaticPhysics"]
+position = Vector3(-6.85, 1.75, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="MeshInstance3D" parent="StaticPhysics/WestWall"]
+mesh = SubResource("WallSideMesh")
+surface_material_override/0 = SubResource("WallMaterial")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticPhysics/WestWall"]
+shape = SubResource("WallSideShape")
+
+[node name="EastWall" type="StaticBody3D" parent="StaticPhysics"]
+position = Vector3(6.85, 1.75, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="MeshInstance3D" parent="StaticPhysics/EastWall"]
+mesh = SubResource("WallSideMesh")
+surface_material_override/0 = SubResource("WallMaterial")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticPhysics/EastWall"]
+shape = SubResource("WallSideShape")
+
+[node name="Navigation" type="Node3D" parent="."]
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="spawn" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(0, 1.2, 3.8)
+
+[node name="EntitySpawns" type="Node3D" parent="."]
+
+[node name="StaticEntities" type="Node3D" parent="."]
+
+[node name="DynamicEntities" type="Node3D" parent="."]
+
+[node name="Interactables" type="Node3D" parent="."]
+
+[node name="ExitDoor" type="Node3D" parent="Interactables"]
+position = Vector3(0, 0, 5.15)
+script = ExtResource("1")
+region_id = &"base:player_home"
+target_region_id = &"base:farmland"
+target_spawn_id = &"home_door"
+prompt_text = "Leave your private home"
+requires_active_deed = false
+
+[node name="HomeStorage" type="Node3D" parent="Interactables"]
+position = Vector3(-4.5, 0, -2.5)
+script = ExtResource("2")
+region_id = &"base:player_home"
+storage_mode = "home"
+prompt_text = "Open private home storage"
+
+[node name="RestSpot" type="Node3D" parent="Interactables"]
+position = Vector3(3.8, 0, -2.4)
+script = ExtResource("3")
+region_id = &"base:player_home"
+
+[node name="LocalEffects" type="Node3D" parent="."]
+
+[node name="RegionServices" type="Node3D" parent="."]

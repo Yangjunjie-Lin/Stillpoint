@@ -20,6 +20,7 @@ var _autosave_enabled: bool = true
 var _restore_failed_state: bool = false
 var _session_context: WorldSessionContext
 var _pending_player_transform: Dictionary = {}
+var _skip_saved_player_transform: bool = false
 
 @onready var persistent_root: Node3D = $PersistentRoot
 @onready var player_root: Node3D = $PersistentRoot/PlayerRoot
@@ -38,6 +39,7 @@ var _pending_player_transform: Dictionary = {}
 @onready var world_flags: WorldFlagService = $WorldServices/WorldFlagService
 @onready var cognition_service: NPCCognitionService = $WorldServices/NPCCognitionService
 @onready var dungeon_progression_service: DungeonProgressionService = $WorldServices/DungeonProgressionService
+@onready var property_bank_service: PropertyBankService = $WorldServices/PropertyBankService
 
 # Compatibility aliases for tests and legacy code paths.
 var regions_root: Node3D
@@ -225,6 +227,10 @@ func restore_player_data(data: Dictionary) -> void:
 func apply_saved_player_transform(data: Dictionary) -> void:
 	if player == null:
 		return
+	if _skip_saved_player_transform:
+		_skip_saved_player_transform = false
+		_pending_player_transform.clear()
+		return
 	var player_data: Dictionary = data.get("player", data)
 	var pos: Dictionary = player_data.get("position", _pending_player_transform)
 	if pos.is_empty():
@@ -243,6 +249,8 @@ func capture_global_world_data() -> Dictionary:
 		"world_time": WorldTimeService.to_dict(),
 		"discovered_regions": discovered_regions.duplicate(),
 		"current_region_id": String(current_region_id),
+		"property_banking": property_bank_service.capture_save_data()
+			if property_bank_service != null else {},
 	}
 
 
@@ -254,6 +262,41 @@ func restore_global_world_data(data: Dictionary) -> void:
 			discovered_regions.append(String(RegionIdUtil.normalize(StringName(str(d)))))
 	if discovered_regions.is_empty():
 		discovered_regions = ["base:town"]
+	if property_bank_service != null:
+		property_bank_service.restore_save_data(
+			data.get("property_banking", {}) as Dictionary
+			if data.get("property_banking", {}) is Dictionary else {}
+		)
+
+
+func open_property_storage(mode: StringName) -> bool:
+	if property_bank_service == null or player == null:
+		return false
+	if mode == PropertyBankService.HOME_STORAGE_MODE and not property_bank_service.has_active_house():
+		return false
+	var menu := get_node_or_null("WorldUI/PropertyStorageMenu")
+	if menu == null or not menu.has_method("open_menu"):
+		return false
+	menu.call("open_menu", mode)
+	return true
+
+
+func resolve_restored_region_id(region_id: StringName) -> StringName:
+	if (
+		region_id == &"base:player_home"
+		and property_bank_service != null
+		and not property_bank_service.has_active_house()
+	):
+		_skip_saved_player_transform = true
+		call_deferred("_notify_repossessed_return")
+		return &"base:town"
+	return region_id
+
+
+func _notify_repossessed_return() -> void:
+	EventBus.notice_requested.emit(
+		"Your residence was reclaimed during your absence. Stillpoint Bank holds the compensation and every stored belonging."
+	)
 
 
 func capture_companions() -> Dictionary:
@@ -300,9 +343,12 @@ func _setup_services() -> void:
 	actor_factory.setup(entity_repository)
 	region_service.setup(self, entity_repository, actor_factory, interaction_index)
 	dungeon_progression_service.setup(self, actor_factory)
+	property_bank_service.setup(self)
 	# Resolved from WorldSession root via RegionRuntimeService._get_slot().
 	region_service.active_region_slot_path = NodePath("ActiveRegionSlot")
 	save_coordinator.setup(self, entity_repository, region_service, world_flags)
+	if not property_bank_service.property_state_changed.is_connected(_on_property_state_changed):
+		property_bank_service.property_state_changed.connect(_on_property_state_changed)
 	simulation_service.setup(entity_repository)
 	_session_context = WorldSessionContext.new(
 		self, null, entity_repository, region_service,
@@ -343,6 +389,11 @@ func _spawn_player() -> void:
 	var camera_rig := get_node_or_null("CameraRig") as CameraController3D
 	if camera_rig != null:
 		camera_rig.set_target(player)
+
+
+func _on_property_state_changed() -> void:
+	if save_coordinator != null:
+		save_coordinator.mark_dirty(&"global_world")
 
 
 func _spawn_companions() -> void:

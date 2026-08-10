@@ -9,7 +9,8 @@ var _slots: Array[ItemStack] = []
 
 
 func _ready() -> void:
-	_reset_slots()
+	# Preserve state restored before this component enters the scene tree.
+	_ensure_slots()
 
 
 func add_item(item_id: StringName, amount: int = 1) -> int:

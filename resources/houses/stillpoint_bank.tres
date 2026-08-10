@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="HouseDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/house_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"building:stillpoint_bank"
+display_name = "Stillpoint Bank"
+region_id = &"base:town"
+building_type = &"bank"
+primary_function = &"currency_and_property_custody"
+public_description = "The town bank safeguards coin, reclaimed household goods, and property deeds."
+worker_npc_definition_ids = Array[StringName]([&"ren"])
+contains_node_ids = Array[StringName]([&"location:bank_counter", &"location:private_vault"])
+connected_location_ids = Array[StringName]([&"location:town_plaza"])
+linked_location_ids = Array[StringName]([&"building:player_farmhouse", &"building:player_courtyard_house", &"building:player_townhouse"])
+material_tags = Array[StringName]([&"granite_vault", &"oak_counter", &"brass_sign"])
+floor_count = 2
+entrance_tags = Array[StringName]([&"public_counter", &"account_holder_access"])
+landmark_tags = Array[StringName]([&"coin_emblem", &"vault"])
+world_position = Vector3(-11, 0, -8)
+footprint_size = Vector3(6.2, 3.2, 5.2)
+wall_color = Color(0.63, 0.61, 0.57, 1)
+timber_color = Color(0.25, 0.2, 0.15, 1)
+roof_color = Color(0.23, 0.29, 0.33, 1)

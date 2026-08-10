@@ -97,7 +97,8 @@ See `docs/SAVE_V4_GUIDE.md`. Main Menu uses `SaveSlotService` to validate Advent
 - Seamless open-world streaming / adjacent region preload
 - Full offline ecosystem / virtual combat simulation
 - Cloud saves / multiplayer / threaded writers
-- Agriculture, housing, weather, economy
+- Weather and a full market/trading economy (the implemented vertical slices
+  cover farming, private housing, household storage, and bank custody only)
 
 Do not claim these are complete in README marketing text.
 

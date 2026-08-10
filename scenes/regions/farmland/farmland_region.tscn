@@ -1,9 +1,10 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/farming/farmstead_builder.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/farming/farm_rest_spot.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/interaction/private_house_door_3d.gd" id="5"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -46,6 +47,9 @@ position = Vector3(-15, 1.2, 0)
 [node name="from_wilderness" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(15, 1.2, 0)
 
+[node name="home_door" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(10, 1.2, 10.6)
+
 [node name="EntitySpawns" type="Node3D" parent="."]
 
 [node name="StaticEntities" type="Node3D" parent="."]
@@ -62,6 +66,15 @@ script = ExtResource("3")
 position = Vector3(10, 0, 9)
 script = ExtResource("4")
 region_id = &"base:farmland"
+
+[node name="PrivateHomeDoor" type="Node3D" parent="Interactables"]
+position = Vector3(10, 0, 9.65)
+rotation = Vector3(0, 3.1415927, 0)
+script = ExtResource("5")
+region_id = &"base:farmland"
+target_region_id = &"base:player_home"
+target_spawn_id = &"spawn"
+prompt_text = "Enter your private home"
 
 [node name="TownRoad" type="Area3D" parent="."]
 position = Vector3(-19, 0, 0)

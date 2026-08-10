@@ -1,9 +1,11 @@
 extends RefCounted
 
 const EXPECTED_BY_REGION := {
-	&"base:town": ["WildernessPortal", "DungeonPortal", "Chest"],
+	&"base:town": ["WildernessPortal", "DungeonPortal", "Chest", "BankCounter"],
 	&"base:wilderness": ["HerbPickup", "TownPortal"],
 	&"base:dungeon": ["TownPortal"],
+	&"base:farmland": ["PrivateHomeDoor"],
+	&"base:player_home": ["ExitDoor", "HomeStorage", "RestSpot"],
 }
 
 

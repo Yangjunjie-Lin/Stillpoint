@@ -278,6 +278,19 @@ func get_all_house_ids() -> Array[StringName]:
 	return result
 
 
+func get_player_housing_plans() -> Array[HouseDefinition]:
+	var result: Array[HouseDefinition] = []
+	for definition in get_all_houses():
+		if definition.player_selectable:
+			result.append(definition)
+	result.sort_custom(func(a: HouseDefinition, b: HouseDefinition) -> bool:
+		if a.construction_cost == b.construction_cost:
+			return String(a.id) < String(b.id)
+		return a.construction_cost < b.construction_cost
+	)
+	return result
+
+
 func get_container(id: StringName) -> ContainerDefinition:
 	return _containers.get(id) as ContainerDefinition
 

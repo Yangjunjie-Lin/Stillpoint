@@ -250,6 +250,8 @@ func _restore_v4(validation: Dictionary = {}) -> bool:
 	var region_id := StringName(str(manifest.get("current_region_id", "base:town")))
 	if _session != null and _session.has_method("restore_global_world_data"):
 		_session.call("restore_global_world_data", global_data)
+	if _session != null and _session.has_method("resolve_restored_region_id"):
+		region_id = StringName(_session.call("resolve_restored_region_id", region_id))
 	if _session != null and _session.has_method("restore_player_data"):
 		_session.call("restore_player_data", player_data)
 	if _region_service != null:

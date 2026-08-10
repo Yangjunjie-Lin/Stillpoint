@@ -49,7 +49,9 @@ Continue restores the exact saved player transform after the region loads (`Regi
 
 ## Discovered Regions
 
-`WorldSession.capture_global_world_data()` / `restore_global_world_data()` round-trip `discovered_regions` and world time counters (`id_counters`).
+`WorldSession.capture_global_world_data()` / `restore_global_world_data()` round-trip `discovered_regions`, world time counters (`id_counters`), and the optional `property_banking` structure. The latter owns the player-scoped deed, wallet and bank balances, home storage, custodial bank storage, and the last real-world save timestamp. A legacy Save v4 without this optional structure receives the starter farmhouse and empty stores.
+
+If the saved real-world timestamp is at least 30 days old, restore transactionally moves all home-storage items to the bank vault before reclaiming the deed. The assessed value is credited to the bank account. A player saved inside a subsequently reclaimed home is restored at the town spawn instead of inside the sealed interior.
 
 ## Corruption Recovery
 

@@ -1,0 +1,190 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/rpg/property_storage_menu.gd" id="1"]
+
+[node name="PropertyStorageMenu" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.025, 0.02, 0.84)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(1120, 700)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Center/Panel/Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Stillpoint Bank & Property Office"
+
+[node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CloseButton" type="Button" parent="Center/Panel/Margin/VBox/Header"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+text = "Close"
+
+[node name="AccountSummary" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Wallet: 500 coin    Bank: 0 coin"
+
+[node name="PropertySummary" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "Residence: Stillpoint Farmhouse"
+
+[node name="Rule" type="HSeparator" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="TransferRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="BackpackBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox/TransferRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Heading" type="Label" parent="Center/Panel/Margin/VBox/TransferRow/BackpackBox"]
+layout_mode = 2
+text = "BACKPACK"
+
+[node name="BackpackList" type="ItemList" parent="Center/Panel/Margin/VBox/TransferRow/BackpackBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+select_mode = 0
+
+[node name="TransferButtons" type="VBoxContainer" parent="Center/Panel/Margin/VBox/TransferRow"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="StoreOne" type="Button" parent="Center/Panel/Margin/VBox/TransferRow/TransferButtons"]
+layout_mode = 2
+text = "Store 1  →"
+
+[node name="StoreStack" type="Button" parent="Center/Panel/Margin/VBox/TransferRow/TransferButtons"]
+layout_mode = 2
+text = "Store stack  →"
+
+[node name="WithdrawOne" type="Button" parent="Center/Panel/Margin/VBox/TransferRow/TransferButtons"]
+layout_mode = 2
+text = "←  Withdraw 1"
+
+[node name="WithdrawStack" type="Button" parent="Center/Panel/Margin/VBox/TransferRow/TransferButtons"]
+layout_mode = 2
+text = "←  Withdraw stack"
+
+[node name="StorageBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox/TransferRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StorageHeading" type="Label" parent="Center/Panel/Margin/VBox/TransferRow/StorageBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "PRIVATE BANK VAULT"
+
+[node name="StorageList" type="ItemList" parent="Center/Panel/Margin/VBox/TransferRow/StorageBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+select_mode = 0
+
+[node name="MoneyControls" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Center/Panel/Margin/VBox/MoneyControls"]
+layout_mode = 2
+text = "COIN ACCOUNT"
+
+[node name="Deposit100" type="Button" parent="Center/Panel/Margin/VBox/MoneyControls"]
+layout_mode = 2
+text = "Deposit 100"
+
+[node name="DepositAll" type="Button" parent="Center/Panel/Margin/VBox/MoneyControls"]
+layout_mode = 2
+text = "Deposit all"
+
+[node name="Withdraw100" type="Button" parent="Center/Panel/Margin/VBox/MoneyControls"]
+layout_mode = 2
+text = "Withdraw 100"
+
+[node name="WithdrawAll" type="Button" parent="Center/Panel/Margin/VBox/MoneyControls"]
+layout_mode = 2
+text = "Withdraw all"
+
+[node name="PropertyControls" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BuybackButton" type="Button" parent="Center/Panel/Margin/VBox/PropertyControls"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+text = "Buy back previous home"
+
+[node name="PlansContainer" type="VBoxContainer" parent="Center/Panel/Margin/VBox/PropertyControls"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Status" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[connection signal="pressed" from="Center/Panel/Margin/VBox/Header/CloseButton" to="." method="close_menu"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/TransferRow/TransferButtons/StoreOne" to="." method="_on_store_one_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/TransferRow/TransferButtons/StoreStack" to="." method="_on_store_stack_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/TransferRow/TransferButtons/WithdrawOne" to="." method="_on_withdraw_one_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/TransferRow/TransferButtons/WithdrawStack" to="." method="_on_withdraw_stack_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/MoneyControls/Deposit100" to="." method="_on_deposit_100_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/MoneyControls/DepositAll" to="." method="_on_deposit_all_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/MoneyControls/Withdraw100" to="." method="_on_withdraw_100_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/MoneyControls/WithdrawAll" to="." method="_on_withdraw_all_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/PropertyControls/BuybackButton" to="." method="_on_buyback_pressed"]

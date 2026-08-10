@@ -90,6 +90,7 @@ func _build_town() -> void:
 		&"building:town_guardhouse",
 		&"building:wayfarer_inn",
 		&"building:town_storehouse",
+		&"building:stillpoint_bank",
 	]:
 		var house := ResourceRegistry.get_house(house_id)
 		if house == null or not house.is_valid():
@@ -173,8 +174,14 @@ func _build_farmland() -> void:
 	_add_box(_generated, "FarmRoad", Vector3(39.0, 0.07, 3.0), Vector3(0, 0.14, 0), path)
 	_add_box(_generated, "FieldFoundation", Vector3(10.0, 0.05, 8.0), Vector3(-4, 0.14, 3), soil.darkened(0.08))
 	var farmhouse := ResourceRegistry.get_house(&"building:player_farmhouse")
+	var tree := get_tree() if is_inside_tree() else null
+	var world := tree.get_first_node_in_group("world_manager") as WorldSession \
+		if tree != null else null
+	if world != null and world.property_bank_service != null:
+		farmhouse = world.property_bank_service.get_active_house()
 	if farmhouse == null or not farmhouse.is_valid():
-		push_error("RPGRegionVisuals: invalid player farmhouse definition")
+		if world == null:
+			push_error("RPGRegionVisuals: invalid player farmhouse definition")
 	else:
 		_add_house(farmhouse)
 	for z in [-1.2, 7.2]:

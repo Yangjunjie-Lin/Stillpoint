@@ -955,6 +955,42 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "location:farmland_house_door",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:player_courtyard_house",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_courtyard_house",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:home_storage",
+        "predicate": "CONTAINS",
+        "source_id": "building:player_courtyard_house",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_courtyard_house",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:private_home",
+        "predicate": "CONTAINS",
+        "source_id": "building:player_courtyard_house",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_courtyard_house",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:player_home",
+        "predicate": "LOCATED_IN",
+        "source_id": "building:player_courtyard_house",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_courtyard_house",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "location:town_east_road",
         "predicate": "CONNECTED_TO",
         "source_id": "building:player_farmhouse",
@@ -1005,6 +1041,105 @@
         "source_id": "building:player_farmhouse",
         "source_type": "world_catalog",
         "subject_node_id": "building:player_farmhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:farmland_house_door",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:player_townhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_townhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:home_storage",
+        "predicate": "CONTAINS",
+        "source_id": "building:player_townhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_townhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:private_home",
+        "predicate": "CONTAINS",
+        "source_id": "building:player_townhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_townhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:player_home",
+        "predicate": "LOCATED_IN",
+        "source_id": "building:player_townhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_townhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:town_plaza",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:bank_counter",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:private_vault",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "LOCATED_IN",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:player_courtyard_house",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:player_farmhouse",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:player_townhouse",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
         "visibility": "public"
       },
       {
@@ -1180,6 +1315,15 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "building:stillpoint_bank",
+        "predicate": "WORKS_AT",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:ren",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "building:town_guardhouse",
         "predicate": "WORKS_AT",
         "source_id": "building:town_guardhouse",
@@ -1207,6 +1351,15 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "region:base:player_home",
+        "predicate": "CONNECTED_TO",
+        "source_id": "base:farmland",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:farmland",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "region:base:town",
         "predicate": "CONNECTED_TO",
         "source_id": "base:farmland",
@@ -1221,6 +1374,15 @@
         "source_id": "base:farmland",
         "source_type": "world_catalog",
         "subject_node_id": "region:base:farmland",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:farmland",
+        "predicate": "CONNECTED_TO",
+        "source_id": "base:player_home",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:player_home",
         "visibility": "public"
       },
       {
@@ -1282,7 +1444,9 @@
       {
         "label": "Mira's Apothecary",
         "metadata": {
+          "assessed_value": 0,
           "building_type": "shop_house",
+          "construction_cost": 0,
           "entrance_tags": [
             "public_front_door",
             "street_access"
@@ -1306,7 +1470,9 @@
           "owner_npc_definition_ids": [
             "mira"
           ],
+          "player_selectable": false,
           "primary_function": "apothecary_trade",
+          "private_storage_slots": 0,
           "public_description": "A timber-framed town shop where Mira keeps herbs and practical travel supplies.",
           "region_id": "base:town",
           "resident_npc_definition_ids": [
@@ -1328,9 +1494,56 @@
         "visibility": "public"
       },
       {
+        "label": "Willow Courtyard House",
+        "metadata": {
+          "assessed_value": 2700,
+          "building_type": "courtyard_residence",
+          "construction_cost": 2200,
+          "entrance_tags": [
+            "private_owner_door",
+            "player_access"
+          ],
+          "floor_count": 1,
+          "footprint_size": [
+            6.19999980926514,
+            2.59999990463257,
+            5.19999980926514
+          ],
+          "landmark_tags": [
+            "willow_courtyard",
+            "storage_annex"
+          ],
+          "material_tags": [
+            "stone_foundation",
+            "timber_courtyard",
+            "ceramic_roof"
+          ],
+          "owner_npc_definition_ids": [],
+          "player_selectable": true,
+          "primary_function": "private_residence_and_storage",
+          "private_storage_slots": 60,
+          "public_description": "A calm timber courtyard residence with a larger household store.",
+          "region_id": "base:player_home",
+          "resident_npc_definition_ids": [],
+          "worker_npc_definition_ids": [],
+          "world_position": [
+            10.0,
+            0.0,
+            7.0
+          ],
+          "yaw_radians": 0.0
+        },
+        "node_id": "building:player_courtyard_house",
+        "node_type": "building",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Stillpoint Farmhouse",
         "metadata": {
+          "assessed_value": 2500,
           "building_type": "farmhouse",
+          "construction_cost": 1800,
           "entrance_tags": [
             "farmyard_door",
             "player_access"
@@ -1351,7 +1564,9 @@
             "wood_shingle_roof"
           ],
           "owner_npc_definition_ids": [],
+          "player_selectable": true,
           "primary_function": "farming_and_rest",
+          "private_storage_slots": 48,
           "public_description": "A working farmhouse beside the continuous road between town and wilderness.",
           "region_id": "base:farmland",
           "resident_npc_definition_ids": [],
@@ -1369,9 +1584,103 @@
         "visibility": "public"
       },
       {
+        "label": "Merchant Townhouse",
+        "metadata": {
+          "assessed_value": 3000,
+          "building_type": "merchant_residence",
+          "construction_cost": 2500,
+          "entrance_tags": [
+            "private_owner_door",
+            "player_access"
+          ],
+          "floor_count": 2,
+          "footprint_size": [
+            5.80000019073486,
+            3.20000004768372,
+            4.80000019073486
+          ],
+          "landmark_tags": [
+            "merchant_balcony",
+            "reinforced_store"
+          ],
+          "material_tags": [
+            "dressed_stone",
+            "dark_timber",
+            "slate_roof"
+          ],
+          "owner_npc_definition_ids": [],
+          "player_selectable": true,
+          "primary_function": "private_residence_and_secure_storage",
+          "private_storage_slots": 72,
+          "public_description": "A two-storey merchant home with a reinforced private storeroom.",
+          "region_id": "base:player_home",
+          "resident_npc_definition_ids": [],
+          "worker_npc_definition_ids": [],
+          "world_position": [
+            10.0,
+            0.0,
+            7.0
+          ],
+          "yaw_radians": 0.0
+        },
+        "node_id": "building:player_townhouse",
+        "node_type": "building",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Stillpoint Bank",
+        "metadata": {
+          "assessed_value": 0,
+          "building_type": "bank",
+          "construction_cost": 0,
+          "entrance_tags": [
+            "public_counter",
+            "account_holder_access"
+          ],
+          "floor_count": 2,
+          "footprint_size": [
+            6.19999980926514,
+            3.20000004768372,
+            5.19999980926514
+          ],
+          "landmark_tags": [
+            "coin_emblem",
+            "vault"
+          ],
+          "material_tags": [
+            "granite_vault",
+            "oak_counter",
+            "brass_sign"
+          ],
+          "owner_npc_definition_ids": [],
+          "player_selectable": false,
+          "primary_function": "currency_and_property_custody",
+          "private_storage_slots": 0,
+          "public_description": "The town bank safeguards coin, reclaimed household goods, and property deeds.",
+          "region_id": "base:town",
+          "resident_npc_definition_ids": [],
+          "worker_npc_definition_ids": [
+            "ren"
+          ],
+          "world_position": [
+            -11.0,
+            0.0,
+            -8.0
+          ],
+          "yaw_radians": 0.0
+        },
+        "node_id": "building:stillpoint_bank",
+        "node_type": "building",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Stillpoint Guardhouse",
         "metadata": {
+          "assessed_value": 0,
           "building_type": "civic_guardhouse",
+          "construction_cost": 0,
           "entrance_tags": [
             "public_front_door",
             "guard_access"
@@ -1392,7 +1701,9 @@
             "slate_roof"
           ],
           "owner_npc_definition_ids": [],
+          "player_selectable": false,
           "primary_function": "public_safety",
+          "private_storage_slots": 0,
           "public_description": "A stout civic post used by the town watch for patrol briefings and public assistance.",
           "region_id": "base:town",
           "resident_npc_definition_ids": [],
@@ -1414,7 +1725,9 @@
       {
         "label": "Town Storehouse",
         "metadata": {
+          "assessed_value": 0,
           "building_type": "storehouse",
+          "construction_cost": 0,
           "entrance_tags": [
             "loading_door",
             "staff_access"
@@ -1435,7 +1748,9 @@
             "clay_roof"
           ],
           "owner_npc_definition_ids": [],
+          "player_selectable": false,
           "primary_function": "public_supplies",
+          "private_storage_slots": 0,
           "public_description": "A weathered municipal storehouse for tools and emergency provisions.",
           "region_id": "base:town",
           "resident_npc_definition_ids": [],
@@ -1455,7 +1770,9 @@
       {
         "label": "Wayfarer's Rest",
         "metadata": {
+          "assessed_value": 0,
           "building_type": "inn",
+          "construction_cost": 0,
           "entrance_tags": [
             "public_front_door",
             "guest_access"
@@ -1476,7 +1793,9 @@
             "wood_shingle_roof"
           ],
           "owner_npc_definition_ids": [],
+          "player_selectable": false,
           "primary_function": "lodging",
+          "private_storage_slots": 0,
           "public_description": "A modest inn and common room serving travelers who pass through Stillpoint.",
           "region_id": "base:town",
           "resident_npc_definition_ids": [],
@@ -1591,6 +1910,16 @@
         "visibility": "public"
       },
       {
+        "label": "Bank Counter",
+        "metadata": {
+          "contained_by": "building:stillpoint_bank"
+        },
+        "node_id": "location:bank_counter",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Farm Rest Spot",
         "metadata": {
           "contained_by": "building:player_farmhouse"
@@ -1601,11 +1930,29 @@
         "visibility": "public"
       },
       {
+        "label": "Farmland House Door",
+        "metadata": {},
+        "node_id": "location:farmland_house_door",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Guardhouse Watch Desk",
         "metadata": {
           "contained_by": "building:town_guardhouse"
         },
         "node_id": "location:guardhouse_watch_desk",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Home Storage",
+        "metadata": {
+          "contained_by": "building:player_courtyard_house"
+        },
+        "node_id": "location:home_storage",
         "node_type": "location",
         "source": "world_catalog",
         "visibility": "public"
@@ -1624,6 +1971,26 @@
         "label": "Mira Shop",
         "metadata": {},
         "node_id": "location:mira_shop",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Private Home",
+        "metadata": {
+          "contained_by": "building:player_courtyard_house"
+        },
+        "node_id": "location:private_home",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Private Vault",
+        "metadata": {
+          "contained_by": "building:stillpoint_bank"
+        },
+        "node_id": "location:private_vault",
         "node_type": "location",
         "source": "world_catalog",
         "visibility": "public"
@@ -1705,6 +2072,18 @@
           "region_type": "farmland"
         },
         "node_id": "region:base:farmland",
+        "node_type": "region",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Private Residence",
+        "metadata": {
+          "parent_world_id": "base:world",
+          "region_id": "base:player_home",
+          "region_type": "private_interior"
+        },
+        "node_id": "region:base:player_home",
         "node_type": "region",
         "source": "world_catalog",
         "visibility": "public"

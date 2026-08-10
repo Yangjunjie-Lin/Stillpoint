@@ -243,6 +243,62 @@ func _is_valid_global_world_section(value: Variant) -> bool:
 		var counter_number := float(counter)
 		if counter_number < 0.0 or counter_number != floorf(counter_number):
 			return false
+	if data.has("property_banking"):
+		var property_value: Variant = data.get("property_banking")
+		if not property_value is Dictionary:
+			return false
+		var property_data := property_value as Dictionary
+		var property_version: Variant = property_data.get("section_version", 1)
+		if not _is_finite_number(property_version):
+			return false
+		var version_number := float(property_version)
+		if version_number < 0.0 or version_number > 1.0 or version_number != floorf(version_number):
+			return false
+		for money_field in [
+			"wallet_balance", "bank_balance", "last_compensation",
+			"last_seen_unix", "repossession_count", "offline_reclaim_seconds",
+		]:
+			if property_data.has(money_field):
+				var amount: Variant = property_data.get(money_field)
+				if (
+					not _is_finite_number(amount)
+					or float(amount) < 0.0
+					or float(amount) != floorf(float(amount))
+				):
+					return false
+		if property_data.has("house_status") and str(property_data.get("house_status")) not in ["owned", "repossessed"]:
+			return false
+		for storage_field in ["home_storage", "bank_storage"]:
+			if not property_data.has(storage_field) or not _is_valid_inventory_storage(
+				property_data.get(storage_field)
+			):
+				return false
+	return true
+
+
+func _is_valid_inventory_storage(value: Variant) -> bool:
+	if not value is Dictionary:
+		return false
+	var storage := value as Dictionary
+	var slots_value: Variant = storage.get("slots", null)
+	if not slots_value is Array:
+		return false
+	var slots := slots_value as Array
+	if slots.size() > 240:
+		return false
+	for entry_value in slots:
+		if not entry_value is Dictionary:
+			return false
+		var entry := entry_value as Dictionary
+		if typeof(entry.get("item_id", "")) not in [TYPE_STRING, TYPE_STRING_NAME]:
+			return false
+		var quantity: Variant = entry.get("quantity", 0)
+		if (
+			not _is_finite_number(quantity)
+			or float(quantity) < 0.0
+			or float(quantity) != floorf(float(quantity))
+		):
+			return false
 	return true
 
 

@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var health_label: Label = $VBox/HealthLabel
 @onready var energy_label: Label = $VBox/EnergyLabel
 @onready var level_label: Label = $VBox/LevelLabel if has_node("VBox/LevelLabel") else null
+@onready var funds_label: Label = $VBox/FundsLabel if has_node("VBox/FundsLabel") else null
 @onready var time_label: Label = $VBox/TimeLabel
 @onready var region_label: Label = $VBox/RegionLabel
 @onready var move_label: Label = $VBox/MoveLabel
@@ -37,6 +38,11 @@ func _process(_delta: float) -> void:
 			player.experience.level,
 			player.experience.current_experience,
 			player.experience.experience_to_next_level,
+		]
+	if funds_label != null and _world.property_bank_service != null:
+		funds_label.text = "Coin %d   Bank %d" % [
+			_world.property_bank_service.wallet_balance,
+			_world.property_bank_service.bank_balance,
 		]
 	region_label.text = "Region: %s" % String(_world.current_region_id)
 	move_label.text = "Run" if player.state.is_running else "Walk"

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="HouseDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/house_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"building:player_courtyard_house"
+display_name = "Willow Courtyard House"
+region_id = &"base:player_home"
+building_type = &"courtyard_residence"
+primary_function = &"private_residence_and_storage"
+public_description = "A calm timber courtyard residence with a larger household store."
+contains_node_ids = Array[StringName]([&"location:private_home", &"location:home_storage"])
+connected_location_ids = Array[StringName]([&"location:farmland_house_door"])
+material_tags = Array[StringName]([&"stone_foundation", &"timber_courtyard", &"ceramic_roof"])
+floor_count = 1
+entrance_tags = Array[StringName]([&"private_owner_door", &"player_access"])
+landmark_tags = Array[StringName]([&"willow_courtyard", &"storage_annex"])
+player_selectable = true
+construction_cost = 2200
+assessed_value = 2700
+private_storage_slots = 60
+world_position = Vector3(10, 0, 7)
+footprint_size = Vector3(6.2, 2.6, 5.2)
+wall_color = Color(0.72, 0.67, 0.55, 1)
+timber_color = Color(0.25, 0.16, 0.11, 1)
+roof_color = Color(0.25, 0.31, 0.34, 1)

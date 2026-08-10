@@ -104,14 +104,18 @@ func run() -> bool:
 	ok = ok and item_ids.has(&"shield")
 	ok = ok and region_ids.has(&"base:town")
 	ok = ok and npc_ids.has(&"mira")
-	ok = ok and house_ids.size() == 5
+	ok = ok and house_ids.size() == 8
 	ok = ok and house_ids.has(&"building:mira_apothecary")
 	ok = ok and house_ids.has(&"building:player_farmhouse")
+	ok = ok and house_ids.has(&"building:player_courtyard_house")
+	ok = ok and house_ids.has(&"building:player_townhouse")
+	ok = ok and house_ids.has(&"building:stillpoint_bank")
 	ok = ok and container_ids.size() == 2
 	ok = ok and container_ids.has(&"chest")
 	ok = ok and container_ids.has(&"pryable_cache")
 	ok = ok and loot_table_ids.has(&"bandit_equipment")
 	ok = ok and region_ids.has(&"base:farmland")
+	ok = ok and region_ids.has(&"base:player_home")
 
 	if ResourceRegistry.get_enemy(&"chase") == null:
 		push_error("ResourceRegistry missing chase")

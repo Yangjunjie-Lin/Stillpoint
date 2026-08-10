@@ -21,6 +21,12 @@ extends Resource
 @export var entrance_tags: Array[StringName] = []
 @export var landmark_tags: Array[StringName] = []
 
+@export_group("Private Housing")
+@export var player_selectable: bool = false
+@export_range(0, 1000000, 1) var construction_cost: int = 0
+@export_range(0, 1000000, 1) var assessed_value: int = 0
+@export_range(0, 240, 1) var private_storage_slots: int = 0
+
 @export_group("Runtime Model")
 @export var world_position: Vector3 = Vector3.ZERO
 @export var footprint_size: Vector3 = Vector3(4.0, 2.5, 4.0)
@@ -39,6 +45,9 @@ func is_valid() -> bool:
 		and footprint_size.x > 0.5
 		and footprint_size.y > 0.5
 		and footprint_size.z > 0.5
+		and construction_cost >= 0
+		and assessed_value >= 0
+		and private_storage_slots >= 0
 	)
 
 
@@ -59,6 +68,10 @@ func to_catalog_dict() -> Dictionary:
 			"floor_count": floor_count,
 			"entrance_tags": _strings(entrance_tags),
 			"landmark_tags": _strings(landmark_tags),
+			"player_selectable": player_selectable,
+			"construction_cost": construction_cost,
+			"assessed_value": assessed_value,
+			"private_storage_slots": private_storage_slots,
 			"world_position": [world_position.x, world_position.y, world_position.z],
 			"footprint_size": [footprint_size.x, footprint_size.y, footprint_size.z],
 			"yaw_radians": yaw_radians,

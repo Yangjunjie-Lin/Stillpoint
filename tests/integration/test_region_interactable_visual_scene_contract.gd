@@ -5,6 +5,7 @@ const EXPECTED_INTERACTABLES := {
 		"Interactables/WildernessPortal",
 		"Interactables/DungeonPortal",
 		"Interactables/Chest",
+		"Interactables/BankCounter",
 	],
 	"res://scenes/regions/wilderness/wilderness_region.tscn": [
 		"Interactables/HerbPickup",
@@ -12,6 +13,14 @@ const EXPECTED_INTERACTABLES := {
 	],
 	"res://scenes/regions/dungeon/dungeon_region.tscn": [
 		"Interactables/TownPortal",
+	],
+	"res://scenes/regions/farmland/farmland_region.tscn": [
+		"Interactables/PrivateHomeDoor",
+	],
+	"res://scenes/regions/player_home/player_home_region.tscn": [
+		"Interactables/ExitDoor",
+		"Interactables/HomeStorage",
+		"Interactables/RestSpot",
 	],
 }
 

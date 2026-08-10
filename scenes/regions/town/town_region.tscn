@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/characters/npc_controller.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/npcs/mira.tres" id="2"]
@@ -26,6 +26,7 @@
 [ext_resource type="Script" path="res://scripts/components/combat_animation_controller.gd" id="24"]
 [ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="25"]
 [ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="26"]
+[ext_resource type="Script" path="res://scripts/interaction/property_storage_interactable_3d.gd" id="27"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -321,6 +322,13 @@ persistent_id = &"base:town/interactable/chest_0001"
 definition_id = &"chest"
 region_id = &"base:town"
 persistence_policy = 2
+
+[node name="BankCounter" type="Node3D" parent="Interactables"]
+position = Vector3(-11, 0, -5.0)
+script = ExtResource("27")
+region_id = &"base:town"
+storage_mode = "bank"
+prompt_text = "Use bank, vault, and property services"
 
 [node name="PetInteract" type="Node3D" parent="Interactables"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, -1)
