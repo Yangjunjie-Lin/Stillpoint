@@ -47,7 +47,8 @@ func get_interaction_text(actor: CharacterController) -> String:
 	var crop := _crop()
 	match plot_state:
 		PlotState.UNTILLED:
-			return "Till soil" if selected == &"field_pick" else "Select Field Pick to till"
+			return "Till soil" if _selected_tool_supports(player, &"till_soil") \
+				else "Select a soil-working tool to till"
 		PlotState.TILLED:
 			return (
 				"Plant %s" % crop.display_name
@@ -129,8 +130,8 @@ func get_state_version() -> int:
 
 
 func _till(player: PlayerController3D) -> bool:
-	if _selected_item_id(player) != &"field_pick":
-		EventBus.notice_requested.emit("Select the Field Pick, then interact with the soil.")
+	if not _selected_tool_supports(player, &"till_soil"):
+		EventBus.notice_requested.emit("Select a tool that can till soil, then interact.")
 		return false
 	if player.energy != null and not player.energy.spend(till_energy_cost):
 		EventBus.notice_requested.emit("Not enough energy to till this soil.")
@@ -224,6 +225,13 @@ func _selected_item_id(player: PlayerController3D) -> StringName:
 		return &""
 	var stack := player.inventory.get_slot(player.hotbar.get_inventory_slot_index())
 	return stack.item_id if stack != null and not stack.is_empty() else &""
+
+
+func _selected_tool_supports(player: PlayerController3D, action_id: StringName) -> bool:
+	if player == null:
+		return false
+	var definition := player.get_selected_item_definition()
+	return definition != null and definition.supports_utility_action(action_id)
 
 
 func _is_watered_today() -> bool:

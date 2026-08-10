@@ -41,6 +41,7 @@ enum UseKind {
 @export var health_restore: float = 0.0
 @export var energy_restore: float = 0.0
 @export var tool_attack_id: StringName = &""
+@export var utility_actions: Array[StringName] = []
 @export var attack_bonus: float = 0.0
 @export var defense_bonus: float = 0.0
 @export var energy_regen_bonus: float = 0.0
@@ -58,6 +59,18 @@ enum UseKind {
 @export var spawn_weight: float = 1.0
 @export var minimum_level: int = 1
 @export var score_bonus: int = 10
+
+
+func is_combat_tool() -> bool:
+	return (
+		item_type == ItemType.TOOL
+		and use_kind == UseKind.TOOL_ACTION
+		and tool_attack_id != &""
+	)
+
+
+func supports_utility_action(action_id: StringName) -> bool:
+	return action_id != &"" and utility_actions.has(action_id)
 
 
 func resolved_visual_archetype() -> StringName:

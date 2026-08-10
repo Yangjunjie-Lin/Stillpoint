@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/spawning/entity_spawn_marker.gd" id="2"]
@@ -6,6 +6,8 @@
 [ext_resource type="Resource" path="res://content/base/spawns/bandit_0002.tres" id="4"]
 [ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/interaction/pryable_cache_3d.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="8"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -84,6 +86,18 @@ position = Vector3(0, 1.1, 0)
 rotation = Vector3(1.5708, 0, 0)
 mesh = SubResource("TorusMesh_portal")
 surface_material_override/0 = SubResource("Mat_portal_town")
+
+[node name="PryableCache" type="Node3D" parent="Interactables"]
+position = Vector3(7, 0, 4)
+script = ExtResource("7")
+region_id = &"base:dungeon"
+
+[node name="WorldEntityIdentity" type="Node" parent="Interactables/PryableCache"]
+script = ExtResource("8")
+persistent_id = &"base:dungeon/interactable/pryable_cache_0001"
+definition_id = &"pryable_cache"
+region_id = &"base:dungeon"
+persistence_policy = 2
 
 [node name="WildernessRoad" type="Area3D" parent="."]
 position = Vector3(0, 0, 19)

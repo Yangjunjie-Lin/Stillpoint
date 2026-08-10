@@ -365,6 +365,8 @@ func _grant_starter_inventory() -> void:
 			push_error("WorldSession: could not grant safe starter inventory")
 	if not StarterKitCalculator.grant_farming_essentials(player.inventory):
 		push_error("WorldSession: could not grant farming essentials")
+	if not StarterKitCalculator.grant_utility_essentials(player.inventory):
+		push_error("WorldSession: could not grant utility essentials")
 
 
 func _serialize_pet() -> Dictionary:

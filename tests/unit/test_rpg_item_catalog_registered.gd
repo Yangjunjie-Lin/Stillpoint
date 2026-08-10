@@ -10,6 +10,7 @@ func run() -> bool:
 		&"wanderer_charm",
 		&"trail_snack",
 		&"field_pick",
+		&"crowbar",
 	]
 	var ok := true
 	for item_id in expected:

@@ -22,10 +22,17 @@ const HAND_GRIP_POSES := {
 	},
 	&"field_pick": {
 		"hand": "right",
-		"grip_kind": "tool_grip",
-		"position": Vector3(0.01, -0.02, -0.04),
-		"rotation_degrees": Vector3(-18, -8, -32),
-		"scale": Vector3.ONE,
+		"grip_kind": "versatile_tool_weapon_grip",
+		"position": Vector3(0.015, 0.0, -0.025),
+		"rotation_degrees": Vector3(-10, 7, -154),
+		"scale": Vector3.ONE * 0.94,
+	},
+	&"pry_bar": {
+		"hand": "right",
+		"grip_kind": "pry_bar_power_grip",
+		"position": Vector3(0.015, 0.0, -0.02),
+		"rotation_degrees": Vector3(-8, 6, -162),
+		"scale": Vector3.ONE * 0.92,
 	},
 	&"padded_armor": {
 		"hand": "right",
@@ -142,6 +149,8 @@ static func create_model(definition: ItemDefinition, for_hand: bool = false) -> 
 			_build_sword(root, definition)
 		&"field_pick":
 			_build_pick(root, definition)
+		&"pry_bar":
+			_build_pry_bar(root, definition)
 		&"padded_armor":
 			_build_armor(root, definition)
 		&"neck_charm":
@@ -203,6 +212,14 @@ static func _build_pick(root: Node3D, definition: ItemDefinition) -> void:
 	_box(root, "PickHead", Vector3(0.52, 0.08, 0.1), Vector3(0, 0.74, 0), definition.visual_secondary_color, Vector3(0, 0, -6), 0.68)
 	_cone(root, "PickPointLeft", 0.065, 0.0, 0.24, Vector3(-0.37, 0.78, 0), definition.visual_secondary_color, Vector3(0, 0, 90), 0.68)
 	_cone(root, "PickPointRight", 0.08, 0.02, 0.2, Vector3(0.36, 0.7, 0), definition.visual_secondary_color, Vector3(0, 0, -90), 0.68)
+
+
+static func _build_pry_bar(root: Node3D, definition: ItemDefinition) -> void:
+	_cylinder(root, "BarShaft", 0.035, 0.88, Vector3(0, 0.34, 0), definition.visual_primary_color, Vector3.ZERO, 0.72)
+	_cylinder(root, "WrappedGrip", 0.048, 0.22, Vector3(0, -0.04, 0), definition.visual_primary_color.darkened(0.24))
+	_cylinder(root, "HookNeck", 0.035, 0.26, Vector3(0.07, 0.81, 0), definition.visual_secondary_color, Vector3(0, 0, -42), 0.78)
+	_box(root, "HookClaw", Vector3(0.26, 0.055, 0.1), Vector3(0.19, 0.9, 0), definition.visual_secondary_color, Vector3(0, 0, -18), 0.82)
+	_box(root, "PryFoot", Vector3(0.2, 0.055, 0.1), Vector3(-0.06, -0.16, 0), definition.visual_secondary_color, Vector3(0, 0, 18), 0.82)
 
 
 static func _build_armor(root: Node3D, definition: ItemDefinition) -> void:

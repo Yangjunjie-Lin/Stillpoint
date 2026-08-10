@@ -98,6 +98,8 @@ func update(delta: float) -> void:
 			_apply_threaten()
 		&"attack", &"attack_light_1", &"attack_light_2", &"attack_light_3":
 			_apply_attack()
+		&"tool_attack":
+			_apply_tool_attack()
 		&"guard":
 			_apply_guard()
 		&"hit", &"hit_front_light", &"hit_back_light", &"hit_left_light", \
@@ -316,6 +318,20 @@ func _apply_attack() -> void:
 	_rotate(&"LeftArm", Vector3(-0.2 - strike * 0.35, 0.0, -0.25))
 	_rotate(&"LeftLeg", Vector3(strike * 0.18, 0.0, -strike * 0.06))
 	_rotate(&"RightLeg", Vector3(-strike * 0.12, 0.0, strike * 0.06))
+
+
+func _apply_tool_attack() -> void:
+	var progress := clampf(_time / 0.55, 0.0, 1.0)
+	var strike := sin(progress * PI)
+	var windup := cos(progress * PI) * 0.18
+	_root.rotation.y -= strike * 0.2
+	_root.rotation.x += strike * 0.08
+	_rotate(&"Torso", Vector3(strike * 0.12, -strike * 0.48, -strike * 0.08))
+	_rotate(&"RightArm", Vector3(-0.72 - strike * 1.35 + windup, -strike * 0.28, 0.32))
+	_rotate(&"RightHand", Vector3(-strike * 0.22, 0.0, 0.0))
+	_rotate(&"LeftArm", Vector3(-0.38 - strike * 0.32, 0.0, -0.38))
+	_rotate(&"LeftLeg", Vector3(strike * 0.2, 0.0, -strike * 0.08))
+	_rotate(&"RightLeg", Vector3(-strike * 0.16, 0.0, strike * 0.08))
 
 
 func _apply_guard() -> void:

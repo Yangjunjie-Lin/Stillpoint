@@ -77,6 +77,8 @@ func _ready() -> void:
 		equipment.equipment_changed.connect(_sync_loadout_visuals)
 	if inventory != null and not inventory.inventory_changed.is_connected(_sync_loadout_visuals):
 		inventory.inventory_changed.connect(_sync_loadout_visuals)
+	if inventory != null and not inventory.inventory_changed.is_connected(apply_equipment_bonuses):
+		inventory.inventory_changed.connect(apply_equipment_bonuses)
 	if not hotbar.selection_changed.is_connected(_on_hotbar_selection_changed):
 		hotbar.selection_changed.connect(_on_hotbar_selection_changed)
 	apply_character_build(GameManager.get_default_character_build(), true)
@@ -235,6 +237,20 @@ func use_selected_hotbar_item() -> bool:
 	return use_inventory_slot(hotbar.get_inventory_slot_index())
 
 
+func get_selected_item_definition() -> ItemDefinition:
+	if inventory == null:
+		return null
+	var stack := inventory.get_slot(hotbar.get_inventory_slot_index())
+	if stack == null or stack.is_empty():
+		return null
+	return ResourceRegistry.get_item(stack.item_id)
+
+
+func get_attack_motion_state() -> StringName:
+	var selected := get_selected_item_definition()
+	return &"tool_attack" if selected != null and selected.is_combat_tool() else &"attack"
+
+
 func use_inventory_slot(index: int) -> bool:
 	if inventory == null:
 		return false
@@ -279,14 +295,20 @@ func apply_equipment_bonuses() -> void:
 	var attack_bonus := float(_character_build_bonuses.get(&"attack_bonus", 0.0))
 	var defense_bonus := float(_character_build_bonuses.get(&"defense_bonus", 0.0))
 	var regen_bonus := float(_character_build_bonuses.get(&"energy_regen_bonus", 0.0))
+	var active_tool := get_selected_item_definition()
+	if active_tool == null or not active_tool.is_combat_tool():
+		active_tool = null
 	if equipment != null:
 		for slot in EquipmentComponent.EQUIP_SLOTS:
 			var item_definition := equipment.get_equipped_definition(slot)
 			if item_definition == null:
 				continue
-			attack_bonus += item_definition.attack_bonus
+			if active_tool == null or slot != ItemDefinition.EquipSlot.WEAPON:
+				attack_bonus += item_definition.attack_bonus
 			defense_bonus += item_definition.defense_bonus
 			regen_bonus += item_definition.energy_regen_bonus
+	if active_tool != null:
+		attack_bonus += active_tool.attack_bonus
 	if health != null:
 		health.defense = maxf(0.0, _base_defense + defense_bonus)
 	if energy != null:
@@ -296,6 +318,7 @@ func apply_equipment_bonuses() -> void:
 
 
 func _on_hotbar_selection_changed(_index: int) -> void:
+	apply_equipment_bonuses()
 	_sync_loadout_visuals()
 
 

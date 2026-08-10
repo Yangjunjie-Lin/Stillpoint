@@ -46,7 +46,10 @@ func request_attack(attack: AttackDefinition) -> bool:
 	_current_action = attack.id
 	_visual_action_serial += 1
 	_visual_action_locked = true
-	_set_visual_motion(&"attack")
+	var attack_motion := &"attack"
+	if _owner.has_method("get_attack_motion_state"):
+		attack_motion = StringName(_owner.call("get_attack_motion_state"))
+	_set_visual_motion(attack_motion)
 	animation_action_started.emit(attack.id)
 	if _player != null and _player.has_animation(clip):
 		_player.play(clip, -1.0, attack.animation_speed)
