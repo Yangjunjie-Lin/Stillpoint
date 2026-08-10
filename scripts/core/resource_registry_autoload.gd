@@ -11,6 +11,7 @@ var _items: Dictionary = {}
 var _dialogues: Dictionary = {}
 var _quests: Dictionary = {}
 var _regions: Dictionary = {}
+var _houses: Dictionary = {}
 var _pets: Dictionary = {}
 var _mounts: Dictionary = {}
 var _schedules: Dictionary = {}
@@ -75,6 +76,10 @@ func register_region(def: RegionDefinition) -> void:
 				_regions[&"wilderness"] = def
 			"base:dungeon":
 				_regions[&"dungeon"] = def
+
+
+func register_house(def: HouseDefinition) -> void:
+	_put(_houses, def.id if def else &"", def, "house")
 
 
 func register_pet(def: PetDefinition) -> void:
@@ -234,6 +239,26 @@ func get_all_region_ids() -> Array[StringName]:
 	return result
 
 
+func get_house(id: StringName) -> HouseDefinition:
+	return _houses.get(id) as HouseDefinition
+
+
+func get_all_houses() -> Array[HouseDefinition]:
+	var result: Array[HouseDefinition] = []
+	for id in _sorted_keys(_houses):
+		var definition := _houses[id] as HouseDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_all_house_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for definition in get_all_houses():
+		result.append(definition.id)
+	return result
+
+
 func get_pet(id: StringName) -> PetDefinition:
 	return _pets.get(id) as PetDefinition
 
@@ -274,6 +299,7 @@ func load_defaults() -> void:
 	_register_dir("res://resources/dialogues/", register_dialogue)
 	_register_dir("res://resources/quests/", register_quest)
 	_register_dir("res://resources/regions/", register_region)
+	_register_dir("res://resources/houses/", register_house)
 	_register_dir("res://resources/pets/", register_pet)
 	_register_dir("res://resources/mounts/", register_mount)
 	_register_dir("res://resources/schedules/", register_schedule)
@@ -296,6 +322,7 @@ func clear_all() -> void:
 	_dialogues.clear()
 	_quests.clear()
 	_regions.clear()
+	_houses.clear()
 	_pets.clear()
 	_mounts.clear()
 	_schedules.clear()
@@ -319,6 +346,7 @@ func clear_test_registrations() -> void:
 		"dialogues": _dialogues,
 		"quests": _quests,
 		"regions": _regions,
+		"houses": _houses,
 		"pets": _pets,
 		"mounts": _mounts,
 		"schedules": _schedules,
@@ -347,6 +375,7 @@ func _capture_default_keys() -> void:
 		"dialogues": _dialogues.duplicate(false),
 		"quests": _quests.duplicate(false),
 		"regions": _regions.duplicate(false),
+		"houses": _houses.duplicate(false),
 		"pets": _pets.duplicate(false),
 		"mounts": _mounts.duplicate(false),
 		"schedules": _schedules.duplicate(false),

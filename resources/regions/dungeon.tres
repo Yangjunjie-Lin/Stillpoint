@@ -9,5 +9,6 @@ id = &"base:dungeon"
 display_name = "Abandoned Mine"
 region_type = &"dungeon"
 parent_world_id = &"base:world"
+connected_region_ids = Array[StringName]([&"base:wilderness"])
 default_spawn_id = &"spawn"
 scene = ExtResource("2")

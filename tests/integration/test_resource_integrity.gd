@@ -11,6 +11,7 @@ func run() -> bool:
 	var level_ids: Dictionary = {}
 	var region_ids: Dictionary = {}
 	var npc_ids: Dictionary = {}
+	var house_ids: Dictionary = {}
 
 	for path in resources:
 		var res: Resource = load(path)
@@ -67,6 +68,15 @@ func run() -> bool:
 				push_error("Duplicate npc id: %s" % String(npc.id))
 				ok = false
 			npc_ids[npc.id] = path
+		elif res is HouseDefinition:
+			var house := res as HouseDefinition
+			if house_ids.has(house.id):
+				push_error("Duplicate house id: %s" % String(house.id))
+				ok = false
+			house_ids[house.id] = path
+			if not house.is_valid():
+				push_error("Invalid house definition: %s" % path)
+				ok = false
 
 	ok = ok and not enemy_ids.is_empty()
 	ok = ok and not item_ids.is_empty()
@@ -74,6 +84,8 @@ func run() -> bool:
 	ok = ok and item_ids.has(&"shield")
 	ok = ok and region_ids.has(&"base:town")
 	ok = ok and npc_ids.has(&"mira")
+	ok = ok and house_ids.size() == 4
+	ok = ok and house_ids.has(&"building:mira_apothecary")
 
 	if ResourceRegistry.get_enemy(&"chase") == null:
 		push_error("ResourceRegistry missing chase")
@@ -89,6 +101,9 @@ func run() -> bool:
 		ok = false
 	if ResourceRegistry.get_npc(&"mira") == null:
 		push_error("ResourceRegistry missing mira npc")
+		ok = false
+	if ResourceRegistry.get_house(&"building:mira_apothecary") == null:
+		push_error("ResourceRegistry missing Mira's apothecary")
 		ok = false
 
 	if not ok:

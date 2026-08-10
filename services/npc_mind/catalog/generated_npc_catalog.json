@@ -1,5 +1,5 @@
 {
-  "catalog_version": 1,
+  "catalog_version": 2,
   "game_version": "0.8.0",
   "npc_count": 3,
   "npcs": [
@@ -596,5 +596,468 @@
       ],
       "witness_radius": 12.0
     }
-  ]
+  ],
+  "world_ontology": {
+    "edges": [
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:town_plaza",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:mira_apothecary",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:mira_apothecary",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:mira_apothecary_counter",
+        "predicate": "CONTAINS",
+        "source_id": "building:mira_apothecary",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:mira_apothecary",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "LOCATED_IN",
+        "source_id": "building:mira_apothecary",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:mira_apothecary",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:mira_shop",
+        "predicate": "RELATED_TO",
+        "source_id": "building:mira_apothecary",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:mira_apothecary",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:town_plaza",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:town_guardhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:town_guardhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:guardhouse_watch_desk",
+        "predicate": "CONTAINS",
+        "source_id": "building:town_guardhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:town_guardhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "LOCATED_IN",
+        "source_id": "building:town_guardhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:town_guardhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:town_plaza",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:town_storehouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:town_storehouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:storehouse_loading_bay",
+        "predicate": "CONTAINS",
+        "source_id": "building:town_storehouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:town_storehouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "LOCATED_IN",
+        "source_id": "building:town_storehouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:town_storehouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:town_plaza",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:wayfarer_inn",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:wayfarer_inn",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:wayfarer_inn_common_room",
+        "predicate": "CONTAINS",
+        "source_id": "building:wayfarer_inn",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:wayfarer_inn",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "LOCATED_IN",
+        "source_id": "building:wayfarer_inn",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:wayfarer_inn",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:mira_apothecary",
+        "predicate": "LIVES_IN",
+        "source_id": "building:mira_apothecary",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:mira",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:mira_apothecary",
+        "predicate": "OWNS",
+        "source_id": "building:mira_apothecary",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:mira",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:mira_apothecary",
+        "predicate": "WORKS_AT",
+        "source_id": "building:mira_apothecary",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:mira",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:town_guardhouse",
+        "predicate": "WORKS_AT",
+        "source_id": "building:town_guardhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:ren",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:wilderness",
+        "predicate": "CONNECTED_TO",
+        "source_id": "base:dungeon",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:dungeon",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:wilderness",
+        "predicate": "CONNECTED_TO",
+        "source_id": "base:town",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:town",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:dungeon",
+        "predicate": "CONNECTED_TO",
+        "source_id": "base:wilderness",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:wilderness",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "CONNECTED_TO",
+        "source_id": "base:wilderness",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:wilderness",
+        "visibility": "public"
+      }
+    ],
+    "nodes": [
+      {
+        "label": "Mira's Apothecary",
+        "metadata": {
+          "building_type": "shop_house",
+          "entrance_tags": [
+            "public_front_door",
+            "street_access"
+          ],
+          "floor_count": 2,
+          "footprint_size": [
+            4.80000019073486,
+            2.79999995231628,
+            4.19999980926514
+          ],
+          "landmark_tags": [
+            "merchant_quarter",
+            "herb_sign"
+          ],
+          "material_tags": [
+            "stone_foundation",
+            "timber_frame",
+            "plaster",
+            "clay_roof"
+          ],
+          "owner_npc_definition_ids": [
+            "mira"
+          ],
+          "primary_function": "apothecary_trade",
+          "public_description": "A timber-framed town shop where Mira keeps herbs and practical travel supplies.",
+          "region_id": "base:town",
+          "resident_npc_definition_ids": [
+            "mira"
+          ],
+          "worker_npc_definition_ids": [
+            "mira"
+          ],
+          "world_position": [
+            13.5,
+            0.0,
+            12.0
+          ],
+          "yaw_radians": -0.18
+        },
+        "node_id": "building:mira_apothecary",
+        "node_type": "building",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Stillpoint Guardhouse",
+        "metadata": {
+          "building_type": "civic_guardhouse",
+          "entrance_tags": [
+            "public_front_door",
+            "guard_access"
+          ],
+          "floor_count": 2,
+          "footprint_size": [
+            4.40000009536743,
+            2.59999990463257,
+            4.0
+          ],
+          "landmark_tags": [
+            "watch_banner",
+            "north_quarter"
+          ],
+          "material_tags": [
+            "stone_foundation",
+            "heavy_timber",
+            "slate_roof"
+          ],
+          "owner_npc_definition_ids": [],
+          "primary_function": "public_safety",
+          "public_description": "A stout civic post used by the town watch for patrol briefings and public assistance.",
+          "region_id": "base:town",
+          "resident_npc_definition_ids": [],
+          "worker_npc_definition_ids": [
+            "ren"
+          ],
+          "world_position": [
+            -13.8000001907349,
+            0.0,
+            11.0
+          ],
+          "yaw_radians": 0.2
+        },
+        "node_id": "building:town_guardhouse",
+        "node_type": "building",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Town Storehouse",
+        "metadata": {
+          "building_type": "storehouse",
+          "entrance_tags": [
+            "loading_door",
+            "staff_access"
+          ],
+          "floor_count": 2,
+          "footprint_size": [
+            5.0,
+            3.0,
+            4.19999980926514
+          ],
+          "landmark_tags": [
+            "supply_crates",
+            "west_quarter"
+          ],
+          "material_tags": [
+            "stone_foundation",
+            "heavy_timber",
+            "clay_roof"
+          ],
+          "owner_npc_definition_ids": [],
+          "primary_function": "public_supplies",
+          "public_description": "A weathered municipal storehouse for tools and emergency provisions.",
+          "region_id": "base:town",
+          "resident_npc_definition_ids": [],
+          "worker_npc_definition_ids": [],
+          "world_position": [
+            -13.3999996185303,
+            0.0,
+            -11.6999998092651
+          ],
+          "yaw_radians": -0.12
+        },
+        "node_id": "building:town_storehouse",
+        "node_type": "building",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Wayfarer's Rest",
+        "metadata": {
+          "building_type": "inn",
+          "entrance_tags": [
+            "public_front_door",
+            "guest_access"
+          ],
+          "floor_count": 2,
+          "footprint_size": [
+            4.19999980926514,
+            2.45000004768372,
+            3.79999995231628
+          ],
+          "landmark_tags": [
+            "hanging_lantern",
+            "south_quarter"
+          ],
+          "material_tags": [
+            "stone_foundation",
+            "timber_frame",
+            "wood_shingle_roof"
+          ],
+          "owner_npc_definition_ids": [],
+          "primary_function": "lodging",
+          "public_description": "A modest inn and common room serving travelers who pass through Stillpoint.",
+          "region_id": "base:town",
+          "resident_npc_definition_ids": [],
+          "worker_npc_definition_ids": [],
+          "world_position": [
+            13.8000001907349,
+            0.0,
+            -11.5
+          ],
+          "yaw_radians": 0.12
+        },
+        "node_id": "building:wayfarer_inn",
+        "node_type": "building",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Guardhouse Watch Desk",
+        "metadata": {
+          "contained_by": "building:town_guardhouse"
+        },
+        "node_id": "location:guardhouse_watch_desk",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Mira Apothecary Counter",
+        "metadata": {
+          "contained_by": "building:mira_apothecary"
+        },
+        "node_id": "location:mira_apothecary_counter",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Mira Shop",
+        "metadata": {},
+        "node_id": "location:mira_shop",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Storehouse Loading Bay",
+        "metadata": {
+          "contained_by": "building:town_storehouse"
+        },
+        "node_id": "location:storehouse_loading_bay",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Stillpoint Town Plaza",
+        "metadata": {
+          "location_type": "public_plaza",
+          "region_id": "base:town"
+        },
+        "node_id": "location:town_plaza",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Wayfarer Inn Common Room",
+        "metadata": {
+          "contained_by": "building:wayfarer_inn"
+        },
+        "node_id": "location:wayfarer_inn_common_room",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Abandoned Mine",
+        "metadata": {
+          "parent_world_id": "base:world",
+          "region_id": "base:dungeon",
+          "region_type": "dungeon"
+        },
+        "node_id": "region:base:dungeon",
+        "node_type": "region",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Stillpoint Town",
+        "metadata": {
+          "parent_world_id": "base:world",
+          "region_id": "base:town",
+          "region_type": "town"
+        },
+        "node_id": "region:base:town",
+        "node_type": "region",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Forest Wilderness",
+        "metadata": {
+          "parent_world_id": "base:world",
+          "region_id": "base:wilderness",
+          "region_type": "wilderness"
+        },
+        "node_id": "region:base:wilderness",
+        "node_type": "region",
+        "source": "world_catalog",
+        "visibility": "public"
+      }
+    ]
+  }
 }

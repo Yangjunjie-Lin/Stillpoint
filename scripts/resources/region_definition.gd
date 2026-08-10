@@ -6,6 +6,7 @@ extends Resource
 @export var scene: PackedScene
 @export var region_type: StringName = &"outdoor"
 @export var parent_world_id: StringName = &"base:world"
+@export var connected_region_ids: Array[StringName] = []
 @export var allowed_mount_tags: Array[StringName] = []
 @export var default_spawn_id: StringName = &"spawn"
 @export var music: AudioStream

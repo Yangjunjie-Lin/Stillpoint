@@ -17,10 +17,16 @@ enum HeroStyle {
 var _visual_root: Node3D
 var _body_root: Node3D
 var _equipment_root: Node3D
+var _loadout_root: Node3D
 var _idle_time: float = 0.0
 var _customization: Dictionary = CharacterAppearanceOptions.default_options()
 var _motion_state: StringName = &"idle"
 var _motion_rig := StylizedCharacterMotion.new()
+var _equipped_weapon: ItemDefinition
+var _equipped_armor: ItemDefinition
+var _equipped_charm: ItemDefinition
+var _held_item: ItemDefinition
+var _loadout_attachments: Array[Node3D] = []
 
 
 func _ready() -> void:
@@ -48,6 +54,9 @@ func rebuild() -> void:
 	_equipment_root = Node3D.new()
 	_equipment_root.name = "EquipmentParts"
 	_visual_root.add_child(_equipment_root)
+	_loadout_root = Node3D.new()
+	_loadout_root.name = "DynamicLoadout"
+	_visual_root.add_child(_loadout_root)
 	match style:
 		HeroStyle.WUXIA_SWORDSMAN:
 			_build_wuxia()
@@ -65,6 +74,7 @@ func rebuild() -> void:
 	_apply_headwear_choice()
 	_add_accessory()
 	_apply_body_shape()
+	_rebuild_loadout()
 	_motion_rig.bind(_visual_root)
 	_motion_rig.set_state(_motion_state)
 
@@ -86,6 +96,178 @@ func apply_customization(options: Dictionary) -> void:
 
 func get_customization() -> Dictionary:
 	return _customization.duplicate(true)
+
+
+func apply_loadout(
+	weapon: ItemDefinition,
+	armor: ItemDefinition,
+	charm: ItemDefinition,
+	held_item: ItemDefinition,
+) -> void:
+	_equipped_weapon = weapon
+	_equipped_armor = armor
+	_equipped_charm = charm
+	_held_item = held_item
+	if is_inside_tree() and _visual_root != null:
+		_rebuild_loadout()
+
+
+func get_displayed_loadout() -> Dictionary:
+	var handheld := _held_item if _held_item != null else _equipped_weapon
+	return {
+		"weapon": String(_equipped_weapon.id) if _equipped_weapon != null else "",
+		"armor": String(_equipped_armor.id) if _equipped_armor != null else "",
+		"charm": String(_equipped_charm.id) if _equipped_charm != null else "",
+		"held_item": String(handheld.id) if handheld != null else "",
+	}
+
+
+func _rebuild_loadout() -> void:
+	if _loadout_root == null:
+		return
+	for attachment in _loadout_attachments:
+		if attachment != null and is_instance_valid(attachment):
+			attachment.free()
+	_loadout_attachments.clear()
+	for child in _loadout_root.get_children():
+		child.free()
+	var handheld := _held_item if _held_item != null else _equipped_weapon
+	_set_origin_weapon_visibility(handheld == null)
+	if handheld != null and handheld.visual_archetype != &"":
+		_build_handheld(handheld)
+	if _equipped_armor != null and _equipped_armor.visual_archetype != &"":
+		_build_armor(_equipped_armor)
+	if _equipped_charm != null and _equipped_charm.visual_archetype != &"":
+		_build_charm(_equipped_charm)
+
+
+func _build_handheld(definition: ItemDefinition) -> void:
+	var hand := _body_root.find_child("RightHand", true, false) as Node3D
+	if hand == null:
+		return
+	var socket := Node3D.new()
+	socket.name = "DisplayedHandheld"
+	hand.add_child(socket)
+	_loadout_attachments.append(socket)
+	match definition.visual_archetype:
+		&"field_pick":
+			_dynamic_cylinder(socket, "ToolHandle", 0.028, 0.88, Vector3(0, 0.35, 0), definition.visual_primary_color)
+			_dynamic_box(socket, "PickHead", Vector3(0.48, 0.07, 0.08), Vector3(0, 0.77, 0), definition.visual_secondary_color, Vector3(0, 0, -8), 0.55)
+		_:
+			_dynamic_cylinder(socket, "WeaponGrip", 0.035, 0.2, Vector3(0, 0.08, 0), definition.visual_primary_color)
+			_dynamic_box(socket, "WeaponGuard", Vector3(0.24, 0.045, 0.075), Vector3(0, 0.19, 0), definition.visual_primary_color.lightened(0.18), Vector3.ZERO, 0.28)
+			_dynamic_box(socket, "WeaponBlade", Vector3(0.055, 0.78, 0.035), Vector3(0, 0.59, 0), definition.visual_secondary_color, Vector3.ZERO, 0.62)
+
+
+func _build_armor(definition: ItemDefinition) -> void:
+	var torso := _body_root.find_child("Torso", true, false) as Node3D
+	if torso == null:
+		return
+	var overlay := Node3D.new()
+	overlay.name = "DisplayedArmor"
+	torso.add_child(overlay)
+	_loadout_attachments.append(overlay)
+	_dynamic_box(overlay, "ArmorVest", Vector3(0.58, 0.64, 0.42), Vector3.ZERO, definition.visual_primary_color)
+	_dynamic_box(overlay, "ArmorTrim", Vector3(0.5, 0.08, 0.455), Vector3(0, 0.22, 0), definition.visual_secondary_color)
+	_dynamic_sphere(overlay, "ArmorLeftShoulder", 0.15, Vector3(-0.33, 0.2, 0), definition.visual_primary_color.darkened(0.08))
+	_dynamic_sphere(overlay, "ArmorRightShoulder", 0.15, Vector3(0.33, 0.2, 0), definition.visual_primary_color.darkened(0.08))
+
+
+func _build_charm(definition: ItemDefinition) -> void:
+	var torso := _body_root.find_child("Torso", true, false) as Node3D
+	if torso == null:
+		return
+	var charm := Node3D.new()
+	charm.name = "DisplayedCharm"
+	torso.add_child(charm)
+	_loadout_attachments.append(charm)
+	_dynamic_cylinder(charm, "CharmCord", 0.012, 0.28, Vector3(0, 0.08, 0.245), definition.visual_primary_color)
+	_dynamic_sphere(charm, "CharmStone", 0.075, Vector3(0, -0.09, 0.27), definition.visual_secondary_color, 0.32)
+
+
+func _set_origin_weapon_visibility(visible_: bool) -> void:
+	if _equipment_root == null:
+		return
+	for part_name in [
+		"JianBlade", "JianGuard", "WalkingStaff", "StaffRing", "KatanaScabbard",
+		"KatanaHilt", "Shield", "KnightSword", "BowUpper", "BowLower", "Quiver",
+		"RecurveBow",
+	]:
+		var part := _equipment_root.find_child(part_name, true, false) as Node3D
+		if part != null:
+			part.visible = visible_
+	for child in _equipment_root.get_children():
+		if String(child.name).begins_with("Arrow"):
+			(child as Node3D).visible = visible_
+
+
+func _dynamic_box(
+	parent: Node3D,
+	name_: String,
+	size: Vector3,
+	position_: Vector3,
+	color: Color,
+	rotation_degrees_: Vector3 = Vector3.ZERO,
+	metallic: float = 0.0,
+) -> MeshInstance3D:
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	return _dynamic_part(parent, name_, mesh, position_, color, rotation_degrees_, metallic)
+
+
+func _dynamic_sphere(
+	parent: Node3D,
+	name_: String,
+	radius: float,
+	position_: Vector3,
+	color: Color,
+	metallic: float = 0.0,
+) -> MeshInstance3D:
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.0
+	mesh.radial_segments = 12
+	mesh.rings = 6
+	return _dynamic_part(parent, name_, mesh, position_, color, Vector3.ZERO, metallic)
+
+
+func _dynamic_cylinder(
+	parent: Node3D,
+	name_: String,
+	radius: float,
+	height: float,
+	position_: Vector3,
+	color: Color,
+) -> MeshInstance3D:
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = radius
+	mesh.bottom_radius = radius
+	mesh.height = height
+	mesh.radial_segments = 10
+	return _dynamic_part(parent, name_, mesh, position_, color)
+
+
+func _dynamic_part(
+	parent: Node3D,
+	name_: String,
+	mesh: PrimitiveMesh,
+	position_: Vector3,
+	color: Color,
+	rotation_degrees_: Vector3 = Vector3.ZERO,
+	metallic: float = 0.0,
+) -> MeshInstance3D:
+	var part := MeshInstance3D.new()
+	part.name = name_
+	part.mesh = mesh
+	part.position = position_
+	part.rotation_degrees = rotation_degrees_
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.metallic = clampf(metallic, 0.0, 1.0)
+	material.roughness = 0.34 if metallic > 0.0 else 0.78
+	mesh.material = material
+	parent.add_child(part)
+	return part
 
 
 func _build_base(skin: Color, cloth: Color, boots: Color) -> void:

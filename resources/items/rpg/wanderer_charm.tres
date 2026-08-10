@@ -14,3 +14,6 @@ icon = ExtResource("2")
 equip_slot = 3
 energy_regen_bonus = 2.0
 starter_balance_value = 6
+visual_archetype = &"neck_charm"
+visual_primary_color = Color(0.690196, 0.403922, 0.203922, 1)
+visual_secondary_color = Color(0.87451, 0.698039, 0.278431, 1)

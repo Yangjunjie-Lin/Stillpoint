@@ -83,7 +83,9 @@ def _health_ready(port: int) -> bool:
     try:
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=1) as response:
             return response.status == 200
-    except (urllib.error.URLError, TimeoutError):
+    # Windows may reset the socket while Uvicorn is completing a graceful
+    # shutdown. That is the expected "not healthy" state, not an E2E failure.
+    except OSError:
         return False
 
 

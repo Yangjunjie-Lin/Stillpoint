@@ -14,6 +14,7 @@ NODE_TYPES = {
     "quest",
     "event",
     "location",
+    "building",
     "concept",
     "profession",
     "skill",
@@ -43,7 +44,12 @@ EDGE_TYPES = {
     "ATTACKED",
     "HELPED",
     "KNOWS_ABOUT",
+    "LOCATED_IN",
+    "CONTAINS",
+    "CONNECTED_TO",
 }
+
+CANONICAL_WORLD_EDGE_TYPES = {"LOCATED_IN", "CONTAINS", "CONNECTED_TO"}
 
 
 @dataclass(slots=True)

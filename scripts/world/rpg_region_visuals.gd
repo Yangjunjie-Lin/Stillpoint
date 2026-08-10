@@ -79,10 +79,17 @@ func _build_town() -> void:
 			stone.lightened(0.08 if index % 2 == 0 else -0.03),
 			Vector3(0, -angle, 0),
 		)
-	_add_house(Vector3(13.5, 0.0, 12.0), Vector3(4.8, 2.8, 4.2), plaster, timber, roof_red, -0.18)
-	_add_house(Vector3(-13.8, 0.0, 11.0), Vector3(4.4, 2.6, 4.0), Color("b9aa8b"), timber, Color("4c5964"), 0.2)
-	_add_house(Vector3(13.8, 0.0, -11.5), Vector3(4.2, 2.45, 3.8), Color("c8b18b"), timber, Color("6b513c"), 0.12)
-	_add_house(Vector3(-13.4, 0.0, -11.7), Vector3(5.0, 3.0, 4.2), Color("b7a987"), timber, roof_red.darkened(0.12), -0.12)
+	for house_id in [
+		&"building:mira_apothecary",
+		&"building:town_guardhouse",
+		&"building:wayfarer_inn",
+		&"building:town_storehouse",
+	]:
+		var house := ResourceRegistry.get_house(house_id)
+		if house == null or not house.is_valid():
+			push_error("RPGRegionVisuals: invalid house definition '%s'" % String(house_id))
+			continue
+		_add_house(house)
 	_add_market_stall(Vector3(6.2, 0.0, 6.2), Color("607553"), timber)
 	_add_market_stall(Vector3(-6.2, 0.0, 6.2), Color("8b5845"), timber)
 	_add_market_stall(Vector3(6.2, 0.0, -6.2), Color("4c6477"), timber)
@@ -97,11 +104,16 @@ func _build_town() -> void:
 			Vector3(-7.35, 0.09 + index * 0.09, 3.5),
 			stone_light,
 		)
-	_add_cylinder(_generated, "WellBase", 1.2, 0.6, Vector3(0, 0.43, -7.5), stone)
-	_add_cylinder(_generated, "WellWater", 0.82, 0.04, Vector3(0, 0.74, -7.5), Color("4a8691"), Vector3.ZERO, 0.05, true)
+	var well := _new_static_body(_generated, "TownWell", Vector3(0, 0, -7.5))
+	well.set_meta("ontology_id", "location:town_well")
+	_add_cylinder(well, "WellBase", 1.2, 0.6, Vector3(0, 0.43, 0), stone)
+	_add_cylinder_collision(well, 1.2, 0.6, Vector3(0, 0.43, 0))
+	_add_cylinder(well, "WellWater", 0.82, 0.04, Vector3(0, 0.74, 0), Color("4a8691"), Vector3.ZERO, 0.05, true)
 	for x in [-0.95, 0.95]:
-		_add_box(_generated, "WellPost", Vector3(0.16, 2.1, 0.16), Vector3(x, 1.55, -7.5), timber)
-	_add_box(_generated, "WellBeam", Vector3(2.2, 0.16, 0.16), Vector3(0, 2.55, -7.5), timber)
+		_add_box(well, "WellPost", Vector3(0.16, 2.1, 0.16), Vector3(x, 1.55, 0), timber)
+		_add_box_collision(well, Vector3(0.16, 2.1, 0.16), Vector3(x, 1.55, 0))
+	_add_box(well, "WellBeam", Vector3(2.2, 0.16, 0.16), Vector3(0, 2.55, 0), timber)
+	_add_box_collision(well, Vector3(2.2, 0.16, 0.16), Vector3(0, 2.55, 0))
 
 
 func _build_wilderness() -> void:
@@ -127,13 +139,18 @@ func _build_wilderness() -> void:
 	for index in 7:
 		var x := -17.5 + index * 5.8
 		var height := 1.6 + float(index % 3) * 0.7
-		_add_box(_generated, "NorthCliff%d" % index, Vector3(5.2, height, 2.2), Vector3(x, height * 0.5, -18.0), Color("5d6255").lightened(index * 0.012))
+		_add_solid_box("NorthCliff%d" % index, Vector3(5.2, height, 2.2), Vector3(x, height * 0.5, -18.0), Color("5d6255").lightened(index * 0.012))
 	_add_solid_box("ShrineTerrace", Vector3(6.4, 1.0, 5.5), Vector3(11.7, 0.5, -0.5), Color("66705d"))
 	for index in 4:
 		_add_solid_box("ShrineStep%d" % index, Vector3(1.9, 0.22 + index * 0.22, 0.7), Vector3(7.6 + index * 0.55, 0.11 + index * 0.11, -0.5), Color("818474"))
 	for x in [10.2, 13.2]:
-		_add_cylinder(_generated, "ShrinePillar", 0.22, 2.5, Vector3(x, 2.25, -1.8), Color("817763"))
-		_add_box(_generated, "ShrineCap", Vector3(0.65, 0.18, 0.65), Vector3(x, 3.52, -1.8), Color("9a8e74"))
+		var shrine_pillar := _new_static_body(
+			_generated, "ShrinePillar", Vector3(x, 0, -1.8)
+		)
+		_add_cylinder(shrine_pillar, "PillarVisual", 0.22, 2.5, Vector3(0, 2.25, 0), Color("817763"))
+		_add_cylinder_collision(shrine_pillar, 0.22, 2.5, Vector3(0, 2.25, 0))
+		_add_box(shrine_pillar, "ShrineCap", Vector3(0.65, 0.18, 0.65), Vector3(0, 3.52, 0), Color("9a8e74"))
+		_add_box_collision(shrine_pillar, Vector3(0.65, 0.18, 0.65), Vector3(0, 3.52, 0))
 	_add_box(_generated, "ShrineLintel", Vector3(4.0, 0.26, 0.42), Vector3(11.7, 3.45, -1.8), Color("75503b"))
 	_add_cylinder(_generated, "Pond", 3.0, 0.035, Vector3(-8.0, 0.14, -3.0), Color("3d7882"), Vector3.ZERO, 0.0, true)
 	for index in 10:
@@ -182,55 +199,65 @@ func _build_dungeon() -> void:
 		_add_rock(Vector3(cos(angle) * 15.5, 0.15, sin(angle) * 15.5), 0.55 + (index % 3) * 0.18, stone)
 
 
-func _add_house(position_: Vector3, size: Vector3, wall: Color, timber: Color, roof: Color, yaw: float) -> void:
-	var root := Node3D.new()
-	root.name = "TownHouse"
-	root.position = position_
-	root.rotation.y = yaw
-	_generated.add_child(root)
+func _add_house(definition: HouseDefinition) -> void:
+	var size := definition.footprint_size
+	var wall := definition.wall_color
+	var timber := definition.timber_color
+	var roof := definition.roof_color
+	var root := _new_static_body(
+		_generated,
+		"House%s" % String(definition.id).trim_prefix("building:").to_pascal_case(),
+		definition.world_position,
+		Vector3(0, definition.yaw_radians, 0),
+	)
+	root.set_meta("ontology_id", String(definition.id))
+	root.set_meta("house_definition_id", String(definition.id))
+	root.set_meta("ontology", definition.to_catalog_dict())
 	_add_box(root, "StoneFoundation", Vector3(size.x + 0.25, 0.45, size.z + 0.25), Vector3(0, 0.225, 0), Color("68645d"))
+	_add_box_collision(root, Vector3(size.x + 0.25, 0.45, size.z + 0.25), Vector3(0, 0.225, 0))
 	_add_box(root, "HouseWalls", size, Vector3(0, 0.45 + size.y * 0.5, 0), wall)
+	_add_box_collision(root, size, Vector3(0, 0.45 + size.y * 0.5, 0))
 	for x in [-size.x * 0.43, size.x * 0.43]:
 		_add_box(root, "TimberPost", Vector3(0.16, size.y + 0.15, 0.18), Vector3(x, 0.5 + size.y * 0.5, size.z * 0.51), timber)
 	_add_box(root, "TimberBeam", Vector3(size.x, 0.18, 0.2), Vector3(0, size.y + 0.45, size.z * 0.51), timber)
 	_add_box(root, "Door", Vector3(0.9, 1.65, 0.16), Vector3(0, 1.25, size.z * 0.52), timber.darkened(0.16))
 	for x in [-size.x * 0.27, size.x * 0.27]:
 		_add_box(root, "Window", Vector3(0.58, 0.66, 0.08), Vector3(x, 1.9, size.z * 0.57), Color("7ba0a4"), Vector3.ZERO, 0.05, true)
-	_add_box(root, "RoofLeft", Vector3(size.x + 0.7, 0.22, size.z * 0.72), Vector3(0, size.y + 0.95, -size.z * 0.23), roof, Vector3(deg_to_rad(32), 0, 0))
-	_add_box(root, "RoofRight", Vector3(size.x + 0.7, 0.22, size.z * 0.72), Vector3(0, size.y + 0.95, size.z * 0.23), roof, Vector3(deg_to_rad(-32), 0, 0))
+	var roof_size := Vector3(size.x + 0.7, 0.22, size.z * 0.72)
+	var roof_left_rotation := Vector3(deg_to_rad(32), 0, 0)
+	var roof_right_rotation := Vector3(deg_to_rad(-32), 0, 0)
+	_add_box(root, "RoofLeft", roof_size, Vector3(0, size.y + 0.95, -size.z * 0.23), roof, roof_left_rotation)
+	_add_box_collision(root, roof_size, Vector3(0, size.y + 0.95, -size.z * 0.23), roof_left_rotation)
+	_add_box(root, "RoofRight", roof_size, Vector3(0, size.y + 0.95, size.z * 0.23), roof, roof_right_rotation)
+	_add_box_collision(root, roof_size, Vector3(0, size.y + 0.95, size.z * 0.23), roof_right_rotation)
 
 
 func _add_market_stall(position_: Vector3, canopy: Color, timber: Color) -> void:
-	var root := Node3D.new()
-	root.name = "MarketStall"
-	root.position = position_
-	_generated.add_child(root)
+	var root := _new_static_body(_generated, "MarketStall", position_)
 	_add_box(root, "Counter", Vector3(2.2, 0.18, 1.0), Vector3(0, 1.0, 0), timber)
+	_add_box_collision(root, Vector3(2.2, 0.18, 1.0), Vector3(0, 1.0, 0))
 	for x in [-0.95, 0.95]:
 		for z in [-0.4, 0.4]:
 			_add_box(root, "StallPost", Vector3(0.11, 2.5, 0.11), Vector3(x, 1.25, z), timber.darkened(0.08))
+			_add_box_collision(root, Vector3(0.11, 2.5, 0.11), Vector3(x, 1.25, z))
 	_add_box(root, "Canopy", Vector3(2.5, 0.12, 1.4), Vector3(0, 2.42, 0), canopy, Vector3(0, 0, deg_to_rad(3)))
 	for index in 5:
 		_add_sphere(root, "Produce", 0.12, Vector3(-0.72 + index * 0.36, 1.17, 0.05), Color("b65c3c") if index % 2 == 0 else Color("c9a34f"))
 
 
 func _add_tree(position_: Vector3, scale_: float, bark: Color, leaves: Color) -> void:
-	var root := Node3D.new()
-	root.name = "ForestTree"
-	root.position = position_
+	var root := _new_static_body(_generated, "ForestTree", position_)
 	root.scale = Vector3.ONE * scale_
-	_generated.add_child(root)
 	_add_cylinder(root, "Trunk", 0.25, 2.6, Vector3(0, 1.3, 0), bark)
+	_add_cylinder_collision(root, 0.25, 2.6, Vector3(0, 1.3, 0))
 	_add_cone(root, "LowerCrown", 1.35, 0.42, 1.8, Vector3(0, 2.8, 0), leaves)
 	_add_cone(root, "UpperCrown", 1.0, 0.18, 1.6, Vector3(0, 3.8, 0), leaves.lightened(0.06))
 
 
 func _add_lamp(position_: Vector3, light_color: Color) -> void:
-	var root := Node3D.new()
-	root.name = "TownLamp"
-	root.position = position_
-	_generated.add_child(root)
+	var root := _new_static_body(_generated, "TownLamp", position_)
 	_add_cylinder(root, "LampPost", 0.075, 2.55, Vector3(0, 1.28, 0), Color("373b3b"), Vector3.ZERO, 0.65)
+	_add_cylinder_collision(root, 0.11, 2.55, Vector3(0, 1.28, 0))
 	_add_box(root, "LampCage", Vector3(0.42, 0.55, 0.42), Vector3(0, 2.55, 0), Color("4a4b47"), Vector3.ZERO, 0.5)
 	_add_sphere(root, "LampGlow", 0.17, Vector3(0, 2.55, 0), light_color, Vector3.ZERO, 0.0, true)
 	var light := OmniLight3D.new()
@@ -242,23 +269,20 @@ func _add_lamp(position_: Vector3, light_color: Color) -> void:
 
 
 func _add_pillar(position_: Vector3, stone: Color, rune: Color, variant: int) -> void:
-	var root := Node3D.new()
-	root.name = "RunePillar"
-	root.position = position_
-	_generated.add_child(root)
+	var root := _new_static_body(_generated, "RunePillar", position_)
 	_add_box(root, "PillarBase", Vector3(1.15, 0.35, 1.15), Vector3(0, 0.18, 0), stone.darkened(0.08))
+	_add_box_collision(root, Vector3(1.15, 0.35, 1.15), Vector3(0, 0.18, 0))
 	_add_cylinder(root, "Pillar", 0.38, 3.0 + (variant % 2) * 0.6, Vector3(0, 1.8, 0), stone)
+	_add_cylinder_collision(root, 0.38, 3.0 + (variant % 2) * 0.6, Vector3(0, 1.8, 0))
 	_add_torus(root, "RuneBand", 0.34, 0.43, Vector3(0, 2.3, 0), rune, Vector3.ZERO, 0.2, true)
 	_add_box(root, "PillarCap", Vector3(1.0, 0.28, 1.0), Vector3(0, 3.32 + (variant % 2) * 0.6, 0), stone.lightened(0.08))
 
 
 func _add_brazier(position_: Vector3, flame_color: Color) -> void:
-	var root := Node3D.new()
-	root.name = "Brazier"
-	root.position = position_
-	_generated.add_child(root)
+	var root := _new_static_body(_generated, "Brazier", position_)
 	_add_cylinder(root, "BrazierStem", 0.12, 0.8, Vector3(0, 0.4, 0), Color("343238"), Vector3.ZERO, 0.65)
 	_add_cylinder(root, "BrazierBowl", 0.52, 0.2, Vector3(0, 0.86, 0), Color("504348"), Vector3.ZERO, 0.5)
+	_add_cylinder_collision(root, 0.52, 1.0, Vector3(0, 0.5, 0))
 	_add_cone(root, "FlameOuter", 0.26, 0.0, 0.7, Vector3(0, 1.26, 0), flame_color, Vector3.ZERO, 0.0, true)
 	_add_cone(root, "FlameInner", 0.13, 0.0, 0.42, Vector3(0, 1.2, 0.03), Color("ffd67a"), Vector3.ZERO, 0.0, true)
 	var light := OmniLight3D.new()
@@ -270,7 +294,10 @@ func _add_brazier(position_: Vector3, flame_color: Color) -> void:
 
 
 func _add_rock(position_: Vector3, size_: float, color: Color = Color("686b61")) -> void:
-	_add_sphere(_generated, "Rock", size_, position_ + Vector3.UP * size_ * 0.55, color, Vector3(0, position_.x * 0.07, position_.z * 0.05), 0.0, false, Vector3(1.25, 0.7, 1.0))
+	var rotation_ := Vector3(0, position_.x * 0.07, position_.z * 0.05)
+	var root := _new_static_body(_generated, "Rock", position_ + Vector3.UP * size_ * 0.55, rotation_)
+	_add_sphere(root, "RockVisual", size_, Vector3.ZERO, color, Vector3.ZERO, 0.0, false, Vector3(1.25, 0.7, 1.0))
+	_add_box_collision(root, Vector3(size_ * 2.25, size_ * 1.25, size_ * 1.8), Vector3.ZERO)
 
 
 func _add_grass_cluster(position_: Vector3, color: Color) -> void:
@@ -279,20 +306,60 @@ func _add_grass_cluster(position_: Vector3, color: Color) -> void:
 
 
 func _add_solid_box(name_: String, size: Vector3, position_: Vector3, color: Color, rotation_: Vector3 = Vector3.ZERO) -> StaticBody3D:
+	var body := _new_static_body(_generated, name_, position_, rotation_)
+	_add_box(body, "Visual", size, Vector3.ZERO, color)
+	_add_box_collision(body, size, Vector3.ZERO)
+	return body
+
+
+func _new_static_body(
+	parent: Node3D,
+	name_: String,
+	position_: Vector3 = Vector3.ZERO,
+	rotation_: Vector3 = Vector3.ZERO,
+) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.name = name_
 	body.position = position_
 	body.rotation = rotation_
 	body.collision_layer = 1
 	body.collision_mask = 0
-	_generated.add_child(body)
-	_add_box(body, "Visual", size, Vector3.ZERO, color)
+	parent.add_child(body)
+	return body
+
+
+func _add_box_collision(
+	parent: StaticBody3D,
+	size: Vector3,
+	position_: Vector3,
+	rotation_: Vector3 = Vector3.ZERO,
+) -> CollisionShape3D:
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = size
 	collision.shape = shape
-	body.add_child(collision)
-	return body
+	collision.position = position_
+	collision.rotation = rotation_
+	parent.add_child(collision)
+	return collision
+
+
+func _add_cylinder_collision(
+	parent: StaticBody3D,
+	radius: float,
+	height: float,
+	position_: Vector3,
+	rotation_: Vector3 = Vector3.ZERO,
+) -> CollisionShape3D:
+	var collision := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = radius
+	shape.height = height
+	collision.shape = shape
+	collision.position = position_
+	collision.rotation = rotation_
+	parent.add_child(collision)
+	return collision
 
 
 func _add_box(parent: Node3D, name_: String, size: Vector3, position_: Vector3, color: Color, rotation_: Vector3 = Vector3.ZERO, metallic: float = 0.0, emission: bool = false) -> MeshInstance3D:

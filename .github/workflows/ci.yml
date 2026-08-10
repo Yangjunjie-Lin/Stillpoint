@@ -61,7 +61,7 @@ jobs:
       - name: Run tests with log validation
         run: |
           GODOT=godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
-          python tools/python/run_godot_tests.py --godot "$GODOT" --expected-tests 283 --max-objectdb-leaks 0 --max-resource-leaks 0
+          python tools/python/run_godot_tests.py --godot "$GODOT" --expected-tests 285 --max-objectdb-leaks 0 --max-resource-leaks 0
       - name: Upload Godot test log
         if: always()
         uses: actions/upload-artifact@v4

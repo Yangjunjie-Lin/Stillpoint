@@ -14,3 +14,6 @@ icon = ExtResource("2")
 equip_slot = 2
 defense_bonus = 3.0
 starter_balance_value = 6
+visual_archetype = &"padded_armor"
+visual_primary_color = Color(0.286275, 0.384314, 0.352941, 1)
+visual_secondary_color = Color(0.658824, 0.501961, 0.278431, 1)

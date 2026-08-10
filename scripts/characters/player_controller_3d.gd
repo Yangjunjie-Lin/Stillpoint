@@ -73,6 +73,12 @@ func _ready() -> void:
 	_base_energy_regen = energy.regen_per_second if energy != null else 0.0
 	if equipment != null and not equipment.equipment_changed.is_connected(apply_equipment_bonuses):
 		equipment.equipment_changed.connect(apply_equipment_bonuses)
+	if equipment != null and not equipment.equipment_changed.is_connected(_sync_loadout_visuals):
+		equipment.equipment_changed.connect(_sync_loadout_visuals)
+	if inventory != null and not inventory.inventory_changed.is_connected(_sync_loadout_visuals):
+		inventory.inventory_changed.connect(_sync_loadout_visuals)
+	if not hotbar.selection_changed.is_connected(_on_hotbar_selection_changed):
+		hotbar.selection_changed.connect(_on_hotbar_selection_changed)
 	apply_character_build(GameManager.get_default_character_build(), true)
 
 
@@ -289,6 +295,31 @@ func apply_equipment_bonuses() -> void:
 		combat.damage_bonus = maxf(0.0, attack_bonus)
 
 
+func _on_hotbar_selection_changed(_index: int) -> void:
+	_sync_loadout_visuals()
+
+
+func _sync_loadout_visuals() -> void:
+	if _appearance_controller == null:
+		return
+	var weapon: ItemDefinition = null
+	var armor: ItemDefinition = null
+	var charm: ItemDefinition = null
+	if equipment != null:
+		weapon = equipment.get_equipped_definition(ItemDefinition.EquipSlot.WEAPON)
+		armor = equipment.get_equipped_definition(ItemDefinition.EquipSlot.ARMOR)
+		charm = equipment.get_equipped_definition(ItemDefinition.EquipSlot.CHARM)
+	var held_item: ItemDefinition = null
+	if inventory != null:
+		var selected_slot := hotbar.get_inventory_slot_index()
+		var stack := inventory.get_slot(selected_slot)
+		if stack != null and not stack.is_empty():
+			var selected := ResourceRegistry.get_item(stack.item_id)
+			if selected != null and selected.use_kind == ItemDefinition.UseKind.TOOL_ACTION:
+				held_item = selected
+	_appearance_controller.apply_loadout(weapon, armor, charm, held_item)
+
+
 func apply_character_build(build_data: Dictionary, restore_to_full: bool = false) -> bool:
 	var requested_origin := StringName(str(
 		build_data.get("origin_id", GameManager.DEFAULT_ORIGIN_ID)
@@ -357,6 +388,7 @@ func apply_character_build(build_data: Dictionary, restore_to_full: bool = false
 	if _appearance_controller != null:
 		_appearance_controller.apply_build(origin_id, appearance_options)
 	apply_equipment_bonuses()
+	_sync_loadout_visuals()
 	return true
 
 

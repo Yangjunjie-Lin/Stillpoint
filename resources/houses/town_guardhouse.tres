@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="HouseDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/house_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"building:town_guardhouse"
+display_name = "Stillpoint Guardhouse"
+region_id = &"base:town"
+building_type = &"civic_guardhouse"
+primary_function = &"public_safety"
+public_description = "A stout civic post used by the town watch for patrol briefings and public assistance."
+worker_npc_definition_ids = Array[StringName]([&"ren"])
+contains_node_ids = Array[StringName]([&"location:guardhouse_watch_desk"])
+connected_location_ids = Array[StringName]([&"location:town_plaza"])
+material_tags = Array[StringName]([&"stone_foundation", &"heavy_timber", &"slate_roof"])
+floor_count = 2
+entrance_tags = Array[StringName]([&"public_front_door", &"guard_access"])
+landmark_tags = Array[StringName]([&"watch_banner", &"north_quarter"])
+world_position = Vector3(-13.8, 0, 11)
+footprint_size = Vector3(4.4, 2.6, 4)
+yaw_radians = 0.2
+wall_color = Color(0.72549, 0.666667, 0.545098, 1)
+timber_color = Color(0.352941, 0.223529, 0.14902, 1)
+roof_color = Color(0.298039, 0.34902, 0.392157, 1)

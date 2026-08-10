@@ -1256,3 +1256,35 @@ def test_text_provider_retries_invalid_structure_once(monkeypatch):
     assert result.reply_text == "Corrected."
     assert len(calls) == 2
     assert calls[1]["temperature"] == 0.1
+
+
+def test_public_house_fact_is_projected_as_natural_server_owned_context():
+    fact = providers._public_world_fact_context(
+        [
+            {
+                "subject_node_id": "npc_definition:mira",
+                "predicate": "WORKS_AT",
+                "object_node_id": "building:mira_apothecary",
+                "subject_node": {
+                    "node_id": "npc_definition:mira",
+                    "node_type": "npc_definition",
+                    "label": "Mira",
+                },
+                "object_node": {
+                    "node_id": "building:mira_apothecary",
+                    "node_type": "building",
+                    "label": "Mira's Apothecary",
+                    "metadata": {
+                        "building_type": "shop_house",
+                        "primary_function": "apothecary_trade",
+                        "floor_count": 2,
+                        "public_description": "A public herb and travel-supply shop.",
+                    },
+                },
+            }
+        ]
+    )
+
+    assert "Mira works at Mira's Apothecary" in fact
+    assert "2 floors" in fact
+    assert "apothecary_trade" in fact

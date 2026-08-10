@@ -11,6 +11,7 @@ class NpcProfile:
     npc_definition_id: str
     catalog_revision: str
     payload: dict[str, Any]
+    world_ontology: dict[str, Any]
 
 
 class NpcCatalogRepository:
@@ -21,6 +22,7 @@ class NpcCatalogRepository:
         document = json.loads(self.path.read_text(encoding="utf-8"))
         revision = f"{document.get('game_version', 'unknown')}:{document.get('catalog_version', 0)}"
         self.catalog_revision = revision
+        self.world_ontology = dict(document.get("world_ontology", {}))
         self._profiles: dict[str, NpcProfile] = {}
         for raw in document.get("npcs", []):
             definition_id = str(raw.get("definition_id", "")).strip()
@@ -34,7 +36,9 @@ class NpcCatalogRepository:
                         for constraint in skill.get("response_constraints", [])
                     ],
                 )
-                self._profiles[definition_id] = NpcProfile(definition_id, revision, payload)
+                self._profiles[definition_id] = NpcProfile(
+                    definition_id, revision, payload, self.world_ontology
+                )
 
     def get_profile(self, npc_definition_id: str) -> NpcProfile:
         profile = self._profiles.get(npc_definition_id)

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="HouseDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/house_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"building:wayfarer_inn"
+display_name = "Wayfarer's Rest"
+region_id = &"base:town"
+building_type = &"inn"
+primary_function = &"lodging"
+public_description = "A modest inn and common room serving travelers who pass through Stillpoint."
+contains_node_ids = Array[StringName]([&"location:wayfarer_inn_common_room"])
+connected_location_ids = Array[StringName]([&"location:town_plaza"])
+material_tags = Array[StringName]([&"stone_foundation", &"timber_frame", &"wood_shingle_roof"])
+floor_count = 2
+entrance_tags = Array[StringName]([&"public_front_door", &"guest_access"])
+landmark_tags = Array[StringName]([&"hanging_lantern", &"south_quarter"])
+world_position = Vector3(13.8, 0, -11.5)
+footprint_size = Vector3(4.2, 2.45, 3.8)
+yaw_radians = 0.12
+wall_color = Color(0.784314, 0.694118, 0.545098, 1)
+timber_color = Color(0.352941, 0.223529, 0.14902, 1)
+roof_color = Color(0.419608, 0.317647, 0.235294, 1)

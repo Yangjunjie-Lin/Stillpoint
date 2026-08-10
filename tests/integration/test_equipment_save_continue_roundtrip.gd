@@ -16,6 +16,9 @@ func run() -> bool:
 	ok = ok and is_equal_approx(player.combat.damage_bonus, expected_attack)
 	ok = ok and is_equal_approx(player.health.defense, expected_defense)
 	ok = ok and is_equal_approx(player.energy.regen_per_second, expected_regen)
+	ok = ok and _loadout_matches(
+		player, "training_sword", "padded_vest", "wanderer_charm", "training_sword"
+	)
 	ok = ok and world.save_world_state()
 	world.free()
 
@@ -35,6 +38,13 @@ func run() -> bool:
 	ok = ok and is_equal_approx(restored_player.combat.damage_bonus, expected_attack)
 	ok = ok and is_equal_approx(restored_player.health.defense, expected_defense)
 	ok = ok and is_equal_approx(restored_player.energy.regen_per_second, expected_regen)
+	ok = ok and _loadout_matches(
+		restored_player,
+		"training_sword",
+		"padded_vest",
+		"wanderer_charm",
+		"training_sword",
+	)
 	restored.free()
 	GameManager.resume_requested = false
 	if not ok:
@@ -48,3 +58,29 @@ func _equip(player: PlayerController3D, item_id: StringName) -> bool:
 		if stack != null and not stack.is_empty() and stack.item_id == item_id:
 			return player.equipment.equip_from_inventory(player.inventory, index)
 	return false
+
+
+func _loadout_matches(
+	player: PlayerController3D,
+	weapon: String,
+	armor: String,
+	charm: String,
+	held: String,
+) -> bool:
+	var appearance := player.get_node_or_null(
+		"VisualRoot/CharacterModel"
+	) as PlayerAppearanceController
+	if appearance == null:
+		return false
+	var loadout := appearance.get_displayed_loadout()
+	var model := appearance.current_model
+	return (
+		String(loadout.get("weapon", "")) == weapon
+		and String(loadout.get("armor", "")) == armor
+		and String(loadout.get("charm", "")) == charm
+		and String(loadout.get("held_item", "")) == held
+		and model != null
+		and model.find_child("DisplayedHandheld", true, false) != null
+		and model.find_child("DisplayedArmor", true, false) != null
+		and model.find_child("DisplayedCharm", true, false) != null
+	)

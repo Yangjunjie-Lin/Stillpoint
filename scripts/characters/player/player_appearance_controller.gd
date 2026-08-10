@@ -7,6 +7,10 @@ extends Node3D
 var current_origin_id: StringName = &""
 var current_options: Dictionary = CharacterAppearanceOptions.default_options()
 var current_model: Node3D
+var current_weapon: ItemDefinition
+var current_armor: ItemDefinition
+var current_charm: ItemDefinition
+var current_held_item: ItemDefinition
 
 
 func apply_origin(origin_id: StringName) -> bool:
@@ -37,7 +41,34 @@ func apply_build(origin_id: StringName, options: Dictionary) -> bool:
 	add_child(current_model)
 	current_origin_id = origin_id
 	current_options = CharacterAppearanceOptions.normalize(options)
+	_apply_current_loadout()
 	return true
+
+
+func apply_loadout(
+	weapon: ItemDefinition,
+	armor: ItemDefinition,
+	charm: ItemDefinition,
+	held_item: ItemDefinition,
+) -> void:
+	current_weapon = weapon
+	current_armor = armor
+	current_charm = charm
+	current_held_item = held_item
+	_apply_current_loadout()
+
+
+func get_displayed_loadout() -> Dictionary:
+	if current_model != null and current_model.has_method("get_displayed_loadout"):
+		return current_model.call("get_displayed_loadout") as Dictionary
+	return {}
+
+
+func _apply_current_loadout() -> void:
+	if current_model is StylizedHeroModel:
+		(current_model as StylizedHeroModel).apply_loadout(
+			current_weapon, current_armor, current_charm, current_held_item
+		)
 
 
 func clear_model() -> void:
@@ -46,3 +77,7 @@ func clear_model() -> void:
 	current_model = null
 	current_origin_id = &""
 	current_options = CharacterAppearanceOptions.default_options()
+	current_weapon = null
+	current_armor = null
+	current_charm = null
+	current_held_item = null

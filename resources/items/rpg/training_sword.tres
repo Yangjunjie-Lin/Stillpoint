@@ -14,3 +14,6 @@ icon = ExtResource("2")
 equip_slot = 1
 attack_bonus = 4.0
 starter_balance_value = 6
+visual_archetype = &"one_hand_sword"
+visual_primary_color = Color(0.286275, 0.211765, 0.14902, 1)
+visual_secondary_color = Color(0.815686, 0.854902, 0.858824, 1)

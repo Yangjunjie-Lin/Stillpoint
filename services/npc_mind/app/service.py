@@ -9,7 +9,7 @@ from typing import Any
 
 from .catalog import NpcCatalogRepository
 from .config import Settings
-from .graph import EDGE_TYPES, GraphEdge, GraphNode
+from .graph import CANONICAL_WORLD_EDGE_TYPES, EDGE_TYPES, GraphEdge, GraphNode
 from .memory import MemoryRecord, lexical_similarity
 from .output_validation import validate_structured_output
 from .providers import (
@@ -332,7 +332,26 @@ class NpcCognitionService:
                     break
             if traversed:
                 edges = traversed
-        return [edge.to_dict() for edge in edges[:100]]
+        nodes = {
+            node.node_id: {
+                "node_id": node.node_id,
+                "node_type": node.node_type,
+                "label": node.label,
+                "metadata": node.metadata,
+                "visibility": node.visibility,
+                "source": node.source,
+            }
+            for node in self.repository.graph_nodes_for_edges(edges)
+        }
+        result: list[dict[str, Any]] = []
+        for edge in edges[:100]:
+            payload = edge.to_dict()
+            if edge.subject_node_id in nodes:
+                payload["subject_node"] = nodes[edge.subject_node_id]
+            if edge.object_node_id in nodes:
+                payload["object_node"] = nodes[edge.object_node_id]
+            result.append(payload)
+        return result
 
     def graph_payload(self, player: str, save: str, npc: str) -> dict[str, Any]:
         edges = self.repository.graph_edges_for(player, save, npc)
@@ -518,6 +537,11 @@ class NpcCognitionService:
     ) -> None:
         for candidate in generated.graph_update_candidates:
             if candidate.predicate not in EDGE_TYPES:
+                self.metrics["graph_candidate_rejected"] = self.metrics.get(
+                    "graph_candidate_rejected", 0
+                ) + 1
+                continue
+            if candidate.predicate in CANONICAL_WORLD_EDGE_TYPES:
                 self.metrics["graph_candidate_rejected"] = self.metrics.get(
                     "graph_candidate_rejected", 0
                 ) + 1

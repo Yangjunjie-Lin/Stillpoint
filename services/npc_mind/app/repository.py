@@ -11,7 +11,7 @@ from typing import Any, Protocol, runtime_checkable
 from sqlalchemy import Engine, create_engine, text
 
 from .catalog import NpcProfile
-from .graph import EDGE_TYPES, GraphEdge, GraphNode, KnowledgeGraph
+from .graph import EDGE_TYPES, NODE_TYPES, GraphEdge, GraphNode, KnowledgeGraph
 from .memory import MemoryRecord, consolidate, reinforce, vector_similarity
 
 
@@ -1349,6 +1349,7 @@ def _seed_graph(
             source="catalog",
         )
     )
+    _seed_world_ontology(repository, profile)
     instance_node = f"npc_instance:{npc}"
     repository.add_graph_node(
         GraphNode(
@@ -1494,6 +1495,56 @@ def _seed_graph(
         )
 
 
+def _seed_world_ontology(repository: Any, profile: NpcProfile) -> None:
+    """Deploy immutable public world facts exported from authored Godot resources."""
+
+    revision = profile.catalog_revision
+    ontology = profile.world_ontology
+    for raw in ontology.get("nodes", []):
+        node_id = str(raw.get("node_id", "")).strip()
+        node_type = str(raw.get("node_type", "")).strip()
+        if not node_id or node_type not in NODE_TYPES:
+            raise ValueError("invalid_world_ontology_node")
+        if str(raw.get("visibility", "public")) != "public":
+            raise ValueError("invalid_world_ontology_visibility")
+        metadata = raw.get("metadata", {})
+        if not isinstance(metadata, dict):
+            raise ValueError("invalid_world_ontology_metadata")
+        repository.add_graph_node(
+            GraphNode(
+                node_id=node_id,
+                node_type=node_type,
+                label=str(raw.get("label", node_id)),
+                metadata=dict(metadata),
+                catalog_revision=revision,
+                visibility="public",
+                source="world_catalog",
+            )
+        )
+    for raw in ontology.get("edges", []):
+        subject = str(raw.get("subject_node_id", "")).strip()
+        predicate = str(raw.get("predicate", "")).strip()
+        object_id = str(raw.get("object_node_id", "")).strip()
+        source_id = str(raw.get("source_id", "world_ontology")).strip()
+        if not subject or not object_id or predicate not in EDGE_TYPES:
+            raise ValueError("invalid_world_ontology_edge")
+        edge_key = f"stillpoint:{revision}:{subject}:{predicate}:{object_id}:{source_id}"
+        repository.add_graph_edge(
+            GraphEdge(
+                id=str(uuid.uuid5(uuid.NAMESPACE_URL, edge_key)),
+                owner_npc_persistent_id=None,
+                subject_node_id=subject,
+                predicate=predicate,
+                object_node_id=object_id,
+                confidence=1.0,
+                visibility="public",
+                source_type="world_catalog",
+                source_id=source_id,
+                catalog_revision=revision,
+            )
+        )
+
+
 def _scoped_edge(
     player: str,
     save: str,
@@ -1522,7 +1573,7 @@ def _scoped_edge(
 def _relevant_graph_edges(
     edges: list[GraphEdge], player: str, save: str, npc: str
 ) -> list[GraphEdge]:
-    """Return scoped beliefs plus canonical facts attached to this deployment."""
+    """Return scoped beliefs plus the directed public ontology relevant to this NPC."""
     scoped = [
         edge
         for edge in edges
@@ -1539,15 +1590,28 @@ def _relevant_graph_edges(
         for node_id in (edge.subject_node_id, edge.object_node_id)
         if node_id.startswith("npc_definition:")
     }
-    canonical = [
-        edge
-        for edge in edges
-        if edge.owner_npc_persistent_id in (None, "")
-        and (
-            edge.subject_node_id in definition_nodes
-            or edge.object_node_id in definition_nodes
-        )
+    canonical_pool = [
+        edge for edge in edges if edge.owner_npc_persistent_id in (None, "")
     ]
+    canonical: list[GraphEdge] = []
+    frontier = set(definition_nodes)
+    seen_nodes = set(frontier)
+    # Directional traversal exposes a profile's building, facilities, and
+    # region connections without walking backward through a shared region into
+    # another NPC definition.
+    for _ in range(2):
+        next_frontier: set[str] = set()
+        for edge in canonical_pool:
+            if edge.subject_node_id not in frontier:
+                continue
+            if edge not in canonical:
+                canonical.append(edge)
+            if not edge.object_node_id.startswith("npc_definition:"):
+                next_frontier.add(edge.object_node_id)
+        frontier = next_frontier - seen_nodes
+        seen_nodes |= next_frontier
+        if not frontier:
+            break
     return scoped + canonical
 
 
