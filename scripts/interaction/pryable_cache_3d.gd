@@ -2,7 +2,7 @@ class_name PryableCache3D
 extends Interactable
 ## Persistent utility interaction proving that combat tools keep non-combat uses.
 
-@export var required_utility_action: StringName = &"pry_open"
+@export var container_definition_id: StringName = &"pryable_cache"
 @export var reward_item_id: StringName = &"trail_snack"
 @export_range(1, 20, 1) var reward_quantity: int = 2
 @export var identity: WorldEntityIdentity
@@ -10,6 +10,8 @@ extends Interactable
 var _opened: bool = false
 var _session: WorldSession
 var _lid: Node3D
+var _definition: ContainerDefinition
+var _last_open_method: StringName = &""
 
 
 func _ready() -> void:
@@ -17,7 +19,9 @@ func _ready() -> void:
 	_session = _find_session()
 	if identity == null:
 		identity = get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
+	_definition = _resolve_definition()
 	_build_visual()
+	_apply_ontology_metadata()
 	_update_visual()
 
 
@@ -27,12 +31,7 @@ func can_interact(actor: CharacterController, context: InteractionContext) -> bo
 
 func get_interaction_text(actor: CharacterController) -> String:
 	var player := actor as PlayerController3D
-	var tool := player.get_selected_item_definition() if player != null else null
-	return (
-		"Pry open sealed cache"
-		if tool != null and tool.supports_utility_action(required_utility_action)
-		else "Select Crowbar to pry open"
-	)
+	return ContainerAccessResolver.interaction_text(player, _definition)
 
 
 func interact(actor: CharacterController, _context: InteractionContext) -> void:
@@ -41,9 +40,15 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 	var player := actor as PlayerController3D
 	if player == null or player.inventory == null:
 		return
-	var tool := player.get_selected_item_definition()
-	if tool == null or not tool.supports_utility_action(required_utility_action):
-		EventBus.notice_requested.emit("A hooked levering tool is needed to open this cache.")
+	var access := ContainerAccessResolver.evaluate(player, _definition)
+	var access_method := StringName(access.get(
+		"method", ContainerAccessResolver.METHOD_NONE
+	))
+	if access_method == ContainerAccessResolver.METHOD_NONE:
+		EventBus.notice_requested.emit(ContainerAccessResolver.blocked_notice(
+			_definition,
+			int(access.get("strength", 0)),
+		))
 		return
 	if not player.inventory.can_add_item(reward_item_id, reward_quantity):
 		EventBus.notice_requested.emit("Backpack is full.")
@@ -52,11 +57,10 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 		EventBus.notice_requested.emit("Could not collect the cache contents.")
 		return
 	_opened = true
+	_last_open_method = access_method
 	interaction_enabled = false
 	_update_visual()
-	EventBus.notice_requested.emit(
-		"%s pried the cache open without being consumed." % tool.display_name
-	)
+	_emit_open_notice(access)
 	if _session == null:
 		_session = _find_session()
 	if _session != null and identity != null:
@@ -83,6 +87,49 @@ func get_state_version() -> int:
 
 func is_opened() -> bool:
 	return _opened
+
+
+func get_last_open_method() -> StringName:
+	return _last_open_method
+
+
+func get_container_definition() -> ContainerDefinition:
+	return _definition
+
+
+func _resolve_definition() -> ContainerDefinition:
+	var resolved_id := container_definition_id
+	if identity != null and identity.definition_id != &"":
+		resolved_id = identity.definition_id
+	return ResourceRegistry.get_container(resolved_id)
+
+
+func _apply_ontology_metadata() -> void:
+	if _definition == null:
+		push_error("PryableCache3D: missing container definition '%s'" % [
+			String(container_definition_id),
+		])
+		return
+	set_meta("ontology_id", String(_definition.ontology_node_id()))
+	set_meta("container_definition_id", String(_definition.id))
+	set_meta("ontology", _definition.to_catalog_dict())
+
+
+func _emit_open_notice(access: Dictionary) -> void:
+	var method := StringName(access.get("method", ContainerAccessResolver.METHOD_NONE))
+	if method == ContainerAccessResolver.METHOD_FORCE:
+		EventBus.notice_requested.emit("Forced open %s with Strength %d." % [
+			_definition.display_name,
+			int(access.get("strength", 0)),
+		])
+	elif method == ContainerAccessResolver.METHOD_TOOL:
+		var tool := access.get("tool") as ItemDefinition
+		EventBus.notice_requested.emit(
+			"%s opened %s without being consumed." % [
+				tool.display_name if tool != null else "A utility tool",
+				_definition.display_name,
+			]
+		)
 
 
 func _find_session() -> WorldSession:

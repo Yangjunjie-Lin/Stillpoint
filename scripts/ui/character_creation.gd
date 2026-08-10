@@ -408,9 +408,13 @@ func _refresh_selection_and_stats(
 		_attribute_points,
 	)
 	var stats := CharacterBuildCalculator.apply_bonuses(BASE_STATS, bonuses)
+	var physical_strength := CharacterBuildCalculator.physical_strength_from_bonuses(
+		bonuses
+	)
 	stats_label.text = (
 		"生命      %d  (%s)\n"
 		+ "能量      %d  (%s)\n"
+		+ "力量      %d\n"
 		+ "伤害加成  %s\n"
 		+ "防御      %.1f  (%s)\n"
 		+ "移动      %.2f  (%s)\n"
@@ -420,6 +424,7 @@ func _refresh_selection_and_stats(
 		_format_bonus(float(bonuses[&"max_health_bonus"])),
 		int(round(float(stats[&"max_energy"]))),
 		_format_bonus(float(bonuses[&"max_energy_bonus"])),
+		physical_strength,
 		_format_bonus(float(stats[&"attack"])),
 		float(stats[&"defense"]),
 		_format_bonus(float(bonuses[&"defense_bonus"])),

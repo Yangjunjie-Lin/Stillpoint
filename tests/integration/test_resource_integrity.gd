@@ -12,6 +12,7 @@ func run() -> bool:
 	var region_ids: Dictionary = {}
 	var npc_ids: Dictionary = {}
 	var house_ids: Dictionary = {}
+	var container_ids: Dictionary = {}
 
 	for path in resources:
 		var res: Resource = load(path)
@@ -77,6 +78,15 @@ func run() -> bool:
 			if not house.is_valid():
 				push_error("Invalid house definition: %s" % path)
 				ok = false
+		elif res is ContainerDefinition:
+			var container := res as ContainerDefinition
+			if container_ids.has(container.id):
+				push_error("Duplicate container id: %s" % String(container.id))
+				ok = false
+			container_ids[container.id] = path
+			if not container.is_valid():
+				push_error("Invalid container definition: %s" % path)
+				ok = false
 
 	ok = ok and not enemy_ids.is_empty()
 	ok = ok and not item_ids.is_empty()
@@ -87,6 +97,9 @@ func run() -> bool:
 	ok = ok and house_ids.size() == 5
 	ok = ok and house_ids.has(&"building:mira_apothecary")
 	ok = ok and house_ids.has(&"building:player_farmhouse")
+	ok = ok and container_ids.size() == 2
+	ok = ok and container_ids.has(&"chest")
+	ok = ok and container_ids.has(&"pryable_cache")
 	ok = ok and region_ids.has(&"base:farmland")
 
 	if ResourceRegistry.get_enemy(&"chase") == null:
@@ -106,6 +119,9 @@ func run() -> bool:
 		ok = false
 	if ResourceRegistry.get_house(&"building:mira_apothecary") == null:
 		push_error("ResourceRegistry missing Mira's apothecary")
+		ok = false
+	if ResourceRegistry.get_container(&"chest") == null:
+		push_error("ResourceRegistry missing town chest ontology")
 		ok = false
 
 	if not ok:

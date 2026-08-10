@@ -11,6 +11,7 @@ func run() -> bool:
 		push_error("Chest not found in town")
 		world.free()
 		return false
+	WorldTestHelper.select_hotbar_item(world.player, &"crowbar")
 	chest.interact(world.player, InteractionContext.new(world.player))
 	await WorldTestHelper.await_frames(tree)
 

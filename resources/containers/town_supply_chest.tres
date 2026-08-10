@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ContainerDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/container_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"chest"
+display_name = "Town Supply Chest"
+region_id = &"base:town"
+location_node_id = &"location:town_plaza"
+container_type = &"reinforced_supply_chest"
+public_description = "A timber supply chest reinforced with iron straps and a stubborn mechanical latch."
+material_tags = Array[StringName]([&"timber", &"iron_band", &"mechanical_latch"])
+security_tags = Array[StringName]([&"reinforced", &"pryable", &"forceable"])
+required_utility_action = &"pry_open"
+force_open_strength = 9

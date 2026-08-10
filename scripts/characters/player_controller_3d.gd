@@ -431,6 +431,12 @@ func get_character_build_bonuses() -> Dictionary:
 	return _character_build_bonuses.duplicate(true)
 
 
+func get_physical_strength() -> int:
+	return CharacterBuildCalculator.physical_strength_from_bonuses(
+		_character_build_bonuses
+	)
+
+
 func get_effective_movement_speeds() -> Dictionary:
 	return {
 		"walk": _walk_speed,

@@ -13,6 +13,7 @@ func run() -> bool:
 		"TRUSTS", "FEARS", "RELATED_TO", "WITNESSED", "EXPERIENCED",
 		"PROMISED", "GAVE", "RECEIVED", "ATTACKED", "HELPED", "KNOWS_ABOUT",
 		"LOCATED_IN", "CONTAINS", "CONNECTED_TO",
+		"OPENED_BY",
 	]:
 		ok = ok and predicates.has(predicate)
 	var motions: Dictionary = {}

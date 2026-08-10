@@ -50,7 +50,7 @@ func _export_catalog() -> void:
 		quit(1)
 		return
 	var payload := {
-		"catalog_version": 3,
+		"catalog_version": 4,
 		"game_version": "0.8.0",
 		"npc_count": profiles.size(),
 		"npcs": profiles,
@@ -153,6 +153,42 @@ func _build_world_ontology(registry: Node, errors: Array[String]) -> Dictionary:
 		for linked_id: String in data.get("linked_location_ids", []):
 			_add_world_node(nodes, linked_id, _node_type(linked_id), _label_for_node(linked_id), {})
 			_add_world_edge(edges, house_id, "RELATED_TO", linked_id, house_id)
+	for container: Variant in registry.call("get_all_containers"):
+		if not bool(container.call("is_valid")):
+			errors.append("Invalid container definition '%s'" % String(container.get("id")))
+			continue
+		var data := container.call("to_catalog_dict") as Dictionary
+		var container_id := String(data.get("node_id", ""))
+		_add_world_node(
+			nodes,
+			container_id,
+			"container",
+			String(data.get("label", container_id)),
+			data.get("metadata", {}) as Dictionary,
+		)
+		var location_id := String(container.get("location_node_id"))
+		var location_node := (
+			location_id if not location_id.is_empty()
+			else "region:%s" % String(container.get("region_id"))
+		)
+		_add_world_node(
+			nodes,
+			location_node,
+			_node_type(location_node),
+			_label_for_node(location_node),
+			{},
+		)
+		_add_world_edge(edges, container_id, "LOCATED_IN", location_node, container_id)
+		for content_id: String in data.get("public_contents_node_ids", []):
+			_add_world_node(nodes, content_id, _node_type(content_id), _label_for_node(content_id), {})
+			_add_world_edge(edges, container_id, "CONTAINS", content_id, container_id)
+		var required_action := StringName(str(container.get("required_utility_action")))
+		for item: Variant in registry.call("get_all_items"):
+			if not bool(item.call("supports_utility_action", required_action)):
+				continue
+			var item_node := "item:%s" % String(item.get("id"))
+			_add_world_node(nodes, item_node, "item", String(item.get("display_name")), {})
+			_add_world_edge(edges, container_id, "OPENED_BY", item_node, container_id)
 	var node_list: Array = nodes.values()
 	var edge_list: Array = edges.values()
 	node_list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
@@ -211,7 +247,7 @@ func _edge_key(edge: Dictionary) -> String:
 
 func _node_type(node_id: String) -> String:
 	var prefix := node_id.get_slice(":", 0)
-	if prefix in ["region", "location", "item", "quest", "concept", "building", "crop"]:
+	if prefix in ["region", "location", "item", "quest", "concept", "building", "container", "crop"]:
 		return prefix
 	return "concept"
 

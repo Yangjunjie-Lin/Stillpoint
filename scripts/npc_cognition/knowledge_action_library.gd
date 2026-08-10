@@ -33,6 +33,7 @@ const RELATION_CATEGORIES := {
 	"HAS_SEED": "cultivation",
 	"PRODUCES": "cultivation",
 	"GROWS_IN": "cultivation",
+	"OPENED_BY": "capability",
 }
 
 const CATEGORY_DEFINITIONS := {

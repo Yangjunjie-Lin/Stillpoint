@@ -78,7 +78,7 @@ def main() -> int:
     ConversationResponse.model_validate(payload)
     catalog = Path("services/npc_mind/catalog/generated_npc_catalog.json")
     data = json.loads(catalog.read_text(encoding="utf-8"))
-    if data.get("catalog_version") != 3 or int(data.get("npc_count", 0)) < 1:
+    if data.get("catalog_version") != 4 or int(data.get("npc_count", 0)) < 1:
         raise AssertionError("invalid generated NPC catalog")
     ontology = data.get("world_ontology", {})
     if not ontology.get("nodes") or not ontology.get("edges"):

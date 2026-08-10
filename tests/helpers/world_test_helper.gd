@@ -30,6 +30,17 @@ static func find_pickup(world: WorldSession, node_name: String = "HerbPickup") -
 	return root.find_child(node_name, true, false) as PickupInteractable3D
 
 
+static func select_hotbar_item(player: PlayerController3D, item_id: StringName) -> bool:
+	if player == null or player.inventory == null:
+		return false
+	for hotbar_index in player.hotbar.slot_refs.size():
+		var inventory_index := player.hotbar.slot_refs[hotbar_index]
+		var stack := player.inventory.get_slot(inventory_index)
+		if stack != null and not stack.is_empty() and stack.item_id == item_id:
+			return player.hotbar.select_index(hotbar_index)
+	return false
+
+
 static func start_mira_quest_via_dialogue(world: WorldSession) -> void:
 	world.start_dialogue(find_npc(world, "Mira"))
 	world.apply_dialogue_choice(0)

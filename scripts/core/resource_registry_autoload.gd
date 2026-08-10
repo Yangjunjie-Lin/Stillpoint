@@ -12,6 +12,7 @@ var _dialogues: Dictionary = {}
 var _quests: Dictionary = {}
 var _regions: Dictionary = {}
 var _houses: Dictionary = {}
+var _containers: Dictionary = {}
 var _crops: Dictionary = {}
 var _pets: Dictionary = {}
 var _mounts: Dictionary = {}
@@ -81,6 +82,10 @@ func register_region(def: RegionDefinition) -> void:
 
 func register_house(def: HouseDefinition) -> void:
 	_put(_houses, def.id if def else &"", def, "house")
+
+
+func register_container(def: ContainerDefinition) -> void:
+	_put(_containers, def.id if def else &"", def, "container")
 
 
 func register_crop(def: CropDefinition) -> void:
@@ -273,6 +278,26 @@ func get_all_house_ids() -> Array[StringName]:
 	return result
 
 
+func get_container(id: StringName) -> ContainerDefinition:
+	return _containers.get(id) as ContainerDefinition
+
+
+func get_all_containers() -> Array[ContainerDefinition]:
+	var result: Array[ContainerDefinition] = []
+	for id in _sorted_keys(_containers):
+		var definition := _containers[id] as ContainerDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_all_container_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for definition in get_all_containers():
+		result.append(definition.id)
+	return result
+
+
 func get_crop(id: StringName) -> CropDefinition:
 	return _crops.get(id) as CropDefinition
 
@@ -327,6 +352,7 @@ func load_defaults() -> void:
 	_register_dir("res://resources/quests/", register_quest)
 	_register_dir("res://resources/regions/", register_region)
 	_register_dir("res://resources/houses/", register_house)
+	_register_dir("res://resources/containers/", register_container)
 	_register_dir("res://resources/crops/", register_crop)
 	_register_dir("res://resources/pets/", register_pet)
 	_register_dir("res://resources/mounts/", register_mount)
@@ -351,6 +377,7 @@ func clear_all() -> void:
 	_quests.clear()
 	_regions.clear()
 	_houses.clear()
+	_containers.clear()
 	_crops.clear()
 	_pets.clear()
 	_mounts.clear()
@@ -376,6 +403,7 @@ func clear_test_registrations() -> void:
 		"quests": _quests,
 		"regions": _regions,
 		"houses": _houses,
+		"containers": _containers,
 		"crops": _crops,
 		"pets": _pets,
 		"mounts": _mounts,
@@ -406,6 +434,7 @@ func _capture_default_keys() -> void:
 		"quests": _quests.duplicate(false),
 		"regions": _regions.duplicate(false),
 		"houses": _houses.duplicate(false),
+		"containers": _containers.duplicate(false),
 		"crops": _crops.duplicate(false),
 		"pets": _pets.duplicate(false),
 		"mounts": _mounts.duplicate(false),

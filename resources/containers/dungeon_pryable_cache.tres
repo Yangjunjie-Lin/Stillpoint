@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ContainerDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/container_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"pryable_cache"
+display_name = "Sealed Dungeon Cache"
+region_id = &"base:dungeon"
+container_type = &"sealed_cache"
+public_description = "A weathered dungeon cache held shut by bent iron bands."
+material_tags = Array[StringName]([&"aged_timber", &"iron_band", &"wedged_lid"])
+security_tags = Array[StringName]([&"sealed", &"pryable", &"forceable"])
+required_utility_action = &"pry_open"
+force_open_strength = 9

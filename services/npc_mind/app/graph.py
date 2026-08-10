@@ -15,6 +15,7 @@ NODE_TYPES = {
     "event",
     "location",
     "building",
+    "container",
     "concept",
     "profession",
     "skill",
@@ -52,6 +53,7 @@ EDGE_TYPES = {
     "HAS_SEED",
     "PRODUCES",
     "GROWS_IN",
+    "OPENED_BY",
 }
 
 CANONICAL_WORLD_EDGE_TYPES = {
@@ -62,6 +64,7 @@ CANONICAL_WORLD_EDGE_TYPES = {
     "HAS_SEED",
     "PRODUCES",
     "GROWS_IN",
+    "OPENED_BY",
 }
 
 

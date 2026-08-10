@@ -1,5 +1,5 @@
 {
-  "catalog_version": 3,
+  "catalog_version": 4,
   "game_version": "0.8.0",
   "npc_count": 3,
   "npcs": [
@@ -902,6 +902,7 @@
       "LIVES_IN": "spatial",
       "LOCATED_IN": "spatial",
       "MEMBER_OF": "affiliation",
+      "OPENED_BY": "capability",
       "OWNS": "possession",
       "PORTAL_TO": "spatial",
       "PRODUCES": "cultivation",
@@ -1085,6 +1086,42 @@
         "source_id": "building:wayfarer_inn",
         "source_type": "world_catalog",
         "subject_node_id": "building:wayfarer_inn",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:town_plaza",
+        "predicate": "LOCATED_IN",
+        "source_id": "container:chest",
+        "source_type": "world_catalog",
+        "subject_node_id": "container:chest",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:crowbar",
+        "predicate": "OPENED_BY",
+        "source_id": "container:chest",
+        "source_type": "world_catalog",
+        "subject_node_id": "container:chest",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:dungeon",
+        "predicate": "LOCATED_IN",
+        "source_id": "container:pryable_cache",
+        "source_type": "world_catalog",
+        "subject_node_id": "container:pryable_cache",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:crowbar",
+        "predicate": "OPENED_BY",
+        "source_id": "container:pryable_cache",
+        "source_type": "world_catalog",
+        "subject_node_id": "container:pryable_cache",
         "visibility": "public"
       },
       {
@@ -1457,6 +1494,68 @@
         "visibility": "public"
       },
       {
+        "label": "Town Supply Chest",
+        "metadata": {
+          "access_modes": [
+            "physical_strength",
+            "utility_tool"
+          ],
+          "container_type": "reinforced_supply_chest",
+          "definition_id": "chest",
+          "force_open_strength": 9,
+          "location_node_id": "location:town_plaza",
+          "material_tags": [
+            "timber",
+            "iron_band",
+            "mechanical_latch"
+          ],
+          "public_description": "A timber supply chest reinforced with iron straps and a stubborn mechanical latch.",
+          "region_id": "base:town",
+          "required_utility_action": "pry_open",
+          "security_tags": [
+            "reinforced",
+            "pryable",
+            "forceable"
+          ],
+          "strength_attribute": "physical_strength"
+        },
+        "node_id": "container:chest",
+        "node_type": "container",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Sealed Dungeon Cache",
+        "metadata": {
+          "access_modes": [
+            "physical_strength",
+            "utility_tool"
+          ],
+          "container_type": "sealed_cache",
+          "definition_id": "pryable_cache",
+          "force_open_strength": 9,
+          "location_node_id": "",
+          "material_tags": [
+            "aged_timber",
+            "iron_band",
+            "wedged_lid"
+          ],
+          "public_description": "A weathered dungeon cache held shut by bent iron bands.",
+          "region_id": "base:dungeon",
+          "required_utility_action": "pry_open",
+          "security_tags": [
+            "sealed",
+            "pryable",
+            "forceable"
+          ],
+          "strength_attribute": "physical_strength"
+        },
+        "node_id": "container:pryable_cache",
+        "node_type": "container",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Turnip",
         "metadata": {
           "harvest_quantity": 2,
@@ -1464,6 +1563,14 @@
         },
         "node_id": "crop:turnip",
         "node_type": "crop",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Crowbar",
+        "metadata": {},
+        "node_id": "item:crowbar",
+        "node_type": "item",
         "source": "world_catalog",
         "visibility": "public"
       },

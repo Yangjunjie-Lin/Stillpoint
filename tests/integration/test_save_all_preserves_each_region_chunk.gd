@@ -8,6 +8,7 @@ func run() -> bool:
 
 	var chest := _find_chest(world)
 	if chest != null:
+		WorldTestHelper.select_hotbar_item(world.player, &"crowbar")
 		chest.interact(world.player, InteractionContext.new(world.player))
 
 	world.transition_to(&"base:wilderness")

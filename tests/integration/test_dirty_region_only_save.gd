@@ -25,6 +25,7 @@ func run() -> bool:
 
 	var chest := _find_chest(world)
 	if chest != null:
+		WorldTestHelper.select_hotbar_item(world.player, &"crowbar")
 		chest.interact(world.player, InteractionContext.new(world.player))
 	world.save_coordinator.mark_region_dirty(&"base:town")
 	world.save_coordinator.save_dirty_sections()

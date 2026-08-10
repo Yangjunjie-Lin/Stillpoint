@@ -13,6 +13,7 @@ func run() -> bool:
 		push_error("Chest not found")
 		world.free()
 		return false
+	WorldTestHelper.select_hotbar_item(world.player, &"crowbar")
 	chest.interact(world.player, InteractionContext.new(world.player))
 	if not world.save_world_state():
 		push_error("save failed")

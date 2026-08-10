@@ -181,6 +181,31 @@ def test_world_house_ontology_is_connected_to_mira_profile():
     assert works_at["object_node"]["metadata"]["primary_function"] == "apothecary_trade"
 
 
+def test_world_container_ontology_has_authored_access_relations():
+    repository = InMemoryRepository()
+    service = NpcCognitionService(repository=repository)
+    repository.deploy_profile(service.catalog.get_profile("mira"), "p", "w", "mira-1")
+
+    chest = next(
+        node
+        for node in repository.graph.nodes.values()
+        if node.node_id == "container:chest"
+    )
+    assert chest.node_type == "container"
+    assert chest.metadata["force_open_strength"] == 9
+    assert chest.metadata["required_utility_action"] == "pry_open"
+    edges = {
+        (edge.subject_node_id, edge.predicate, edge.object_node_id)
+        for edge in repository.graph.edges.values()
+    }
+    assert ("container:chest", "OPENED_BY", "item:crowbar") in edges
+    assert (
+        "container:chest",
+        "LOCATED_IN",
+        "location:town_plaza",
+    ) in edges
+
+
 def test_world_ontology_does_not_walk_backward_into_other_npc_buildings():
     repository = InMemoryRepository()
     service = NpcCognitionService(repository=repository)

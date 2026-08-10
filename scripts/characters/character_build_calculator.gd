@@ -42,6 +42,7 @@ const TOTAL_BUILD_POINT_BUDGET: int = (
 	RANDOM_POINT_BUDGET + FACTION_SIGNATURE_POINTS + PROFESSION_SIGNATURE_POINTS
 )
 const MAX_SEED: int = 2_147_483_647
+const BASE_PHYSICAL_STRENGTH: int = 5
 
 
 static func calculate_bonuses(
@@ -77,6 +78,16 @@ static func apply_bonuses(base_stats: Dictionary, bonuses: Dictionary) -> Dictio
 		var bonus_value := float(bonuses.get(bonus_key, bonuses.get(String(bonus_key), 0.0)))
 		result[stat_key] = base_value + bonus_value
 	return result
+
+
+static func physical_strength_from_bonuses(bonuses: Dictionary) -> int:
+	## Strength is an innate build capability, not equipped weapon damage.
+	var attack_bonus := float(bonuses.get(
+		&"attack_bonus", bonuses.get("attack_bonus", 0.0)
+	))
+	var point_value := float(VALUE_PER_POINT[&"attack_bonus"])
+	var physical_points := maxi(0, roundi(attack_bonus / point_value))
+	return BASE_PHYSICAL_STRENGTH + physical_points
 
 
 static func empty_bonuses() -> Dictionary:
