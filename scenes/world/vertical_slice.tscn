@@ -31,6 +31,8 @@
 [ext_resource type="Script" path="res://scripts/combat/hitbox_3d.gd" id="29"]
 [ext_resource type="Script" path="res://scripts/ui/rpg/dialogue_ui.gd" id="30"]
 [ext_resource type="Script" path="res://scripts/components/energy_component.gd" id="31"]
+[ext_resource type="Script" path="res://scripts/characters/npc/stylized_npc_model.gd" id="32"]
+[ext_resource type="Script" path="res://scripts/components/combat_animation_controller.gd" id="33"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -50,16 +52,6 @@ height = 1.6
 
 [sub_resource type="BoxMesh" id="BoxMesh_npc"]
 size = Vector3(0.7, 1.5, 0.7)
-
-[sub_resource type="StandardMaterial3D" id="Mat_mira"]
-albedo_color = Color(0.9, 0.5, 0.7, 1)
-
-[sub_resource type="StandardMaterial3D" id="Mat_ren"]
-albedo_color = Color(0.5, 0.6, 0.9, 1)
-
-[sub_resource type="StandardMaterial3D" id="Mat_bandit"]
-albedo_color = Color(0.7, 0.3, 0.2, 1)
-
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(40, 0.2, 40)
@@ -149,10 +141,12 @@ npc_definition = ExtResource("5")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
-[node name="Visual" type="MeshInstance3D" parent="Actors/Mira"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
-mesh = SubResource("BoxMesh_npc")
-surface_material_override/0 = SubResource("Mat_mira")
+[node name="VisualRoot" type="Node3D" parent="Actors/Mira"]
+rotation = Vector3(0, 3.1415927, 0)
+
+[node name="CharacterModel" type="Node3D" parent="Actors/Mira/VisualRoot"]
+script = ExtResource("32")
+definition_hint = &"mira"
 
 [node name="HealthComponent" type="Node" parent="Actors/Mira"]
 script = ExtResource("8")
@@ -201,6 +195,11 @@ team = &"npc"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
+[node name="CombatAnimationController" type="Node" parent="Actors/Mira"]
+script = ExtResource("33")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Actors/Mira/CombatAnimationController"]
+
 [node name="Ren" type="CharacterBody3D" parent="Actors"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.0, 4)
 script = ExtResource("4")
@@ -210,10 +209,12 @@ npc_definition = ExtResource("6")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
-[node name="Visual" type="MeshInstance3D" parent="Actors/Ren"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
-mesh = SubResource("BoxMesh_npc")
-surface_material_override/0 = SubResource("Mat_ren")
+[node name="VisualRoot" type="Node3D" parent="Actors/Ren"]
+rotation = Vector3(0, 3.1415927, 0)
+
+[node name="CharacterModel" type="Node3D" parent="Actors/Ren/VisualRoot"]
+script = ExtResource("32")
+definition_hint = &"ren"
 
 [node name="HealthComponent" type="Node" parent="Actors/Ren"]
 script = ExtResource("8")
@@ -258,6 +259,11 @@ team = &"npc"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
+[node name="CombatAnimationController" type="Node" parent="Actors/Ren"]
+script = ExtResource("33")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Actors/Ren/CombatAnimationController"]
+
 [node name="Bandit" type="CharacterBody3D" parent="Actors"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.0, -5)
 visible = false
@@ -268,10 +274,12 @@ npc_definition = ExtResource("7")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
-[node name="Visual" type="MeshInstance3D" parent="Actors/Bandit"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
-mesh = SubResource("BoxMesh_npc")
-surface_material_override/0 = SubResource("Mat_bandit")
+[node name="VisualRoot" type="Node3D" parent="Actors/Bandit"]
+rotation = Vector3(0, 3.1415927, 0)
+
+[node name="CharacterModel" type="Node3D" parent="Actors/Bandit/VisualRoot"]
+script = ExtResource("32")
+definition_hint = &"bandit"
 
 [node name="HealthComponent" type="Node" parent="Actors/Bandit"]
 script = ExtResource("8")
@@ -315,6 +323,11 @@ team = &"npc"
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Actors/Bandit/Hurtbox3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
+
+[node name="CombatAnimationController" type="Node" parent="Actors/Bandit"]
+script = ExtResource("33")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Actors/Bandit/CombatAnimationController"]
 
 [node name="Pet" type="CharacterBody3D" parent="Actors"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, -1)

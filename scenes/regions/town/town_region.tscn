@@ -22,6 +22,9 @@
 [ext_resource type="Script" path="res://scripts/interaction/chest_interactable_3d.gd" id="20"]
 [ext_resource type="Script" path="res://scripts/interaction/pet_interactable.gd" id="21"]
 [ext_resource type="Script" path="res://scripts/interaction/mount_interactable.gd" id="22"]
+[ext_resource type="Script" path="res://scripts/characters/npc/stylized_npc_model.gd" id="23"]
+[ext_resource type="Script" path="res://scripts/components/combat_animation_controller.gd" id="24"]
+[ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="25"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -35,15 +38,6 @@ size = Vector3(40, 0.2, 40)
 [sub_resource type="CapsuleShape3D" id="Capsule_npc"]
 radius = 0.4
 height = 1.6
-
-[sub_resource type="BoxMesh" id="BoxMesh_npc"]
-size = Vector3(0.7, 1.5, 0.7)
-
-[sub_resource type="StandardMaterial3D" id="Mat_mira"]
-albedo_color = Color(0.9, 0.5, 0.7, 1)
-
-[sub_resource type="StandardMaterial3D" id="Mat_ren"]
-albedo_color = Color(0.5, 0.6, 0.9, 1)
 
 [sub_resource type="TorusMesh" id="TorusMesh_portal"]
 inner_radius = 0.65
@@ -75,6 +69,8 @@ albedo_color = Color(0.95, 0.72, 0.16, 1)
 [node name="RegionRoot" type="Node3D"]
 
 [node name="Environment" type="Node3D" parent="."]
+script = ExtResource("25")
+region_theme = 0
 
 [node name="Floor" type="MeshInstance3D" parent="Environment"]
 mesh = SubResource("BoxMesh_floor")
@@ -121,10 +117,13 @@ region_id = &"base:town"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
-[node name="Visual" type="MeshInstance3D" parent="StaticEntities/Mira"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
-mesh = SubResource("BoxMesh_npc")
-surface_material_override/0 = SubResource("Mat_mira")
+[node name="VisualRoot" type="Node3D" parent="StaticEntities/Mira"]
+rotation = Vector3(0, 3.1415927, 0)
+
+[node name="CharacterModel" type="Node3D" parent="StaticEntities/Mira/VisualRoot"]
+script = ExtResource("23")
+definition_hint = &"mira"
+persistent_id_hint = &"base:town/npc/mira"
 
 [node name="HealthComponent" type="Node" parent="StaticEntities/Mira"]
 script = ExtResource("4")
@@ -173,6 +172,11 @@ team = &"npc"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
+[node name="CombatAnimationController" type="Node" parent="StaticEntities/Mira"]
+script = ExtResource("24")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="StaticEntities/Mira/CombatAnimationController"]
+
 [node name="Ren" type="CharacterBody3D" parent="StaticEntities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.0, 4)
 script = ExtResource("1")
@@ -188,10 +192,13 @@ region_id = &"base:town"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
 
-[node name="Visual" type="MeshInstance3D" parent="StaticEntities/Ren"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
-mesh = SubResource("BoxMesh_npc")
-surface_material_override/0 = SubResource("Mat_ren")
+[node name="VisualRoot" type="Node3D" parent="StaticEntities/Ren"]
+rotation = Vector3(0, 3.1415927, 0)
+
+[node name="CharacterModel" type="Node3D" parent="StaticEntities/Ren/VisualRoot"]
+script = ExtResource("23")
+definition_hint = &"ren"
+persistent_id_hint = &"base:town/npc/ren"
 
 [node name="HealthComponent" type="Node" parent="StaticEntities/Ren"]
 script = ExtResource("4")
@@ -235,6 +242,11 @@ team = &"npc"
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticEntities/Ren/Hurtbox3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("Capsule_npc")
+
+[node name="CombatAnimationController" type="Node" parent="StaticEntities/Ren"]
+script = ExtResource("24")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="StaticEntities/Ren/CombatAnimationController"]
 
 [node name="DynamicEntities" type="Node3D" parent="."]
 

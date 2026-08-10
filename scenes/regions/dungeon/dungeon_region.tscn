@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/world/spawning/entity_spawn_marker.gd" id="2"]
 [ext_resource type="Resource" path="res://content/base/spawns/bandit_0001.tres" id="3"]
 [ext_resource type="Resource" path="res://content/base/spawns/bandit_0002.tres" id="4"]
+[ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="5"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -26,6 +27,8 @@ albedo_color = Color(0.98, 0.76, 0.22, 1)
 [node name="RegionRoot" type="Node3D"]
 
 [node name="Environment" type="Node3D" parent="."]
+script = ExtResource("5")
+region_theme = 2
 
 [node name="Floor" type="MeshInstance3D" parent="Environment"]
 mesh = SubResource("BoxMesh_floor")

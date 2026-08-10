@@ -19,6 +19,8 @@ var _body_root: Node3D
 var _equipment_root: Node3D
 var _idle_time: float = 0.0
 var _customization: Dictionary = CharacterAppearanceOptions.default_options()
+var _motion_state: StringName = &"idle"
+var _motion_rig := StylizedCharacterMotion.new()
 
 
 func _ready() -> void:
@@ -26,11 +28,12 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not preview_idle_motion or _visual_root == null:
+	if _visual_root == null:
 		return
 	_idle_time += delta
-	_visual_root.position.y = sin(_idle_time * 1.7) * 0.018
-	_visual_root.rotation.y = deg_to_rad(-18.0) + sin(_idle_time * 0.55) * 0.055
+	_motion_rig.update(delta)
+	if preview_idle_motion:
+		_visual_root.rotation.y += deg_to_rad(-18.0) + sin(_idle_time * 0.55) * 0.055
 
 
 func rebuild() -> void:
@@ -62,6 +65,17 @@ func rebuild() -> void:
 	_apply_headwear_choice()
 	_add_accessory()
 	_apply_body_shape()
+	_motion_rig.bind(_visual_root)
+	_motion_rig.set_state(_motion_state)
+
+
+func set_motion_state(state: StringName) -> void:
+	_motion_state = state if state != &"" else &"idle"
+	_motion_rig.set_state(_motion_state)
+
+
+func get_motion_state() -> StringName:
+	return _motion_state
 
 
 func apply_customization(options: Dictionary) -> void:

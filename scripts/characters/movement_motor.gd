@@ -24,7 +24,9 @@ static func compute_velocity(
 		var right := camera_basis.x
 		right.y = 0.0
 		right = right.normalized()
-		direction = (forward * input_dir.y + right * input_dir.x).normalized()
+		# Input.get_vector returns -Y for the forward action. Project that onto
+		# the camera's -Z forward axis so W moves toward the view, not away.
+		direction = (forward * -input_dir.y + right * input_dir.x).normalized()
 	var target_velocity := direction * speed
 	var horizontal := Vector3(current_velocity.x, 0.0, current_velocity.z)
 	var rate := acceleration if direction.length_squared() > 0.001 else deceleration

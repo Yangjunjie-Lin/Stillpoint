@@ -92,6 +92,7 @@ func start_free_form_dialogue(
 	_free_form_npc_previous_state = npc.npc_state
 	_player_input_before_dialogue = player.state.input_enabled
 	player.set_input_enabled(false)
+	_set_player_dialogue_motion(player, true)
 	npc.set_npc_state(NPCController.NPCState.TALK)
 	var payload := _cognition_service.build_turn_payload(npc, text)
 	if payload.is_empty():
@@ -173,6 +174,7 @@ func _on_choice_effect_failed(_choice: DialogueChoice, reason: String) -> void:
 func _restore_actor_state() -> void:
 	if _player != null and is_instance_valid(_player):
 		_player.set_input_enabled(_player_input_before_dialogue)
+		_set_player_dialogue_motion(_player, false)
 	if _npc != null and is_instance_valid(_npc) \
 		and _npc.npc_state == NPCController.NPCState.TALK:
 		_npc.set_npc_state(_npc_state_before_dialogue)
@@ -185,6 +187,7 @@ func _begin_dialogue(npc: NPCController, player: PlayerController3D) -> void:
 	_player_input_before_dialogue = player.state.input_enabled
 	_authored_choices_presented = false
 	player.set_input_enabled(false)
+	_set_player_dialogue_motion(player, true)
 	npc.set_npc_state(NPCController.NPCState.TALK)
 
 
@@ -210,7 +213,16 @@ func _on_free_form_reply(reply: Dictionary) -> void:
 func _restore_free_form_state() -> void:
 	if _free_form_player != null and is_instance_valid(_free_form_player):
 		_free_form_player.set_input_enabled(_player_input_before_dialogue)
+		_set_player_dialogue_motion(_free_form_player, false)
 	if _free_form_npc != null and is_instance_valid(_free_form_npc) and _free_form_npc.npc_state == NPCController.NPCState.TALK:
 		_free_form_npc.set_npc_state(_free_form_npc_previous_state)
 	_free_form_npc = null
 	_free_form_player = null
+
+
+func _set_player_dialogue_motion(player: PlayerController3D, active: bool) -> void:
+	if player == null:
+		return
+	var animation := player.get_node_or_null("CombatAnimationController") as CombatAnimationController
+	if animation != null:
+		animation.set_context_motion(&"talk" if active else &"")

@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/interaction/pickup_interactable_3d.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="4"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -42,6 +43,8 @@ albedo_color = Color(0.98, 0.76, 0.22, 1)
 [node name="RegionRoot" type="Node3D"]
 
 [node name="Environment" type="Node3D" parent="."]
+script = ExtResource("4")
+region_theme = 1
 
 [node name="Floor" type="MeshInstance3D" parent="Environment"]
 mesh = SubResource("BoxMesh_floor")

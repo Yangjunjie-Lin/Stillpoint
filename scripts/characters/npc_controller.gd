@@ -62,6 +62,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if is_permanently_dead:
 		velocity = Vector3.ZERO
+		_update_presentation()
 		return
 	if is_downed:
 		npc_state = NPCState.DOWNED
@@ -69,6 +70,7 @@ func _physics_process(delta: float) -> void:
 		if not is_on_floor():
 			velocity.y -= _gravity * delta
 			move_and_slide()
+		_update_presentation()
 		return
 
 	game_time += delta
@@ -86,7 +88,11 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector3.ZERO
 		_:
 			velocity = Vector3.ZERO
+	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
+	if horizontal.length_squared() > 0.02:
+		look_at(global_position + horizontal.normalized(), Vector3.UP)
 	move_and_slide()
+	_update_presentation()
 
 
 func set_npc_state(new_state: NPCState) -> void:
@@ -94,6 +100,7 @@ func set_npc_state(new_state: NPCState) -> void:
 	_schedule_paused = new_state in [
 		NPCState.ATTACK, NPCState.CHASE, NPCState.FLEE, NPCState.TALK, NPCState.DOWNED
 	]
+	_update_presentation()
 
 
 func react_to_aggression(attacker: CharacterController, damage: float = 10.0) -> void:
@@ -173,11 +180,30 @@ func _on_downed(_source: Node) -> void:
 	npc_state = NPCState.DOWNED
 	_schedule_paused = true
 	velocity = Vector3.ZERO
+	var anim := get_node_or_null("CombatAnimationController") as CombatAnimationController
+	if anim != null:
+		anim.request_downed()
 
 
 func _on_permanent_death(_source: Node) -> void:
 	npc_state = NPCState.DOWNED
+	var anim := get_node_or_null("CombatAnimationController") as CombatAnimationController
+	if anim != null:
+		anim.request_death()
 	queue_free()
+
+
+func _update_presentation() -> void:
+	var anim := get_node_or_null("CombatAnimationController") as CombatAnimationController
+	if anim == null:
+		return
+	if is_downed or npc_state == NPCState.DOWNED:
+		anim.set_context_motion(&"downed")
+	elif npc_state == NPCState.TALK:
+		anim.set_context_motion(&"talk")
+	else:
+		anim.set_context_motion(&"")
+	anim.set_locomotion(velocity, is_on_floor(), false)
 
 
 func _process_attack(_delta: float) -> void:

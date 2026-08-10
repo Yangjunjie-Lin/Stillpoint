@@ -14,6 +14,9 @@ var _tree: AnimationTree
 var _combat: CombatComponent
 var _current_action: StringName = &""
 var _locomotion_state: StringName = &"idle"
+var _context_motion: StringName = &""
+var _visual_action_serial: int = 0
+var _visual_action_locked: bool = false
 
 
 func _ready() -> void:
@@ -21,6 +24,8 @@ func _ready() -> void:
 	# Child _ready() runs before the parent's @onready fields are assigned.
 	if _owner != null:
 		_combat = _owner.get_node_or_null("CombatComponent") as CombatComponent
+	if _combat != null and not _combat.attack_finished.is_connected(_on_combat_attack_finished):
+		_combat.attack_finished.connect(_on_combat_attack_finished)
 	_player = get_node_or_null(animation_player_path) as AnimationPlayer
 	_tree = get_node_or_null(animation_tree_path) as AnimationTree
 	if _player == null and _owner != null:
@@ -39,6 +44,9 @@ func request_attack(attack: AttackDefinition) -> bool:
 		anim_name = "attack_light_1"
 	var clip := _clip_name(anim_name)
 	_current_action = attack.id
+	_visual_action_serial += 1
+	_visual_action_locked = true
+	_set_visual_motion(&"attack")
 	animation_action_started.emit(attack.id)
 	if _player != null and _player.has_animation(clip):
 		_player.play(clip, -1.0, attack.animation_speed)
@@ -57,6 +65,9 @@ func _clip_name(short_name: String) -> StringName:
 
 
 func request_guard(active: bool) -> void:
+	_visual_action_serial += 1
+	_visual_action_locked = active
+	_set_visual_motion(&"guard" if active else _base_motion())
 	if _player == null:
 		return
 	if active:
@@ -68,19 +79,28 @@ func request_guard(active: bool) -> void:
 
 
 func request_hit_reaction(direction: Vector3, severity: float) -> void:
-	if _player == null:
-		return
 	var anim := _pick_hit_animation(direction, severity)
-	if _player.has_animation(_clip_name(anim)):
+	_visual_action_serial += 1
+	_visual_action_locked = true
+	var serial := _visual_action_serial
+	_set_visual_motion(StringName(anim))
+	_restore_visual_after.call_deferred(0.36, serial)
+	if _player != null and _player.has_animation(_clip_name(anim)):
 		_player.play(_clip_name(anim))
 
 
 func request_downed() -> void:
+	_visual_action_serial += 1
+	_visual_action_locked = true
+	_set_visual_motion(&"downed")
 	if _player != null and _player.has_animation("downed"):
 		_player.play("downed")
 
 
 func request_death() -> void:
+	_visual_action_serial += 1
+	_visual_action_locked = true
+	_set_visual_motion(&"death")
 	if _player != null and _player.has_animation("death"):
 		_player.play("death")
 
@@ -96,13 +116,23 @@ func set_locomotion(velocity: Vector3, grounded: bool, crouching: bool) -> void:
 		next = &"run"
 	elif horiz > 0.2:
 		next = &"walk"
-	if next == _locomotion_state:
-		return
+	var changed := next != _locomotion_state
 	_locomotion_state = next
-	if _combat != null and _combat.is_attacking:
+	if _visual_action_locked or (_combat != null and _combat.is_attacking):
 		return
-	if _player != null and _player.has_animation(_clip_name(String(next))):
+	if _context_motion == &"":
+		_set_visual_motion(next)
+	if changed and _player != null and _player.has_animation(_clip_name(String(next))):
 		_player.play(_clip_name(String(next)))
+
+
+func set_context_motion(state: StringName) -> void:
+	if state == _context_motion:
+		return
+	_context_motion = state
+	_visual_action_serial += 1
+	if not _visual_action_locked and (_combat == null or not _combat.is_attacking):
+		_set_visual_motion(_base_motion())
 
 
 # --- Animation method track callbacks ----------------------------------------
@@ -145,6 +175,9 @@ func attack_finished() -> void:
 		_combat.finish_attack()
 	animation_action_finished.emit(_current_action)
 	_current_action = &""
+	_visual_action_serial += 1
+	_visual_action_locked = false
+	_set_visual_motion(_base_motion())
 
 
 func _on_animation_finished(anim_name: StringName) -> void:
@@ -178,6 +211,46 @@ func _pick_hit_animation(direction: Vector3, severity: float) -> String:
 	if absf(local.x) > absf(local.z):
 		return "hit_right_light" if local.x > 0.0 else "hit_left_light"
 	return "hit_back_light" if local.z > 0.0 else "hit_front_light"
+
+
+func _base_motion() -> StringName:
+	return _context_motion if _context_motion != &"" else _locomotion_state
+
+
+func _set_visual_motion(state: StringName) -> void:
+	if _owner == null:
+		return
+	var visual_root := _owner.get_node_or_null("VisualRoot")
+	if visual_root == null:
+		visual_root = _owner
+	var pending: Array[Node] = [visual_root]
+	while not pending.is_empty():
+		var node: Node = pending.pop_front()
+		if node.has_method("set_motion_state"):
+			node.call("set_motion_state", state)
+			return
+		for child in node.get_children():
+			pending.append(child)
+
+
+func _restore_visual_after(seconds: float, serial: int) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	await tree.create_timer(seconds).timeout
+	if serial != _visual_action_serial:
+		return
+	if _owner != null and (_owner.is_downed or _owner.is_permanently_dead):
+		return
+	_visual_action_locked = false
+	_set_visual_motion(_base_motion())
+
+
+func _on_combat_attack_finished() -> void:
+	if _owner != null and (_owner.is_downed or _owner.is_permanently_dead):
+		return
+	_visual_action_locked = false
+	_set_visual_motion(_base_motion())
 
 
 func _ensure_placeholder_library() -> void:
