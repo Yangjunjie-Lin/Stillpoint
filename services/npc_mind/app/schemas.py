@@ -1,8 +1,84 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+
+OntologyId = Annotated[
+    str,
+    Field(min_length=1, max_length=64, pattern=r"^[a-z0-9][a-z0-9_.:-]*$"),
+]
+OntologyLabel = Annotated[
+    str,
+    Field(min_length=1, max_length=80, pattern=r"^[^\r\n\x00-\x1f\x7f]+$"),
+]
+
+
+class PlayerPublicIdentity(BaseModel):
+    """Public character-build identity supplied by the game client.
+
+    This is observable player data, never an authority source for the server-owned NPC
+    profile. Descriptions and private biography are intentionally excluded.
+    """
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    display_name: str = Field(
+        default="",
+        max_length=80,
+        pattern=r"^[^\r\n\x00-\x1f\x7f]*$",
+    )
+    origin_id: OntologyId
+    origin_label: OntologyLabel
+    faction_id: OntologyId
+    faction_label: OntologyLabel
+    profession_id: OntologyId
+    profession_label: OntologyLabel
+
+
+class PlayerVisibleAppearance(BaseModel):
+    """Finite appearance choices that an NPC can plausibly observe."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    body_id: Literal["balanced", "slender", "sturdy"]
+    skin_id: Literal["origin", "light", "warm", "olive", "brown", "deep"]
+    hair_id: Literal["origin", "short", "topknot", "shaved"]
+    headwear_id: Literal["origin", "none", "travel_hood", "brimmed_hat"]
+    palette_id: Literal["origin", "jade", "ocean", "ember", "earth"]
+    accessory_id: Literal["none", "satchel", "travel_pack", "bedroll"]
+
+
+class PlayerObservableCapability(BaseModel):
+    """A qualitative tendency; exact rolled stats are deliberately not accepted."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    trait_id: Literal[
+        "resilient",
+        "energetic",
+        "forceful",
+        "guarded",
+        "agile",
+        "focused",
+    ]
+    evidence: Literal["faction", "profession", "observable_build"]
+    visibility: Literal["public"] = "public"
+
+
+class PlayerOntologySnapshot(BaseModel):
+    """Versioned, bounded public context an NPC may currently know or observe."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal[1] = 1
+    public_identity: PlayerPublicIdentity
+    visible_appearance: PlayerVisibleAppearance
+    observable_capabilities: list[PlayerObservableCapability] = Field(
+        default_factory=list,
+        max_length=6,
+    )
 
 
 class WorldContext(BaseModel):
@@ -63,6 +139,7 @@ class NpcGenerationRequest(BaseModel):
     text: str = Field(min_length=1, max_length=4000)
     locale: str = "en"
     world_context: WorldContext = Field(default_factory=WorldContext)
+    player_ontology: PlayerOntologySnapshot | None = None
     npc_profile: dict[str, Any] = Field(default_factory=dict)
     recent_turns: list[dict[str, Any]] = Field(default_factory=list)
     retrieved_memories: list[dict[str, Any]] = Field(default_factory=list)

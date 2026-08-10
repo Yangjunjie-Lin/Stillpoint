@@ -18,7 +18,56 @@ def main() -> int:
         session_id="session-001",
         text="Do you remember the herb?",
         world_context={"region_id": "base:town"},
+        player_ontology={
+            "schema_version": 1,
+            "public_identity": {
+                "display_name": "Traveler",
+                "origin_id": "lotus_ascetic",
+                "origin_label": "Lotus Ascetic",
+                "faction_id": "ash_watch",
+                "faction_label": "Ash Watch",
+                "profession_id": "duelist",
+                "profession_label": "Duelist",
+            },
+            "visible_appearance": {
+                "body_id": "sturdy",
+                "skin_id": "deep",
+                "hair_id": "short",
+                "headwear_id": "none",
+                "palette_id": "ember",
+                "accessory_id": "satchel",
+            },
+            "observable_capabilities": [
+                {
+                    "trait_id": "guarded",
+                    "evidence": "faction",
+                    "visibility": "public",
+                },
+                {
+                    "trait_id": "forceful",
+                    "evidence": "profession",
+                    "visibility": "public",
+                },
+                {
+                    "trait_id": "focused",
+                    "evidence": "observable_build",
+                    "visibility": "public",
+                },
+            ],
+        },
     )
+    request_payload = json.loads(request.model_dump_json())
+    NpcGenerationRequest.model_validate(request_payload)
+    serialized_request = json.dumps(request_payload, ensure_ascii=False)
+    for private_field in (
+        "attribute_seed",
+        "attribute_points",
+        "max_health_bonus",
+        "inventory",
+        "equipment",
+    ):
+        if private_field in serialized_request:
+            raise AssertionError(f"private player field leaked into contract: {private_field}")
     response = ConversationResponse(
         request_id=request.request_id,
         session_id=request.session_id,

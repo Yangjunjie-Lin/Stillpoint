@@ -7,6 +7,7 @@ var gateway := NPCDialogueGateway.new()
 var conversation_controller := NPCConversationController.new()
 var event_observation_coordinator := NPCEventObservationCoordinator.new()
 var _sync_elapsed: float = 0.0
+var _session_context: WorldSessionContext
 
 func _ready() -> void:
 	for component in [save_provider, gateway, conversation_controller, event_observation_coordinator]:
@@ -18,12 +19,13 @@ func _ready() -> void:
 	set_process(true)
 
 func setup(
-	_context: WorldSessionContext,
+	context: WorldSessionContext,
 	event_bus: GameplayEventBus,
 	entity_repository: WorldEntityRepository,
 ) -> void:
 	if not is_node_ready():
 		_ready()
+	_session_context = context
 	var player_profile_id := SaveService.get_or_create_player_profile_id()
 	var world_save_id := "slot-01"
 	save_provider.backend_player_profile_id = player_profile_id
@@ -86,7 +88,7 @@ func build_turn_payload(npc: NPCController, text: String) -> Dictionary:
 	)
 	if session_id.is_empty():
 		session_id = "%s/session" % String(persistent_id)
-	return {
+	var payload := {
 		"request_id": "turn-%s-%s" % [String(persistent_id), Time.get_ticks_usec()],
 		"player_profile_id": player_profile_id,
 		"world_save_id": world_save_id,
@@ -106,6 +108,13 @@ func build_turn_payload(npc: NPCController, text: String) -> Dictionary:
 			"game_time": WorldTimeService.to_dict(),
 		},
 	}
+	var player := _session_context.player if _session_context != null else null
+	var player_ontology := PlayerOntologySnapshotBuilder.build(
+		player, GameManager.player_name
+	)
+	if not player_ontology.is_empty():
+		payload["player_ontology"] = player_ontology
+	return payload
 
 func sync_pending() -> bool:
 	var cache := save_provider.cache
