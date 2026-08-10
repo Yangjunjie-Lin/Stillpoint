@@ -143,7 +143,11 @@ func _rebuild_loadout() -> void:
 
 
 func _build_handheld(definition: ItemDefinition) -> void:
-	var hand := _body_root.find_child("RightHand", true, false) as Node3D
+	var grip_pose := ItemVisualFactory.grip_pose_for(definition)
+	var hand_name := (
+		"LeftHand" if str(grip_pose.get("hand", "right")) == "left" else "RightHand"
+	)
+	var hand := _body_root.find_child(hand_name, true, false) as Node3D
 	if hand == null:
 		return
 	var model := ItemVisualFactory.create_model(definition, true)

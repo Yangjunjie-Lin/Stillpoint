@@ -28,6 +28,14 @@ func run() -> bool:
 		ok = ok and held.global_position.distance_to(hand.global_position) < 0.1
 		var static_blade := model.find_child("JianBlade", true, false) as Node3D
 		ok = ok and static_blade != null and static_blade.get_parent() == hand
+	var shield := ResourceRegistry.get_item(&"shield")
+	model.apply_loadout(null, null, null, shield)
+	var left_hand := model.find_child("LeftHand", true, false) as Node3D
+	var held_shield := model.find_child("DisplayedHandheld", true, false) as Node3D
+	ok = ok and left_hand != null and held_shield != null
+	if held_shield != null:
+		ok = ok and held_shield.get_parent() == left_hand
+		ok = ok and str(held_shield.get_meta("grip_kind", "")) == "shield_grip"
 	model.free()
 	if not ok:
 		push_error("hand or held item did not inherit the procedural arm chain")

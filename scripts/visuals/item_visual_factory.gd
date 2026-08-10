@@ -4,6 +4,108 @@ extends RefCounted
 ## Inventory, held equipment, previews, pickups, and NPC props can instantiate
 ## the same archetype instead of maintaining unrelated one-off meshes.
 
+const DEFAULT_HAND_GRIP_POSE := {
+	"hand": "right",
+	"grip_kind": "palm",
+	"position": Vector3(0.06, -0.05, 0.12),
+	"rotation_degrees": Vector3(-12, -8, -10),
+	"scale": Vector3.ONE * 0.68,
+}
+
+const HAND_GRIP_POSES := {
+	&"one_hand_sword": {
+		"hand": "right",
+		"grip_kind": "power_grip",
+		"position": Vector3(0.02, 0.01, -0.02),
+		"rotation_degrees": Vector3(-12, 8, -158),
+		"scale": Vector3.ONE,
+	},
+	&"field_pick": {
+		"hand": "right",
+		"grip_kind": "tool_grip",
+		"position": Vector3(0.01, -0.02, -0.04),
+		"rotation_degrees": Vector3(-18, -8, -32),
+		"scale": Vector3.ONE,
+	},
+	&"padded_armor": {
+		"hand": "right",
+		"grip_kind": "present",
+		"position": Vector3(0.12, -0.1, 0.2),
+		"rotation_degrees": Vector3(-78, 0, -8),
+		"scale": Vector3.ONE * 0.54,
+	},
+	&"neck_charm": {
+		"hand": "right",
+		"grip_kind": "pinch",
+		"position": Vector3(0.02, -0.16, 0.14),
+		"rotation_degrees": Vector3(8, 0, 4),
+		"scale": Vector3.ONE * 0.7,
+	},
+	&"gift_box": {
+		"hand": "right",
+		"grip_kind": "palm",
+		"position": Vector3(0.1, -0.08, 0.18),
+		"rotation_degrees": Vector3(0, -18, -8),
+		"scale": Vector3.ONE * 0.55,
+	},
+	&"herb_bundle": {
+		"hand": "right",
+		"grip_kind": "bundle_grip",
+		"position": Vector3(0.02, -0.03, 0.08),
+		"rotation_degrees": Vector3(-18, -12, -25),
+		"scale": Vector3.ONE * 0.7,
+	},
+	&"travel_ration": {
+		"hand": "right",
+		"grip_kind": "palm",
+		"position": Vector3(0.08, -0.05, 0.16),
+		"rotation_degrees": Vector3(-22, -16, -10),
+		"scale": Vector3.ONE * 0.62,
+	},
+	&"shield_emblem": {
+		"hand": "left",
+		"grip_kind": "shield_grip",
+		"position": Vector3(0, -0.28, 0.1),
+		"rotation_degrees": Vector3(0, 0, 12),
+		"scale": Vector3.ONE * 0.82,
+	},
+	&"speed_boot": {
+		"hand": "right",
+		"grip_kind": "present",
+		"position": Vector3(0.08, -0.04, 0.16),
+		"rotation_degrees": Vector3(-68, 15, -12),
+		"scale": Vector3.ONE * 0.55,
+	},
+	&"double_arrow": {
+		"hand": "right",
+		"grip_kind": "pinch",
+		"position": Vector3(0.01, -0.03, 0.02),
+		"rotation_degrees": Vector3(-18, 0, -28),
+		"scale": Vector3.ONE * 0.9,
+	},
+	&"piercing_arrow": {
+		"hand": "right",
+		"grip_kind": "pinch",
+		"position": Vector3(0.01, -0.03, 0.02),
+		"rotation_degrees": Vector3(-18, 0, -24),
+		"scale": Vector3.ONE * 0.92,
+	},
+	&"large_orb": {
+		"hand": "right",
+		"grip_kind": "palm_hover",
+		"position": Vector3(0.1, -0.03, 0.16),
+		"rotation_degrees": Vector3.ZERO,
+		"scale": Vector3.ONE * 0.55,
+	},
+	&"score_token": {
+		"hand": "right",
+		"grip_kind": "pinch",
+		"position": Vector3(0.1, -0.08, 0.2),
+		"rotation_degrees": Vector3(-8, -12, -12),
+		"scale": Vector3.ONE * 0.55,
+	},
+}
+
 
 static func create_model(definition: ItemDefinition, for_hand: bool = false) -> Node3D:
 	var root := Node3D.new()
@@ -46,6 +148,17 @@ static func create_model(definition: ItemDefinition, for_hand: bool = false) -> 
 	if for_hand:
 		_apply_hand_pose(root, archetype)
 	return root
+
+
+static func grip_pose_for(definition: ItemDefinition) -> Dictionary:
+	if definition == null:
+		return DEFAULT_HAND_GRIP_POSE.duplicate(true)
+	return grip_pose_for_archetype(definition.resolved_visual_archetype())
+
+
+static func grip_pose_for_archetype(archetype: StringName) -> Dictionary:
+	var pose: Dictionary = HAND_GRIP_POSES.get(archetype, DEFAULT_HAND_GRIP_POSE)
+	return pose.duplicate(true)
 
 
 static func _build_sword(root: Node3D, definition: ItemDefinition) -> void:
@@ -161,17 +274,17 @@ static func _build_trinket(root: Node3D, definition: ItemDefinition) -> void:
 
 
 static func _apply_hand_pose(root: Node3D, archetype: StringName) -> void:
-	root.position = Vector3(0, -0.02, 0)
-	match archetype:
-		&"gift_box", &"padded_armor":
-			root.scale = Vector3.ONE * 0.62
-			root.rotation_degrees = Vector3(0, 0, 12)
-		&"herb_bundle", &"travel_ration", &"neck_charm", &"shield_emblem", \
-			&"speed_boot", &"large_orb", &"score_token":
-			root.scale = Vector3.ONE * 0.72
-			root.rotation_degrees = Vector3(0, 0, 10)
-		_:
-			root.scale = Vector3.ONE
+	var pose := grip_pose_for_archetype(archetype)
+	var position_: Vector3 = pose.get("position", Vector3.ZERO)
+	var rotation_degrees_: Vector3 = pose.get("rotation_degrees", Vector3.ZERO)
+	var scale_: Vector3 = pose.get("scale", Vector3.ONE)
+	root.position = position_
+	root.rotation_degrees = rotation_degrees_
+	root.scale = scale_
+	root.set_meta("grip_hand", str(pose.get("hand", "right")))
+	root.set_meta("grip_kind", str(pose.get("grip_kind", "palm")))
+	root.set_meta("grip_position", position_)
+	root.set_meta("grip_rotation_degrees", rotation_degrees_)
 
 
 static func _box(parent: Node3D, name_: String, size: Vector3, position_: Vector3, color: Color, rotation_: Vector3 = Vector3.ZERO, metallic: float = 0.0) -> MeshInstance3D:
