@@ -74,6 +74,7 @@ func rebuild() -> void:
 	_apply_headwear_choice()
 	_add_accessory()
 	_apply_body_shape()
+	_attach_static_equipment()
 	_rebuild_loadout()
 	_motion_rig.bind(_visual_root)
 	_motion_rig.set_state(_motion_state)
@@ -145,18 +146,10 @@ func _build_handheld(definition: ItemDefinition) -> void:
 	var hand := _body_root.find_child("RightHand", true, false) as Node3D
 	if hand == null:
 		return
-	var socket := Node3D.new()
-	socket.name = "DisplayedHandheld"
-	hand.add_child(socket)
-	_loadout_attachments.append(socket)
-	match definition.visual_archetype:
-		&"field_pick":
-			_dynamic_cylinder(socket, "ToolHandle", 0.028, 0.88, Vector3(0, 0.35, 0), definition.visual_primary_color)
-			_dynamic_box(socket, "PickHead", Vector3(0.48, 0.07, 0.08), Vector3(0, 0.77, 0), definition.visual_secondary_color, Vector3(0, 0, -8), 0.55)
-		_:
-			_dynamic_cylinder(socket, "WeaponGrip", 0.035, 0.2, Vector3(0, 0.08, 0), definition.visual_primary_color)
-			_dynamic_box(socket, "WeaponGuard", Vector3(0.24, 0.045, 0.075), Vector3(0, 0.19, 0), definition.visual_primary_color.lightened(0.18), Vector3.ZERO, 0.28)
-			_dynamic_box(socket, "WeaponBlade", Vector3(0.055, 0.78, 0.035), Vector3(0, 0.59, 0), definition.visual_secondary_color, Vector3.ZERO, 0.62)
+	var model := ItemVisualFactory.create_model(definition, true)
+	model.name = "DisplayedHandheld"
+	hand.add_child(model)
+	_loadout_attachments.append(model)
 
 
 func _build_armor(definition: ItemDefinition) -> void:
@@ -186,19 +179,55 @@ func _build_charm(definition: ItemDefinition) -> void:
 
 
 func _set_origin_weapon_visibility(visible_: bool) -> void:
-	if _equipment_root == null:
+	if _visual_root == null:
 		return
 	for part_name in [
 		"JianBlade", "JianGuard", "WalkingStaff", "StaffRing", "KatanaScabbard",
 		"KatanaHilt", "Shield", "KnightSword", "BowUpper", "BowLower", "Quiver",
 		"RecurveBow",
 	]:
-		var part := _equipment_root.find_child(part_name, true, false) as Node3D
+		var part := _visual_root.find_child(part_name, true, false) as Node3D
 		if part != null:
 			part.visible = visible_
-	for child in _equipment_root.get_children():
-		if String(child.name).begins_with("Arrow"):
-			(child as Node3D).visible = visible_
+	for index in 4:
+		var arrow := _visual_root.find_child("Arrow%d" % index, true, false) as Node3D
+		if arrow != null:
+			arrow.visible = visible_
+
+
+func _attach_static_equipment() -> void:
+	var right_hand := _body_root.find_child("RightHand", true, false) as Node3D
+	var left_hand := _body_root.find_child("LeftHand", true, false) as Node3D
+	_attach_parts_to_hand(right_hand, [
+		"JianBlade", "JianGuard", "WalkingStaff", "StaffRing", "KnightSword",
+		"BowUpper", "BowLower", "RecurveBow",
+	])
+	_attach_parts_to_hand(left_hand, ["Shield"])
+
+
+func _attach_parts_to_hand(hand: Node3D, part_names: Array[String]) -> void:
+	if hand == null:
+		return
+	var hand_relative := _transform_relative_to(hand, _visual_root)
+	for part_name in part_names:
+		var part := _visual_root.find_child(part_name, true, false) as Node3D
+		if part == null or part == hand or part.get_parent() == hand:
+			continue
+		var part_relative := _transform_relative_to(part, _visual_root)
+		part.reparent(hand, false)
+		part.transform = hand_relative.affine_inverse() * part_relative
+
+
+func _transform_relative_to(node: Node3D, ancestor: Node3D) -> Transform3D:
+	var result := node.transform
+	var parent := node.get_parent()
+	while parent != null and parent != ancestor:
+		var parent_3d := parent as Node3D
+		if parent_3d == null:
+			break
+		result = parent_3d.transform * result
+		parent = parent.get_parent()
+	return result
 
 
 func _dynamic_box(

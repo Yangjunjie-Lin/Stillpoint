@@ -14,3 +14,6 @@ scene = ExtResource("2")
 spawn_weight = 1.0
 minimum_level = 1
 score_bonus = 10
+visual_archetype = &"speed_boot"
+visual_primary_color = Color(0.16, 0.58, 0.78, 1)
+visual_secondary_color = Color(0.62, 0.92, 1, 1)

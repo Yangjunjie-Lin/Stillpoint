@@ -206,8 +206,13 @@ func _display_name(npc: NPCController) -> String:
 
 func _on_free_form_reply(reply: Dictionary) -> void:
 	var speaker := _display_name(_free_form_npc)
+	var responding_npc := _free_form_npc
 	EventBus.ai_dialogue_reply.emit(speaker, str(reply.get("reply_text", "Let's speak later.")))
 	_restore_free_form_state()
+	if responding_npc != null and is_instance_valid(responding_npc):
+		responding_npc.play_knowledge_action(
+			StringName(str(reply.get("animation_id", "talk")))
+		)
 
 
 func _restore_free_form_state() -> void:

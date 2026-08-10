@@ -30,6 +30,12 @@ func run() -> bool:
 				if house != null:
 					ok = ok and String(house.get_meta("ontology_id", "")) == String(house_id)
 					ok = ok and _collision_shape_count(house) >= 4
+					var roof_left := house.find_child("RoofLeft", true, false) as Node3D
+					var roof_right := house.find_child("RoofRight", true, false) as Node3D
+					var ridge := house.find_child("RoofRidge", true, false) as Node3D
+					ok = ok and roof_left != null and roof_left.rotation.x < 0.0
+					ok = ok and roof_right != null and roof_right.rotation.x > 0.0
+					ok = ok and ridge != null and ridge.position.y > roof_left.position.y
 		visuals.free()
 	var portal := TransitionPortal.new()
 	portal.target_region_id = &"base:dungeon"

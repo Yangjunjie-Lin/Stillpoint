@@ -23,6 +23,7 @@ class NpcCatalogRepository:
         revision = f"{document.get('game_version', 'unknown')}:{document.get('catalog_version', 0)}"
         self.catalog_revision = revision
         self.world_ontology = dict(document.get("world_ontology", {}))
+        self.relation_action_catalog = dict(document.get("relation_action_catalog", {}))
         self._profiles: dict[str, NpcProfile] = {}
         for raw in document.get("npcs", []):
             definition_id = str(raw.get("definition_id", "")).strip()

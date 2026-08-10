@@ -50,11 +50,12 @@ func _export_catalog() -> void:
 		quit(1)
 		return
 	var payload := {
-		"catalog_version": 2,
+		"catalog_version": 3,
 		"game_version": "0.8.0",
 		"npc_count": profiles.size(),
 		"npcs": profiles,
 		"world_ontology": world_ontology,
+		"relation_action_catalog": KnowledgeActionLibrary.catalog(),
 	}
 	var rendered := JSON.stringify(payload, "  ") + "\n"
 	var args := OS.get_cmdline_user_args()

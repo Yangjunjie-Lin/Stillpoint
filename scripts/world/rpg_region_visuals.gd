@@ -217,19 +217,50 @@ func _add_house(definition: HouseDefinition) -> void:
 	_add_box_collision(root, Vector3(size.x + 0.25, 0.45, size.z + 0.25), Vector3(0, 0.225, 0))
 	_add_box(root, "HouseWalls", size, Vector3(0, 0.45 + size.y * 0.5, 0), wall)
 	_add_box_collision(root, size, Vector3(0, 0.45 + size.y * 0.5, 0))
+	for course in 3:
+		_add_box(root, "FoundationCourse", Vector3(size.x + 0.32, 0.055, size.z + 0.32), Vector3(0, 0.08 + course * 0.13, 0), Color("77736a").lightened(course * 0.025))
 	for x in [-size.x * 0.43, size.x * 0.43]:
-		_add_box(root, "TimberPost", Vector3(0.16, size.y + 0.15, 0.18), Vector3(x, 0.5 + size.y * 0.5, size.z * 0.51), timber)
+		for z in [-size.z * 0.51, size.z * 0.51]:
+			_add_box(root, "TimberPost", Vector3(0.16, size.y + 0.15, 0.18), Vector3(x, 0.5 + size.y * 0.5, z), timber)
 	_add_box(root, "TimberBeam", Vector3(size.x, 0.18, 0.2), Vector3(0, size.y + 0.45, size.z * 0.51), timber)
+	_add_box(root, "RearTimberBeam", Vector3(size.x, 0.18, 0.2), Vector3(0, size.y + 0.45, -size.z * 0.51), timber)
+	for floor_index in definition.floor_count:
+		var band_y := 0.48 + float(floor_index + 1) * size.y / float(definition.floor_count)
+		_add_box(root, "FloorBandFront", Vector3(size.x, 0.1, 0.18), Vector3(0, band_y, size.z * 0.515), timber.darkened(0.04))
+		_add_box(root, "FloorBandRear", Vector3(size.x, 0.1, 0.18), Vector3(0, band_y, -size.z * 0.515), timber.darkened(0.04))
 	_add_box(root, "Door", Vector3(0.9, 1.65, 0.16), Vector3(0, 1.25, size.z * 0.52), timber.darkened(0.16))
+	_add_box(root, "DoorLintel", Vector3(1.14, 0.14, 0.22), Vector3(0, 2.1, size.z * 0.535), timber)
+	for x in [-0.52, 0.52]:
+		_add_box(root, "DoorFrame", Vector3(0.12, 1.8, 0.22), Vector3(x, 1.3, size.z * 0.535), timber)
+	_add_sphere(root, "DoorHandle", 0.055, Vector3(0.28, 1.25, size.z * 0.625), Color("c39a4e"), Vector3.ZERO, 0.55)
 	for x in [-size.x * 0.27, size.x * 0.27]:
 		_add_box(root, "Window", Vector3(0.58, 0.66, 0.08), Vector3(x, 1.9, size.z * 0.57), Color("7ba0a4"), Vector3.ZERO, 0.05, true)
+		_add_box(root, "WindowVerticalFrame", Vector3(0.07, 0.78, 0.13), Vector3(x, 1.9, size.z * 0.615), timber)
+		_add_box(root, "WindowHorizontalFrame", Vector3(0.7, 0.07, 0.13), Vector3(x, 1.9, size.z * 0.615), timber)
+		_add_box(root, "RearWindow", Vector3(0.58, 0.66, 0.08), Vector3(x, 1.9, -size.z * 0.57), Color("668b91"), Vector3.ZERO, 0.03, true)
 	var roof_size := Vector3(size.x + 0.7, 0.22, size.z * 0.72)
-	var roof_left_rotation := Vector3(deg_to_rad(32), 0, 0)
-	var roof_right_rotation := Vector3(deg_to_rad(-32), 0, 0)
+	# Negative-Z half rises toward +Z; positive-Z half rises toward -Z.
+	# The former signs produced a valley roof, which looked upside-down.
+	var roof_left_rotation := Vector3(deg_to_rad(-32), 0, 0)
+	var roof_right_rotation := Vector3(deg_to_rad(32), 0, 0)
 	_add_box(root, "RoofLeft", roof_size, Vector3(0, size.y + 0.95, -size.z * 0.23), roof, roof_left_rotation)
 	_add_box_collision(root, roof_size, Vector3(0, size.y + 0.95, -size.z * 0.23), roof_left_rotation)
 	_add_box(root, "RoofRight", roof_size, Vector3(0, size.y + 0.95, size.z * 0.23), roof, roof_right_rotation)
 	_add_box_collision(root, roof_size, Vector3(0, size.y + 0.95, size.z * 0.23), roof_right_rotation)
+	var slope_rise := sin(deg_to_rad(32)) * roof_size.z * 0.5
+	var ridge_y := size.y + 0.95 + slope_rise
+	_add_box(root, "RoofRidge", Vector3(size.x + 0.9, 0.16, 0.2), Vector3(0, ridge_y, 0), roof.lightened(0.1))
+	for x_index in 8:
+		var roof_x := -size.x * 0.5 + float(x_index) * size.x / 7.0
+		_add_box(root, "RoofRafterLeft", Vector3(0.065, 0.05, roof_size.z), Vector3(roof_x, size.y + 1.08, -size.z * 0.23), roof.lightened(0.06), roof_left_rotation)
+		_add_box(root, "RoofRafterRight", Vector3(0.065, 0.05, roof_size.z), Vector3(roof_x, size.y + 1.08, size.z * 0.23), roof.lightened(0.06), roof_right_rotation)
+	var eave_y := size.y + 0.95 - slope_rise
+	for side in [-1.0, 1.0]:
+		_add_box(root, "RoofFascia", Vector3(size.x + 0.85, 0.14, 0.16), Vector3(0, eave_y, side * size.z * 0.59), timber)
+	var chimney_position := Vector3(size.x * 0.27, size.y + 1.55, -size.z * 0.16)
+	_add_box(root, "Chimney", Vector3(0.48, 1.35, 0.48), chimney_position, Color("5f5b57"))
+	_add_box_collision(root, Vector3(0.48, 1.35, 0.48), chimney_position)
+	_add_box(root, "ChimneyCap", Vector3(0.62, 0.16, 0.62), chimney_position + Vector3.UP * 0.73, Color("77716b"))
 
 
 func _add_market_stall(position_: Vector3, canopy: Color, timber: Color) -> void:
@@ -241,6 +272,9 @@ func _add_market_stall(position_: Vector3, canopy: Color, timber: Color) -> void
 			_add_box(root, "StallPost", Vector3(0.11, 2.5, 0.11), Vector3(x, 1.25, z), timber.darkened(0.08))
 			_add_box_collision(root, Vector3(0.11, 2.5, 0.11), Vector3(x, 1.25, z))
 	_add_box(root, "Canopy", Vector3(2.5, 0.12, 1.4), Vector3(0, 2.42, 0), canopy, Vector3(0, 0, deg_to_rad(3)))
+	_add_box(root, "LowerShelf", Vector3(2.0, 0.12, 0.75), Vector3(0, 0.5, 0), timber.darkened(0.08))
+	for x in [-0.65, 0.65]:
+		_add_box(root, "ProduceCrate", Vector3(0.58, 0.38, 0.55), Vector3(x, 0.75, 0), Color("826042"))
 	for index in 5:
 		_add_sphere(root, "Produce", 0.12, Vector3(-0.72 + index * 0.36, 1.17, 0.05), Color("b65c3c") if index % 2 == 0 else Color("c9a34f"))
 
@@ -250,6 +284,9 @@ func _add_tree(position_: Vector3, scale_: float, bark: Color, leaves: Color) ->
 	root.scale = Vector3.ONE * scale_
 	_add_cylinder(root, "Trunk", 0.25, 2.6, Vector3(0, 1.3, 0), bark)
 	_add_cylinder_collision(root, 0.25, 2.6, Vector3(0, 1.3, 0))
+	for index in 4:
+		var angle := TAU * float(index) / 4.0 + 0.35
+		_add_cylinder(root, "Branch", 0.075, 1.0, Vector3(cos(angle) * 0.3, 2.15 + index % 2 * 0.28, sin(angle) * 0.3), bark.lightened(0.04), Vector3(sin(angle) * deg_to_rad(55.0), 0, -cos(angle) * deg_to_rad(55.0)))
 	_add_cone(root, "LowerCrown", 1.35, 0.42, 1.8, Vector3(0, 2.8, 0), leaves)
 	_add_cone(root, "UpperCrown", 1.0, 0.18, 1.6, Vector3(0, 3.8, 0), leaves.lightened(0.06))
 
@@ -259,6 +296,10 @@ func _add_lamp(position_: Vector3, light_color: Color) -> void:
 	_add_cylinder(root, "LampPost", 0.075, 2.55, Vector3(0, 1.28, 0), Color("373b3b"), Vector3.ZERO, 0.65)
 	_add_cylinder_collision(root, 0.11, 2.55, Vector3(0, 1.28, 0))
 	_add_box(root, "LampCage", Vector3(0.42, 0.55, 0.42), Vector3(0, 2.55, 0), Color("4a4b47"), Vector3.ZERO, 0.5)
+	for x in [-0.2, 0.2]:
+		for z in [-0.2, 0.2]:
+			_add_cylinder(root, "LampCageBar", 0.018, 0.62, Vector3(x, 2.55, z), Color("292c2c"), Vector3.ZERO, 0.7)
+	_add_cone(root, "LampCap", 0.38, 0.06, 0.3, Vector3(0, 2.98, 0), Color("343838"), Vector3.ZERO, 0.6)
 	_add_sphere(root, "LampGlow", 0.17, Vector3(0, 2.55, 0), light_color, Vector3.ZERO, 0.0, true)
 	var light := OmniLight3D.new()
 	light.position = Vector3(0, 2.55, 0)
@@ -283,6 +324,9 @@ func _add_brazier(position_: Vector3, flame_color: Color) -> void:
 	_add_cylinder(root, "BrazierStem", 0.12, 0.8, Vector3(0, 0.4, 0), Color("343238"), Vector3.ZERO, 0.65)
 	_add_cylinder(root, "BrazierBowl", 0.52, 0.2, Vector3(0, 0.86, 0), Color("504348"), Vector3.ZERO, 0.5)
 	_add_cylinder_collision(root, 0.52, 1.0, Vector3(0, 0.5, 0))
+	for index in 3:
+		var angle := TAU * float(index) / 3.0
+		_add_cylinder(root, "BrazierLeg", 0.045, 0.62, Vector3(cos(angle) * 0.3, 0.35, sin(angle) * 0.3), Color("302e32"), Vector3(cos(angle) * deg_to_rad(18.0), 0, -sin(angle) * deg_to_rad(18.0)), 0.55)
 	_add_cone(root, "FlameOuter", 0.26, 0.0, 0.7, Vector3(0, 1.26, 0), flame_color, Vector3.ZERO, 0.0, true)
 	_add_cone(root, "FlameInner", 0.13, 0.0, 0.42, Vector3(0, 1.2, 0.03), Color("ffd67a"), Vector3.ZERO, 0.0, true)
 	var light := OmniLight3D.new()
@@ -297,6 +341,8 @@ func _add_rock(position_: Vector3, size_: float, color: Color = Color("686b61"))
 	var rotation_ := Vector3(0, position_.x * 0.07, position_.z * 0.05)
 	var root := _new_static_body(_generated, "Rock", position_ + Vector3.UP * size_ * 0.55, rotation_)
 	_add_sphere(root, "RockVisual", size_, Vector3.ZERO, color, Vector3.ZERO, 0.0, false, Vector3(1.25, 0.7, 1.0))
+	_add_sphere(root, "RockFacetA", size_ * 0.48, Vector3(size_ * 0.55, size_ * 0.08, -size_ * 0.2), color.lightened(0.05), Vector3.ZERO, 0.0, false, Vector3(1.0, 0.65, 0.8))
+	_add_sphere(root, "RockFacetB", size_ * 0.36, Vector3(-size_ * 0.52, -size_ * 0.12, size_ * 0.25), color.darkened(0.05), Vector3.ZERO, 0.0, false, Vector3(1.1, 0.72, 0.9))
 	_add_box_collision(root, Vector3(size_ * 2.25, size_ * 1.25, size_ * 1.8), Vector3.ZERO)
 
 

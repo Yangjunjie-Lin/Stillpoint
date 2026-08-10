@@ -58,3 +58,33 @@ enum UseKind {
 @export var spawn_weight: float = 1.0
 @export var minimum_level: int = 1
 @export var score_bonus: int = 10
+
+
+func resolved_visual_archetype() -> StringName:
+	if visual_archetype != &"":
+		return visual_archetype
+	match effect_kind:
+		&"shield":
+			return &"shield_emblem"
+		&"speed":
+			return &"speed_boot"
+		&"double":
+			return &"double_arrow"
+		&"large":
+			return &"large_orb"
+		&"pierce":
+			return &"piercing_arrow"
+		&"points":
+			return &"score_token"
+	match item_type:
+		ItemType.WEAPON:
+			return &"one_hand_sword"
+		ItemType.TOOL:
+			return &"field_pick"
+		ItemType.MATERIAL:
+			return &"herb_bundle"
+		ItemType.FOOD, ItemType.CONSUMABLE:
+			return &"travel_ration"
+		ItemType.GIFT, ItemType.QUEST:
+			return &"gift_box"
+	return &"generic_trinket"

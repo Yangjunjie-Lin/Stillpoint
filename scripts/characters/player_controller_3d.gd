@@ -315,7 +315,7 @@ func _sync_loadout_visuals() -> void:
 		var stack := inventory.get_slot(selected_slot)
 		if stack != null and not stack.is_empty():
 			var selected := ResourceRegistry.get_item(stack.item_id)
-			if selected != null and selected.use_kind == ItemDefinition.UseKind.TOOL_ACTION:
+			if selected != null and selected.resolved_visual_archetype() != &"":
 				held_item = selected
 	_appearance_controller.apply_loadout(weapon, armor, charm, held_item)
 

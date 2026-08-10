@@ -68,6 +68,7 @@ func rebuild() -> void:
 			_build_ren()
 		_:
 			_build_bandit()
+	_attach_static_equipment(_resolve_style(ids[0]))
 	_motion_rig.bind(_model_root)
 	_motion_rig.set_state(_motion_state)
 
@@ -80,6 +81,38 @@ func get_visual_signature() -> Dictionary:
 		"style": _resolve_style(ids[0]),
 		"variant": _variant,
 	}
+
+
+func _attach_static_equipment(resolved_style: Style) -> void:
+	var right_hand := _body_root.find_child("RightHand", true, false) as Node3D
+	if right_hand == null:
+		return
+	var hand_relative := _transform_relative_to(right_hand, _model_root)
+	var names: Array[String] = []
+	match resolved_style:
+		Style.REN_GUARD:
+			names = ["SpearShaft", "SpearHead", "GuardBanner"]
+		Style.BANDIT_SCOUT:
+			names = ["DaggerBlade", "DaggerHilt"]
+	for part_name in names:
+		var part := _model_root.find_child(part_name, true, false) as Node3D
+		if part == null:
+			continue
+		var part_relative := _transform_relative_to(part, _model_root)
+		part.reparent(right_hand, false)
+		part.transform = hand_relative.affine_inverse() * part_relative
+
+
+func _transform_relative_to(node: Node3D, ancestor: Node3D) -> Transform3D:
+	var result := node.transform
+	var parent := node.get_parent()
+	while parent != null and parent != ancestor:
+		var parent_3d := parent as Node3D
+		if parent_3d == null:
+			break
+		result = parent_3d.transform * result
+		parent = parent.get_parent()
+	return result
 
 
 func _resolve_ids() -> Array[StringName]:

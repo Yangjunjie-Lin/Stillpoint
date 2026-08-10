@@ -1,5 +1,5 @@
 {
-  "catalog_version": 2,
+  "catalog_version": 3,
   "game_version": "0.8.0",
   "npc_count": 3,
   "npcs": [
@@ -597,6 +597,310 @@
       "witness_radius": 12.0
     }
   ],
+  "relation_action_catalog": {
+    "actions": {
+      "acknowledge": {
+        "duration": 1.4,
+        "motion_state": "talk",
+        "trigger_terms": []
+      },
+      "avoid": {
+        "duration": 1.5,
+        "motion_state": "avoid",
+        "trigger_terms": [
+          "fear",
+          "dislike",
+          "害怕",
+          "讨厌",
+          "远离"
+        ]
+      },
+      "converse": {
+        "duration": 1.8,
+        "motion_state": "talk",
+        "trigger_terms": []
+      },
+      "demonstrate": {
+        "duration": 2.0,
+        "motion_state": "work",
+        "trigger_terms": [
+          "skill",
+          "show",
+          "能力",
+          "技能",
+          "展示"
+        ]
+      },
+      "explain": {
+        "duration": 2.0,
+        "motion_state": "explain",
+        "trigger_terms": [
+          "know",
+          "explain",
+          "what",
+          "why",
+          "知道",
+          "解释",
+          "什么",
+          "为什么"
+        ]
+      },
+      "inspect": {
+        "duration": 1.8,
+        "motion_state": "inspect",
+        "trigger_terms": [
+          "look",
+          "inspect",
+          "看看",
+          "检查",
+          "观察"
+        ]
+      },
+      "point_route": {
+        "duration": 2.0,
+        "motion_state": "point",
+        "trigger_terms": [
+          "where",
+          "route",
+          "location",
+          "house",
+          "在哪里",
+          "哪里",
+          "怎么走",
+          "路线",
+          "房子",
+          "地点"
+        ]
+      },
+      "present_item": {
+        "duration": 2.0,
+        "motion_state": "present",
+        "trigger_terms": [
+          "item",
+          "own",
+          "give",
+          "gift",
+          "物品",
+          "拥有",
+          "给",
+          "礼物"
+        ]
+      },
+      "react_guard": {
+        "duration": 1.8,
+        "motion_state": "guard",
+        "trigger_terms": [
+          "attack",
+          "hurt",
+          "fight",
+          "攻击",
+          "伤害",
+          "打架"
+        ]
+      },
+      "reassure": {
+        "duration": 1.8,
+        "motion_state": "reassure",
+        "trigger_terms": [
+          "trust",
+          "safe",
+          "相信",
+          "安全",
+          "放心"
+        ]
+      },
+      "recall": {
+        "duration": 1.9,
+        "motion_state": "recall",
+        "trigger_terms": [
+          "remember",
+          "recall",
+          "memory",
+          "记得",
+          "记忆",
+          "想起"
+        ]
+      },
+      "salute": {
+        "duration": 1.6,
+        "motion_state": "salute",
+        "trigger_terms": [
+          "faction",
+          "guard",
+          "阵营",
+          "守卫",
+          "组织"
+        ]
+      },
+      "thank": {
+        "duration": 1.7,
+        "motion_state": "thank",
+        "trigger_terms": [
+          "thank",
+          "help",
+          "谢谢",
+          "感谢",
+          "帮助"
+        ]
+      },
+      "threaten": {
+        "duration": 1.8,
+        "motion_state": "threaten",
+        "trigger_terms": [
+          "threat",
+          "enemy",
+          "威胁",
+          "敌人",
+          "战斗"
+        ]
+      },
+      "work": {
+        "duration": 2.2,
+        "motion_state": "work",
+        "trigger_terms": [
+          "work",
+          "job",
+          "shop",
+          "trade",
+          "工作",
+          "职业",
+          "商店",
+          "生意"
+        ]
+      }
+    },
+    "categories": {
+      "affiliation": {
+        "actions": [
+          "salute"
+        ],
+        "color": "#3f77b5",
+        "label": "Affiliation"
+      },
+      "belief": {
+        "actions": [
+          "explain",
+          "recall"
+        ],
+        "color": "#9b59b6",
+        "label": "Belief"
+      },
+      "capability": {
+        "actions": [
+          "demonstrate"
+        ],
+        "color": "#3498db",
+        "label": "Capability"
+      },
+      "conflict": {
+        "actions": [
+          "react_guard",
+          "threaten"
+        ],
+        "color": "#c0392b",
+        "label": "Conflict"
+      },
+      "exchange": {
+        "actions": [
+          "present_item",
+          "thank"
+        ],
+        "color": "#f1c40f",
+        "label": "Exchange"
+      },
+      "identity": {
+        "actions": [
+          "acknowledge"
+        ],
+        "color": "#7f8c8d",
+        "label": "Identity"
+      },
+      "knowledge": {
+        "actions": [
+          "explain",
+          "recall"
+        ],
+        "color": "#16a085",
+        "label": "Knowledge"
+      },
+      "memory_event": {
+        "actions": [
+          "recall",
+          "react_guard"
+        ],
+        "color": "#8e6e53",
+        "label": "Memory/Event"
+      },
+      "possession": {
+        "actions": [
+          "present_item"
+        ],
+        "color": "#f39c12",
+        "label": "Possession"
+      },
+      "preference": {
+        "actions": [
+          "reassure",
+          "avoid"
+        ],
+        "color": "#e05666",
+        "label": "Preference"
+      },
+      "social": {
+        "actions": [
+          "converse",
+          "reassure",
+          "thank"
+        ],
+        "color": "#e67e9a",
+        "label": "Social"
+      },
+      "spatial": {
+        "actions": [
+          "point_route",
+          "inspect"
+        ],
+        "color": "#2ecc71",
+        "label": "Spatial"
+      },
+      "vocation": {
+        "actions": [
+          "work",
+          "explain"
+        ],
+        "color": "#d6a84b",
+        "label": "Vocation"
+      }
+    },
+    "predicate_categories": {
+      "ATTACKED": "conflict",
+      "BELIEVES": "belief",
+      "CONNECTED_TO": "spatial",
+      "CONTAINS": "spatial",
+      "DISLIKES": "preference",
+      "DOUBTS": "belief",
+      "EXPERIENCED": "memory_event",
+      "FEARS": "preference",
+      "GAVE": "exchange",
+      "HAS_SKILL": "capability",
+      "HELPED": "social",
+      "IS_INSTANCE_OF": "identity",
+      "KNOWS": "social",
+      "KNOWS_ABOUT": "knowledge",
+      "LIKES": "preference",
+      "LIVES_IN": "spatial",
+      "LOCATED_IN": "spatial",
+      "MEMBER_OF": "affiliation",
+      "OWNS": "possession",
+      "PROMISED": "exchange",
+      "RECEIVED": "exchange",
+      "RELATED_TO": "knowledge",
+      "TRUSTS": "social",
+      "WITNESSED": "memory_event",
+      "WORKS_AT": "vocation"
+    },
+    "schema_version": 1
+  },
   "world_ontology": {
     "edges": [
       {

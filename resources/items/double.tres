@@ -14,3 +14,6 @@ scene = ExtResource("2")
 spawn_weight = 1.0
 minimum_level = 1
 score_bonus = 10
+visual_archetype = &"double_arrow"
+visual_primary_color = Color(0.45, 0.25, 0.12, 1)
+visual_secondary_color = Color(1, 0.67, 0.25, 1)

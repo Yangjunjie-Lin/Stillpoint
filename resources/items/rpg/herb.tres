@@ -11,3 +11,6 @@ item_type = 3
 max_stack = 20
 description = "A fragrant herb from the wilderness."
 icon = ExtResource("2")
+visual_archetype = &"herb_bundle"
+visual_primary_color = Color(0.24, 0.55, 0.25, 1)
+visual_secondary_color = Color(0.52, 0.74, 0.3, 1)

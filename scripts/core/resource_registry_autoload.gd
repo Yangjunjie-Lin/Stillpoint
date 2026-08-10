@@ -205,6 +205,15 @@ func get_item(id: StringName) -> ItemDefinition:
 	return _items.get(id) as ItemDefinition
 
 
+func get_all_items() -> Array[ItemDefinition]:
+	var result: Array[ItemDefinition] = []
+	for id in _sorted_keys(_items):
+		var definition := _items[id] as ItemDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
 func get_dialogue(id: StringName) -> DialogueDefinition:
 	return _dialogues.get(id) as DialogueDefinition
 

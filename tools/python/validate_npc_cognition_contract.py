@@ -78,11 +78,18 @@ def main() -> int:
     ConversationResponse.model_validate(payload)
     catalog = Path("services/npc_mind/catalog/generated_npc_catalog.json")
     data = json.loads(catalog.read_text(encoding="utf-8"))
-    if data.get("catalog_version") != 2 or int(data.get("npc_count", 0)) < 1:
+    if data.get("catalog_version") != 3 or int(data.get("npc_count", 0)) < 1:
         raise AssertionError("invalid generated NPC catalog")
     ontology = data.get("world_ontology", {})
     if not ontology.get("nodes") or not ontology.get("edges"):
         raise AssertionError("generated world ontology is missing")
+    action_catalog = data.get("relation_action_catalog", {})
+    if (
+        action_catalog.get("schema_version") != 1
+        or not action_catalog.get("predicate_categories")
+        or not action_catalog.get("actions")
+    ):
+        raise AssertionError("generated relation action catalog is missing")
     print("NPC cognition contract: request, response, and catalog valid")
     return 0
 

@@ -10,6 +10,7 @@ from typing import Any
 from .catalog import NpcCatalogRepository
 from .config import Settings
 from .graph import CANONICAL_WORLD_EDGE_TYPES, EDGE_TYPES, GraphEdge, GraphNode
+from .graph_actions import annotate_graph_edge, build_graph_visualization, select_context_motion
 from .memory import MemoryRecord, lexical_similarity
 from .output_validation import validate_structured_output
 from .providers import (
@@ -249,7 +250,12 @@ class NpcCognitionService:
             session_id=session.session_id,
             reply_text=generated.reply_text,
             emotion=generated.emotion,
-            animation_id=generated.animation_id,
+            animation_id=select_context_motion(
+                request.text,
+                trusted_request.retrieved_graph,
+                self.catalog.relation_action_catalog,
+                generated.animation_id,
+            ),
             memory_citations=[memory.memory_id for memory in memories],
             memory_write_ids=memory_ids,
             memory_writes=memory_writes,
@@ -350,26 +356,35 @@ class NpcCognitionService:
                 payload["subject_node"] = nodes[edge.subject_node_id]
             if edge.object_node_id in nodes:
                 payload["object_node"] = nodes[edge.object_node_id]
-            result.append(payload)
+            result.append(annotate_graph_edge(payload, self.catalog.relation_action_catalog))
         return result
 
     def graph_payload(self, player: str, save: str, npc: str) -> dict[str, Any]:
         edges = self.repository.graph_edges_for(player, save, npc)
         nodes = self.repository.graph_nodes_for_edges(edges)
+        node_payloads = [
+            {
+                "node_id": node.node_id,
+                "node_type": node.node_type,
+                "label": node.label,
+                "metadata": node.metadata,
+                "visibility": node.visibility,
+                "source": node.source,
+                "catalog_revision": node.catalog_revision,
+            }
+            for node in nodes
+        ]
+        edge_payloads = [
+            annotate_graph_edge(edge.to_dict(), self.catalog.relation_action_catalog)
+            for edge in edges
+        ]
         return {
-            "nodes": [
-                {
-                    "node_id": node.node_id,
-                    "node_type": node.node_type,
-                    "label": node.label,
-                    "metadata": node.metadata,
-                    "visibility": node.visibility,
-                    "source": node.source,
-                    "catalog_revision": node.catalog_revision,
-                }
-                for node in nodes
-            ],
-            "edges": [edge.to_dict() for edge in edges],
+            "nodes": node_payloads,
+            "edges": edge_payloads,
+            "relation_action_catalog": self.catalog.relation_action_catalog,
+            "visualization": build_graph_visualization(
+                node_payloads, edge_payloads, self.catalog.relation_action_catalog
+            ),
         }
 
     async def sync(self, request: SyncRequest) -> SyncResponse:

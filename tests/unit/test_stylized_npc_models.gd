@@ -18,7 +18,11 @@ func run() -> bool:
 		ok = ok and root != null and _mesh_count(root) >= 20
 		var signature := model.get_visual_signature()
 		signatures.append("%s:%s" % [signature.get("style"), signature.get("variant")])
-		for motion in [&"idle", &"walk", &"run", &"talk", &"attack", &"guard", &"hit", &"downed"]:
+		for motion in [
+			&"idle", &"walk", &"run", &"talk", &"attack", &"guard", &"hit",
+			&"downed", &"point", &"explain", &"work", &"present", &"salute",
+			&"recall", &"reassure", &"thank", &"inspect", &"avoid", &"threaten",
+		]:
 			model.set_motion_state(motion)
 			model._process(0.15)
 			ok = ok and model.get_motion_state() == motion

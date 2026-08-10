@@ -25,6 +25,8 @@ var _nav: NavigationAgent3D
 var _schedule: ScheduleComponent
 var _schedule_paused: bool = false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
+var _knowledge_action_motion: StringName = &""
+var _knowledge_action_remaining: float = 0.0
 
 
 func _ready() -> void:
@@ -64,6 +66,10 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector3.ZERO
 		_update_presentation()
 		return
+	if _knowledge_action_remaining > 0.0:
+		_knowledge_action_remaining = maxf(0.0, _knowledge_action_remaining - delta)
+		if _knowledge_action_remaining <= 0.0:
+			_knowledge_action_motion = &""
 	if is_downed:
 		npc_state = NPCState.DOWNED
 		velocity = Vector3.ZERO
@@ -100,6 +106,17 @@ func set_npc_state(new_state: NPCState) -> void:
 	_schedule_paused = new_state in [
 		NPCState.ATTACK, NPCState.CHASE, NPCState.FLEE, NPCState.TALK, NPCState.DOWNED
 	]
+	_update_presentation()
+
+
+func play_knowledge_action(action_or_motion: StringName, duration: float = -1.0) -> void:
+	if is_downed or is_permanently_dead:
+		return
+	_knowledge_action_motion = KnowledgeActionLibrary.resolve_motion(action_or_motion)
+	_knowledge_action_remaining = (
+		KnowledgeActionLibrary.action_duration(action_or_motion)
+		if duration <= 0.0 else duration
+	)
 	_update_presentation()
 
 
@@ -199,6 +216,8 @@ func _update_presentation() -> void:
 		return
 	if is_downed or npc_state == NPCState.DOWNED:
 		anim.set_context_motion(&"downed")
+	elif _knowledge_action_motion != &"" and _knowledge_action_remaining > 0.0:
+		anim.set_context_motion(_knowledge_action_motion)
 	elif npc_state == NPCState.TALK:
 		anim.set_context_motion(&"talk")
 	else:
