@@ -6,9 +6,8 @@
 script = ExtResource("1")
 id = &"spirit_blade"
 display_name = "灵剑士"
-description = "以节奏、身法和精准打击掌控战斗，适合偏好主动进攻与机动走位的玩家。任何出身均可选择。"
+description = "以充沛内息维持招式节奏，特重能量上限。任何出身均可选择。"
 accent_color = Color(0.25, 0.78, 0.7, 1)
 recommended_origin_ids = Array[StringName]([&"wuxia_swordsman"])
-max_energy_bonus = 5.0
-attack_bonus = 4.0
-move_speed_bonus = 0.15
+signature_stat = &"max_energy_bonus"
+starter_items = {"field_pick": 1, "padded_vest": 1, "trail_snack": 3, "training_sword": 1, "wanderer_charm": 1}

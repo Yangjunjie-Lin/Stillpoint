@@ -5,10 +5,15 @@ extends Node3D
 @export var fallback_scene: PackedScene
 
 var current_origin_id: StringName = &""
+var current_options: Dictionary = CharacterAppearanceOptions.default_options()
 var current_model: Node3D
 
 
 func apply_origin(origin_id: StringName) -> bool:
+	return apply_build(origin_id, CharacterAppearanceOptions.default_options())
+
+
+func apply_build(origin_id: StringName, options: Dictionary) -> bool:
 	var definition: Resource = null
 	if ResourceRegistry.has_method("get_origin"):
 		definition = ResourceRegistry.call("get_origin", origin_id) as Resource
@@ -26,9 +31,12 @@ func apply_origin(origin_id: StringName) -> bool:
 		return false
 	current_model.name = "ActiveOriginModel"
 	if current_model is StylizedHeroModel:
-		(current_model as StylizedHeroModel).preview_idle_motion = false
+		var hero := current_model as StylizedHeroModel
+		hero.preview_idle_motion = false
+		hero.apply_customization(options)
 	add_child(current_model)
 	current_origin_id = origin_id
+	current_options = CharacterAppearanceOptions.normalize(options)
 	return true
 
 
@@ -37,3 +45,4 @@ func clear_model() -> void:
 		current_model.free()
 	current_model = null
 	current_origin_id = &""
+	current_options = CharacterAppearanceOptions.default_options()

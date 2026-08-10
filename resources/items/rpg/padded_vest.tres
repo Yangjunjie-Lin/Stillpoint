@@ -13,3 +13,4 @@ description = "Layered travel cloth that softens incoming blows."
 icon = ExtResource("2")
 equip_slot = 2
 defense_bonus = 3.0
+starter_balance_value = 6

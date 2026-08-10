@@ -13,7 +13,3 @@ model_scene = ExtResource("2")
 accent_color = Color(0.91, 0.47, 0.39, 1)
 recommended_profession_id = &"vow_keeper"
 recommended_faction_id = &"verdant_circle"
-max_health_bonus = 5.0
-max_energy_bonus = 15.0
-defense_bonus = 1.5
-energy_regen_bonus = 0.5

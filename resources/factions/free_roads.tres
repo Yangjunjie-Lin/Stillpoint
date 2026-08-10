@@ -10,5 +10,4 @@ description = "由信使、旅人和独立冒险者维系的松散网络，保�
 selectable = true
 accent_color = Color(0.31, 0.75, 0.72, 1)
 default_player_reputation = 5.0
-max_energy_bonus = 5.0
-move_speed_bonus = 0.1
+signature_stat = &"move_speed_bonus"

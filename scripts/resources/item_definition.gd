@@ -44,6 +44,7 @@ enum UseKind {
 @export var attack_bonus: float = 0.0
 @export var defense_bonus: float = 0.0
 @export var energy_regen_bonus: float = 0.0
+@export_range(0, 100, 1) var starter_balance_value: int = 0
 @export_group("Legacy Survival Prototype")
 @export var effect_kind: StringName = &"shield"
 @export var duration: float = 8.0

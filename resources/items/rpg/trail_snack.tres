@@ -14,3 +14,4 @@ icon = ExtResource("2")
 use_kind = 1
 health_restore = 8.0
 energy_restore = 30.0
+starter_balance_value = 1

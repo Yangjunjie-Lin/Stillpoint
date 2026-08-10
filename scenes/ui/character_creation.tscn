@@ -139,10 +139,10 @@ theme_override_styles/panel = SubResource("StylePanel")
 
 [node name="PreviewLayout" type="VBoxContainer" parent="Margin/Layout/Columns/PreviewPanel"]
 layout_mode = 2
-theme_override_constants/separation = 9
+theme_override_constants/separation = 6
 
 [node name="PreviewViewportContainer" type="SubViewportContainer" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout"]
-custom_minimum_size = Vector2(360, 350)
+custom_minimum_size = Vector2(360, 260)
 layout_mode = 2
 size_flags_vertical = 3
 stretch = true
@@ -201,6 +201,73 @@ theme_override_font_sizes/font_size = 13
 text = "造型说明"
 autowrap_mode = 2
 
+[node name="CustomizationHeader" type="Label" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.9, 0.83, 1)
+theme_override_font_sizes/font_size = 15
+text = "模块化外观"
+
+[node name="CustomizationGrid" type="GridContainer" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout"]
+layout_mode = 2
+columns = 4
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 5
+
+[node name="BodyLabel" type="Label" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+layout_mode = 2
+text = "体型"
+
+[node name="BodyOption" type="OptionButton" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(105, 30)
+layout_mode = 2
+
+[node name="SkinLabel" type="Label" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+layout_mode = 2
+text = "肤色"
+
+[node name="SkinOption" type="OptionButton" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(105, 30)
+layout_mode = 2
+
+[node name="HairLabel" type="Label" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+layout_mode = 2
+text = "发型"
+
+[node name="HairOption" type="OptionButton" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(105, 30)
+layout_mode = 2
+tooltip_text = "发型与头饰独立；若出身头饰遮挡发型，可将头饰设为“无”。"
+
+[node name="HeadwearLabel" type="Label" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+layout_mode = 2
+text = "头饰"
+
+[node name="HeadwearOption" type="OptionButton" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(105, 30)
+layout_mode = 2
+
+[node name="PaletteLabel" type="Label" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+layout_mode = 2
+text = "配色"
+
+[node name="PaletteOption" type="OptionButton" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(105, 30)
+layout_mode = 2
+
+[node name="AccessoryLabel" type="Label" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+layout_mode = 2
+text = "背饰"
+
+[node name="AccessoryOption" type="OptionButton" parent="Margin/Layout/Columns/PreviewPanel/PreviewLayout/CustomizationGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(105, 30)
+layout_mode = 2
+
 [node name="ChoicePanel" type="PanelContainer" parent="Margin/Layout/Columns"]
 custom_minimum_size = Vector2(410, 0)
 layout_mode = 2
@@ -209,7 +276,7 @@ theme_override_styles/panel = SubResource("StylePanel")
 
 [node name="ChoiceLayout" type="VBoxContainer" parent="Margin/Layout/Columns/ChoicePanel"]
 layout_mode = 2
-theme_override_constants/separation = 7
+theme_override_constants/separation = 5
 
 [node name="OriginHeader" type="Label" parent="Margin/Layout/Columns/ChoicePanel/ChoiceLayout"]
 layout_mode = 2
@@ -265,18 +332,18 @@ theme_override_styles/panel = SubResource("StylePanel")
 
 [node name="SummaryLayout" type="VBoxContainer" parent="Margin/Layout/Columns/SummaryPanel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 4
 
 [node name="BuildHeader" type="Label" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.9, 0.83, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "角色方案"
 
 [node name="SelectionLabel" type="Label" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "出身\n阵营\n职业"
 
 [node name="SeparatorA" type="HSeparator" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
@@ -285,35 +352,61 @@ layout_mode = 2
 [node name="StatsHeader" type="Label" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.84, 0.75, 0.43, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 15
 text = "最终属性"
 
 [node name="StatsLabel" type="Label" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 13
 text = "属性"
 
-[node name="Spacer" type="Control" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
+[node name="SeedLabel" type="Label" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.66, 0.76, 0.78, 1)
+theme_override_font_sizes/font_size = 12
+text = "属性种子"
+autowrap_mode = 2
+
+[node name="RerollButton" type="Button" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "重新分配随机属性（总预算不变）"
+
+[node name="SignatureLabel" type="Label" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.74, 0.43, 1)
+theme_override_font_sizes/font_size = 13
+text = "阵营与职业特重"
+
+[node name="StarterKitLabel" type="Label" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.76, 0.72, 1)
+theme_override_font_sizes/font_size = 12
+text = "平衡初始资源"
+autowrap_mode = 2
 
 [node name="RecommendationLabel" type="Label" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.64, 0.77, 0.77, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 12
 text = "推荐组合"
 autowrap_mode = 2
 
 [node name="RecommendationButton" type="Button" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 text = "采用推荐组合"
 
 [node name="ErrorLabel" type="Label" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.45, 0.42, 1)
 text = ""
@@ -321,7 +414,7 @@ autowrap_mode = 2
 
 [node name="ConfirmButton" type="Button" parent="Margin/Layout/Columns/SummaryPanel/SummaryLayout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleButton")

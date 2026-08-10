@@ -1,10 +1,11 @@
 extends Node
 ## Cross-scene run metadata. Combat actors are not owned here.
 
-const CHARACTER_BUILD_SECTION_VERSION: int = 1
+const CHARACTER_BUILD_SECTION_VERSION: int = CharacterBuildCalculator.BUILD_SECTION_VERSION
 const DEFAULT_ORIGIN_ID: StringName = &"wuxia_swordsman"
 const DEFAULT_FACTION_ID: StringName = &"free_roads"
 const DEFAULT_PROFESSION_ID: StringName = &"spirit_blade"
+const DEFAULT_ATTRIBUTE_SEED: int = 804_020
 
 var player_name: String = "Player"
 var diagnostics_enabled: bool = false
@@ -35,15 +36,24 @@ func confirm_character_build(
 	origin_id: StringName,
 	faction_id: StringName,
 	profession_id: StringName,
+	appearance: Dictionary = {},
+	attribute_seed: int = DEFAULT_ATTRIBUTE_SEED,
 ) -> bool:
 	if not is_valid_character_build(origin_id, faction_id, profession_id):
 		push_warning("GameManager: rejected invalid character build")
 		return false
+	var normalized_seed := CharacterBuildCalculator.normalize_seed(
+		attribute_seed,
+		DEFAULT_ATTRIBUTE_SEED,
+	)
 	pending_character_build = {
 		"section_version": CHARACTER_BUILD_SECTION_VERSION,
 		"origin_id": String(origin_id),
 		"faction_id": String(faction_id),
 		"profession_id": String(profession_id),
+		"appearance": CharacterAppearanceOptions.normalize(appearance),
+		"attribute_seed": normalized_seed,
+		"attribute_generation_version": CharacterBuildCalculator.ATTRIBUTE_GENERATION_VERSION,
 	}
 	resume_requested = false
 	run_active = true
@@ -73,6 +83,9 @@ func get_default_character_build() -> Dictionary:
 		"origin_id": String(DEFAULT_ORIGIN_ID),
 		"faction_id": String(DEFAULT_FACTION_ID),
 		"profession_id": String(DEFAULT_PROFESSION_ID),
+		"appearance": CharacterAppearanceOptions.default_options(),
+		"attribute_seed": DEFAULT_ATTRIBUTE_SEED,
+		"attribute_generation_version": CharacterBuildCalculator.ATTRIBUTE_GENERATION_VERSION,
 	}
 
 

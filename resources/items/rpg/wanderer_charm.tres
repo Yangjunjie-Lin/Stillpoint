@@ -13,3 +13,4 @@ description = "A warm stone charm that steadies a tired traveler."
 icon = ExtResource("2")
 equip_slot = 3
 energy_regen_bonus = 2.0
+starter_balance_value = 6

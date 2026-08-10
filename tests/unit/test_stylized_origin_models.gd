@@ -24,8 +24,15 @@ func run() -> bool:
 			continue
 		model._ready()
 		ok = ok and model.get_node_or_null("Model") != null
-		ok = ok and model.get_node("Model").get_child_count() >= 15
+		ok = ok and _mesh_count(model.get_node("Model")) >= 15
 		model.free()
 	if not ok:
 		push_error("one or more stylized origin models failed to build")
 	return ok
+
+
+func _mesh_count(node: Node) -> int:
+	var count := 1 if node is MeshInstance3D else 0
+	for child in node.get_children():
+		count += _mesh_count(child)
+	return count

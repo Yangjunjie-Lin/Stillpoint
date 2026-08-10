@@ -6,10 +6,8 @@
 script = ExtResource("1")
 id = &"pathfinder"
 display_name = "寻路者"
-description = "擅长探索、持续移动和资源调度，在能量与移动能力之间取得平衡。任何出身均可选择。"
+description = "擅长探索和恶劣环境中的持续行动，特重生命上限。任何出身均可选择。"
 accent_color = Color(0.89, 0.68, 0.32, 1)
 recommended_origin_ids = Array[StringName]([&"dune_ranger"])
-max_energy_bonus = 8.0
-attack_bonus = 2.0
-move_speed_bonus = 0.25
-energy_regen_bonus = 0.25
+signature_stat = &"max_health_bonus"
+starter_items = {"field_pick": 1, "padded_vest": 1, "trail_snack": 3, "training_sword": 1, "wanderer_charm": 1}

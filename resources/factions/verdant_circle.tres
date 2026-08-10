@@ -10,5 +10,4 @@ description = "研究土地、记忆与生命循环的协作团体，主张修�
 selectable = true
 accent_color = Color(0.37, 0.72, 0.42, 1)
 default_player_reputation = 5.0
-max_energy_bonus = 5.0
-energy_regen_bonus = 0.25
+signature_stat = &"energy_regen_bonus"

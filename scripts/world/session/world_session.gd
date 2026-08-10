@@ -353,11 +353,11 @@ func _spawn_companions() -> void:
 func _grant_starter_inventory() -> void:
 	if player == null or player.inventory == null:
 		return
-	player.inventory.add_item(&"training_sword", 1)
-	player.inventory.add_item(&"field_pick", 1)
-	player.inventory.add_item(&"trail_snack", 3)
-	player.inventory.add_item(&"padded_vest", 1)
-	player.inventory.add_item(&"wanderer_charm", 1)
+	var profession := ResourceRegistry.get_profession(player.profession_id)
+	if not StarterKitCalculator.grant(player.inventory, profession):
+		push_warning("WorldSession: invalid profession starter kit; using safe default")
+		if not StarterKitCalculator.grant_safe_default(player.inventory):
+			push_error("WorldSession: could not grant safe starter inventory")
 
 
 func _serialize_pet() -> Dictionary:

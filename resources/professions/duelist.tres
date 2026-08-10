@@ -6,9 +6,8 @@
 script = ExtResource("1")
 id = &"duelist"
 display_name = "决斗家"
-description = "等待破绽后以单次强攻扭转局势，兼顾攻击强度与短距离调整。任何出身均可选择。"
+description = "等待破绽后以单次强攻扭转局势，特重攻击。任何出身均可选择。"
 accent_color = Color(0.74, 0.28, 0.3, 1)
 recommended_origin_ids = Array[StringName]([&"ronin"])
-max_health_bonus = 3.0
-attack_bonus = 5.0
-move_speed_bonus = 0.1
+signature_stat = &"attack_bonus"
+starter_items = {"field_pick": 1, "padded_vest": 1, "trail_snack": 3, "training_sword": 1, "wanderer_charm": 1}

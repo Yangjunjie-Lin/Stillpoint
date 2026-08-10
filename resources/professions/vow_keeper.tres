@@ -6,9 +6,8 @@
 script = ExtResource("1")
 id = &"vow_keeper"
 display_name = "守心者"
-description = "通过稳定呼吸与专注维持长久行动，在防守和能量恢复方面表现突出。任何出身均可选择。"
+description = "通过稳定呼吸与专注维持长久行动，特重能量恢复。任何出身均可选择。"
 accent_color = Color(0.93, 0.54, 0.46, 1)
 recommended_origin_ids = Array[StringName]([&"lotus_ascetic"])
-max_energy_bonus = 12.0
-defense_bonus = 2.0
-energy_regen_bonus = 0.6
+signature_stat = &"energy_regen_bonus"
+starter_items = {"field_pick": 1, "padded_vest": 1, "trail_snack": 3, "training_sword": 1, "wanderer_charm": 1}

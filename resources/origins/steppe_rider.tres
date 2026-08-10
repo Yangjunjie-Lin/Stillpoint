@@ -13,7 +13,3 @@ model_scene = ExtResource("2")
 accent_color = Color(0.36, 0.68, 0.78, 1)
 recommended_profession_id = &"wind_scout"
 recommended_faction_id = &"free_roads"
-max_health_bonus = 8.0
-max_energy_bonus = 5.0
-attack_bonus = 2.5
-move_speed_bonus = 0.35

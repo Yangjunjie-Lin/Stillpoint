@@ -13,3 +13,4 @@ description = "A sturdy field tool. Swing it from the hotbar to work or defend y
 icon = ExtResource("2")
 use_kind = 2
 tool_attack_id = &"attack_light_1"
+starter_balance_value = 4

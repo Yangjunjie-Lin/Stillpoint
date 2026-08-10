@@ -1,7 +1,7 @@
 class_name PlayerController3D
 extends CharacterController
 
-const CHARACTER_BUILD_SECTION_VERSION: int = 1
+const CHARACTER_BUILD_SECTION_VERSION: int = CharacterBuildCalculator.BUILD_SECTION_VERSION
 
 @export var camera_rig_path: NodePath
 @export var stand_height: float = 1.8
@@ -16,6 +16,10 @@ var current_region_id: StringName = &"town"
 var origin_id: StringName = GameManager.DEFAULT_ORIGIN_ID
 var selected_faction_id: StringName = GameManager.DEFAULT_FACTION_ID
 var profession_id: StringName = GameManager.DEFAULT_PROFESSION_ID
+var appearance_options: Dictionary = CharacterAppearanceOptions.default_options()
+var attribute_seed: int = GameManager.DEFAULT_ATTRIBUTE_SEED
+var attribute_generation_version: int = CharacterBuildCalculator.ATTRIBUTE_GENERATION_VERSION
+var attribute_points: Dictionary = CharacterBuildCalculator.roll_attribute_points(attribute_seed)
 
 var _camera: Camera3D
 var _collision_shape: CollisionShape3D
@@ -316,16 +320,42 @@ func apply_character_build(build_data: Dictionary, restore_to_full: bool = false
 	origin_id = requested_origin
 	selected_faction_id = requested_faction
 	profession_id = requested_profession
+	var raw_generation: Variant = build_data.get(
+		"attribute_generation_version",
+		CharacterBuildCalculator.ATTRIBUTE_GENERATION_VERSION,
+	)
+	attribute_generation_version = -1
+	if (
+		typeof(raw_generation) in [TYPE_INT, TYPE_FLOAT]
+		and is_finite(float(raw_generation))
+		and is_equal_approx(float(raw_generation), float(int(raw_generation)))
+	):
+		attribute_generation_version = int(raw_generation)
+	if attribute_generation_version != CharacterBuildCalculator.ATTRIBUTE_GENERATION_VERSION:
+		push_warning("PlayerController3D: unsupported attribute generation version; using safe default")
+		attribute_generation_version = CharacterBuildCalculator.ATTRIBUTE_GENERATION_VERSION
+		attribute_seed = GameManager.DEFAULT_ATTRIBUTE_SEED
+	else:
+		attribute_seed = CharacterBuildCalculator.normalize_seed(
+			build_data.get("attribute_seed", GameManager.DEFAULT_ATTRIBUTE_SEED),
+			GameManager.DEFAULT_ATTRIBUTE_SEED,
+		)
+	attribute_points = CharacterBuildCalculator.roll_attribute_points(attribute_seed)
+	var raw_appearance: Variant = build_data.get("appearance", {})
+	appearance_options = CharacterAppearanceOptions.normalize(
+		raw_appearance as Dictionary if raw_appearance is Dictionary else {},
+	)
 	_character_build_bonuses = CharacterBuildCalculator.calculate_bonuses(
 		origin,
 		faction_definition,
 		profession,
+		attribute_points,
 	)
 	_recompute_character_build_stats(restore_to_full)
 	if faction != null:
 		faction.faction_id = selected_faction_id
 	if _appearance_controller != null:
-		_appearance_controller.apply_origin(origin_id)
+		_appearance_controller.apply_build(origin_id, appearance_options)
 	apply_equipment_bonuses()
 	return true
 
@@ -336,6 +366,9 @@ func get_character_build_data() -> Dictionary:
 		"origin_id": String(origin_id),
 		"faction_id": String(selected_faction_id),
 		"profession_id": String(profession_id),
+		"appearance": appearance_options.duplicate(true),
+		"attribute_seed": attribute_seed,
+		"attribute_generation_version": attribute_generation_version,
 	}
 
 

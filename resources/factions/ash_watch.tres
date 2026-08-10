@@ -10,5 +10,4 @@ description = "驻守在旧战场边界的巡守者，以务实纪律防止过�
 selectable = true
 accent_color = Color(0.69, 0.31, 0.27, 1)
 default_player_reputation = 5.0
-attack_bonus = 1.5
-defense_bonus = 0.5
+signature_stat = &"defense_bonus"
