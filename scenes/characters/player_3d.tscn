@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://player3d001"]
+[gd_scene load_steps=23 format=3 uid="uid://player3d001"]
 
 [ext_resource type="Script" path="res://scripts/characters/player_controller_3d.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2"]
@@ -22,6 +22,8 @@
 [ext_resource type="Resource" path="res://resources/attacks/attack_light_1.tres" id="19"]
 [ext_resource type="Script" path="res://scripts/components/equipment_component.gd" id="20"]
 [ext_resource type="Script" path="res://scripts/characters/player/player_appearance_controller.gd" id="21"]
+[ext_resource type="Script" path="res://scripts/components/experience_component.gd" id="22"]
+[ext_resource type="Resource" path="res://resources/progression/default_experience_curve.tres" id="23"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -53,6 +55,10 @@ script = ExtResource("2")
 
 [node name="EnergyComponent" type="Node" parent="."]
 script = ExtResource("3")
+
+[node name="ExperienceComponent" type="Node" parent="."]
+script = ExtResource("22")
+curve = ExtResource("23")
 
 [node name="FactionComponent" type="Node" parent="."]
 script = ExtResource("4")

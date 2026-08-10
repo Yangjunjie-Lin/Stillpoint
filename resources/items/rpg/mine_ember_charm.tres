@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/wanderer_charm.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"mine_ember_charm"
+display_name = "Mine Ember Charm"
+item_type = 11
+max_stack = 1
+description = "A warm crystal charm recovered from the abandoned mine."
+icon = ExtResource("2")
+equip_slot = 3
+energy_regen_bonus = 3.0
+rarity = &"rare"
+visual_archetype = &"neck_charm"
+visual_primary_color = Color(0.48, 0.2, 0.12, 1)
+visual_secondary_color = Color(0.95, 0.48, 0.18, 1)
+minimum_level = 2

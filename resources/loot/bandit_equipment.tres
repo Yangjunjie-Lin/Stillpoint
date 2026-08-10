@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="LootTableDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/loot_table_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/loot_entry_definition.gd" id="2"]
+
+[sub_resource type="Resource" id="LootEntry_cutlass"]
+script = ExtResource("2")
+item_id = &"bandit_cutlass"
+weight = 5.0
+minimum_player_level = 1
+maximum_player_level = 99
+
+[sub_resource type="Resource" id="LootEntry_vest"]
+script = ExtResource("2")
+item_id = &"ironhide_vest"
+weight = 3.0
+minimum_player_level = 1
+maximum_player_level = 99
+
+[sub_resource type="Resource" id="LootEntry_charm"]
+script = ExtResource("2")
+item_id = &"mine_ember_charm"
+weight = 2.0
+minimum_player_level = 2
+maximum_player_level = 99
+
+[resource]
+script = ExtResource("1")
+id = &"bandit_equipment"
+drop_chance = 1.0
+entries = Array[LootEntryDefinition]([SubResource("LootEntry_cutlass"), SubResource("LootEntry_vest"), SubResource("LootEntry_charm")])

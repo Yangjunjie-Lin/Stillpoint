@@ -3,10 +3,12 @@ extends CanvasLayer
 
 @onready var health_label: Label = $VBox/HealthLabel
 @onready var energy_label: Label = $VBox/EnergyLabel
+@onready var level_label: Label = $VBox/LevelLabel if has_node("VBox/LevelLabel") else null
 @onready var time_label: Label = $VBox/TimeLabel
 @onready var region_label: Label = $VBox/RegionLabel
 @onready var move_label: Label = $VBox/MoveLabel
 @onready var farming_label: Label = $VBox/FarmingLabel if has_node("VBox/FarmingLabel") else null
+@onready var dungeon_label: Label = $VBox/DungeonLabel if has_node("VBox/DungeonLabel") else null
 @onready var interact_label: Label = $VBox/InteractLabel
 @onready var quest_label: Label = $VBox/QuestLabel
 @onready var hotbar_label: Label = $VBox/HotbarLabel if has_node("VBox/HotbarLabel") else null
@@ -30,12 +32,23 @@ func _process(_delta: float) -> void:
 		health_label.text = "HP: %.0f / %.0f" % [player.health.current_health, player.health.max_health]
 	if player.energy != null:
 		energy_label.text = "EN: %.0f / %.0f" % [player.energy.current_energy, player.energy.max_energy]
+	if level_label != null and player.experience != null:
+		level_label.text = "LV %d   XP %d / %d" % [
+			player.experience.level,
+			player.experience.current_experience,
+			player.experience.experience_to_next_level,
+		]
 	region_label.text = "Region: %s" % String(_world.current_region_id)
 	move_label.text = "Run" if player.state.is_running else "Walk"
 	if farming_label != null:
 		farming_label.text = (
 			"Farm: select Pick / Seeds / Watering Can, then interact. Rest advances a day."
 			if _world.current_region_id == &"base:farmland" else ""
+		)
+	if dungeon_label != null:
+		dungeon_label.text = (
+			"Dungeon: %d enemies remain · defeat them for XP and equipment" % _living_dungeon_enemies()
+			if _world.current_region_id == &"base:dungeon" else ""
 		)
 	if not _dialogue_open():
 		interact_label.text = player.get_interaction_prompt()
@@ -118,6 +131,23 @@ func _update_target(player: PlayerController3D) -> void:
 func _dialogue_open() -> bool:
 	var panel := get_node_or_null("DialoguePanel")
 	return panel != null and panel.visible
+
+
+func _living_dungeon_enemies() -> int:
+	if _world == null or _world.entity_repository == null:
+		return 0
+	var count := 0
+	for entity in _world.entity_repository.get_loaded_entities_in_region(&"base:dungeon"):
+		if not entity is NPCController:
+			continue
+		var npc := entity as NPCController
+		if (
+			npc.definition is NPCDefinition
+			and (npc.definition as NPCDefinition).npc_role == &"enemy"
+			and not npc.is_permanently_dead
+		):
+			count += 1
+	return count
 
 
 func _on_time_changed(day: int, hour: int, minute: int) -> void:

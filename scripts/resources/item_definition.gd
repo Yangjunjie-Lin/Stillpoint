@@ -45,6 +45,7 @@ enum UseKind {
 @export var attack_bonus: float = 0.0
 @export var defense_bonus: float = 0.0
 @export var energy_regen_bonus: float = 0.0
+@export var rarity: StringName = &"common"
 @export_range(0, 100, 1) var starter_balance_value: int = 0
 @export_group("World Appearance")
 @export var visual_archetype: StringName = &""

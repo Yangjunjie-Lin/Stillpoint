@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://worldsession001"]
+[gd_scene load_steps=28 format=3 uid="uid://worldsession001"]
 
 [ext_resource type="Script" path="res://scripts/world/session/world_session.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
@@ -25,6 +25,7 @@
 [ext_resource type="Script" path="res://scripts/npc_cognition/npc_cognition_service.gd" id="23"]
 [ext_resource type="PackedScene" path="res://scenes/ui/rpg/hotbar_bar.tscn" id="24"]
 [ext_resource type="PackedScene" path="res://scenes/ui/rpg/inventory_menu.tscn" id="25"]
+[ext_resource type="Script" path="res://scripts/world/services/dungeon_progression_service.gd" id="26"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_companion"]
 radius = 0.4
@@ -122,6 +123,9 @@ script = ExtResource("12")
 [node name="NPCCognitionService" type="Node" parent="WorldServices"]
 script = ExtResource("23")
 
+[node name="DungeonProgressionService" type="Node" parent="WorldServices"]
+script = ExtResource("26")
+
 [node name="CameraRig" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 12)
 script = ExtResource("3")
@@ -140,13 +144,16 @@ script = ExtResource("17")
 offset_left = 12.0
 offset_top = 12.0
 offset_right = 420.0
-offset_bottom = 220.0
+offset_bottom = 280.0
 
 [node name="HealthLabel" type="Label" parent="WorldUI/VBox"]
 text = "HP: 100"
 
 [node name="EnergyLabel" type="Label" parent="WorldUI/VBox"]
 text = "EN: 100"
+
+[node name="LevelLabel" type="Label" parent="WorldUI/VBox"]
+text = "LV 1   XP 0 / 100"
 
 [node name="TimeLabel" type="Label" parent="WorldUI/VBox"]
 text = "Day 1  08:00"
@@ -158,6 +165,9 @@ text = "Region: Town"
 text = "Walk"
 
 [node name="FarmingLabel" type="Label" parent="WorldUI/VBox"]
+text = ""
+
+[node name="DungeonLabel" type="Label" parent="WorldUI/VBox"]
 text = ""
 
 [node name="InteractLabel" type="Label" parent="WorldUI/VBox"]

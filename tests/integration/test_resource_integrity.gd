@@ -13,6 +13,7 @@ func run() -> bool:
 	var npc_ids: Dictionary = {}
 	var house_ids: Dictionary = {}
 	var container_ids: Dictionary = {}
+	var loot_table_ids: Dictionary = {}
 
 	for path in resources:
 		var res: Resource = load(path)
@@ -87,6 +88,15 @@ func run() -> bool:
 			if not container.is_valid():
 				push_error("Invalid container definition: %s" % path)
 				ok = false
+		elif res is LootTableDefinition:
+			var loot_table := res as LootTableDefinition
+			if loot_table_ids.has(loot_table.id):
+				push_error("Duplicate loot table id: %s" % String(loot_table.id))
+				ok = false
+			loot_table_ids[loot_table.id] = path
+			if not loot_table.is_valid():
+				push_error("Invalid loot table definition: %s" % path)
+				ok = false
 
 	ok = ok and not enemy_ids.is_empty()
 	ok = ok and not item_ids.is_empty()
@@ -100,6 +110,7 @@ func run() -> bool:
 	ok = ok and container_ids.size() == 2
 	ok = ok and container_ids.has(&"chest")
 	ok = ok and container_ids.has(&"pryable_cache")
+	ok = ok and loot_table_ids.has(&"bandit_equipment")
 	ok = ok and region_ids.has(&"base:farmland")
 
 	if ResourceRegistry.get_enemy(&"chase") == null:

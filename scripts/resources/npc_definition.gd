@@ -6,6 +6,10 @@ extends CharacterDefinition
 @export var home_marker_id: StringName = &"home"
 @export var shop_id: StringName = &""
 @export var witness_radius: float = 12.0
+@export_group("Combat Rewards")
+@export_range(0, 100000, 1) var experience_reward: int = 0
+@export var loot_table: LootTableDefinition
+@export_group("")
 @export var dialogue_selector: DialogueSelectorDefinition
 ## Authored cognitive identity. Runtime memories are kept in the cognition service.
 @export var mind_profile: NPCMindDefinition

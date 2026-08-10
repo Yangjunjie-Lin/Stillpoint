@@ -37,6 +37,7 @@ var _pending_player_transform: Dictionary = {}
 @onready var simulation_service: WorldSimulationService = $WorldServices/WorldSimulationService
 @onready var world_flags: WorldFlagService = $WorldServices/WorldFlagService
 @onready var cognition_service: NPCCognitionService = $WorldServices/NPCCognitionService
+@onready var dungeon_progression_service: DungeonProgressionService = $WorldServices/DungeonProgressionService
 
 # Compatibility aliases for tests and legacy code paths.
 var regions_root: Node3D
@@ -298,6 +299,7 @@ func get_session_context() -> WorldSessionContext:
 func _setup_services() -> void:
 	actor_factory.setup(entity_repository)
 	region_service.setup(self, entity_repository, actor_factory, interaction_index)
+	dungeon_progression_service.setup(self, actor_factory)
 	# Resolved from WorldSession root via RegionRuntimeService._get_slot().
 	region_service.active_region_slot_path = NodePath("ActiveRegionSlot")
 	save_coordinator.setup(self, entity_repository, region_service, world_flags)
@@ -336,6 +338,8 @@ func _spawn_player() -> void:
 		player.inventory.inventory_changed.connect(_on_player_items_changed)
 	if player.equipment != null and not player.equipment.equipment_changed.is_connected(_on_player_items_changed):
 		player.equipment.equipment_changed.connect(_on_player_items_changed)
+	if player.experience != null and not player.experience.experience_changed.is_connected(_on_player_progression_changed):
+		player.experience.experience_changed.connect(_on_player_progression_changed)
 	var camera_rig := get_node_or_null("CameraRig") as CameraController3D
 	if camera_rig != null:
 		camera_rig.set_target(player)
@@ -367,6 +371,11 @@ func _grant_starter_inventory() -> void:
 		push_error("WorldSession: could not grant farming essentials")
 	if not StarterKitCalculator.grant_utility_essentials(player.inventory):
 		push_error("WorldSession: could not grant utility essentials")
+
+
+func _on_player_progression_changed(_current: int, _to_next: int, _level: int) -> void:
+	if save_coordinator != null:
+		save_coordinator.mark_dirty(&"player")
 
 
 func _serialize_pet() -> Dictionary:

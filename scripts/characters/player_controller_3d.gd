@@ -12,6 +12,7 @@ const CHARACTER_BUILD_SECTION_VERSION: int = CharacterBuildCalculator.BUILD_SECT
 var hotbar := HotbarController.new()
 var inventory: InventoryComponent
 var equipment: EquipmentComponent
+var experience: ExperienceComponent
 var current_region_id: StringName = &"town"
 var origin_id: StringName = GameManager.DEFAULT_ORIGIN_ID
 var selected_faction_id: StringName = GameManager.DEFAULT_FACTION_ID
@@ -43,6 +44,7 @@ func _ready() -> void:
 	super._ready()
 	inventory = get_node_or_null("InventoryComponent") as InventoryComponent
 	equipment = get_node_or_null("EquipmentComponent") as EquipmentComponent
+	experience = get_node_or_null("ExperienceComponent") as ExperienceComponent
 	_appearance_controller = get_node_or_null(
 		"VisualRoot/CharacterModel"
 	) as PlayerAppearanceController
@@ -81,6 +83,16 @@ func _ready() -> void:
 		inventory.inventory_changed.connect(apply_equipment_bonuses)
 	if not hotbar.selection_changed.is_connected(_on_hotbar_selection_changed):
 		hotbar.selection_changed.connect(_on_hotbar_selection_changed)
+	if experience != null:
+		if not experience.experience_changed.is_connected(_on_experience_changed):
+			experience.experience_changed.connect(_on_experience_changed)
+		if not experience.leveled_up.is_connected(_on_leveled_up):
+			experience.leveled_up.connect(_on_leveled_up)
+		_on_experience_changed(
+			experience.current_experience,
+			experience.experience_to_next_level,
+			experience.level,
+		)
 	apply_character_build(GameManager.get_default_character_build(), true)
 
 
@@ -309,6 +321,8 @@ func apply_equipment_bonuses() -> void:
 			regen_bonus += item_definition.energy_regen_bonus
 	if active_tool != null:
 		attack_bonus += active_tool.attack_bonus
+	if experience != null:
+		attack_bonus += experience.bullet_damage_bonus
 	if health != null:
 		health.defense = maxf(0.0, _base_defense + defense_bonus)
 	if energy != null:
@@ -437,6 +451,19 @@ func get_physical_strength() -> int:
 	)
 
 
+func get_combat_level() -> int:
+	return experience.level if experience != null else 1
+
+
+func grant_combat_experience(amount: int) -> int:
+	if experience == null or amount <= 0:
+		return 0
+	experience.enemies_defeated += 1
+	var levels := experience.grant_experience(amount, game_time)
+	apply_equipment_bonuses()
+	return levels
+
+
 func get_effective_movement_speeds() -> Dictionary:
 	return {
 		"walk": _walk_speed,
@@ -449,9 +476,15 @@ func _recompute_character_build_stats(restore_to_full: bool) -> void:
 	var saved_health := health.current_health if health != null else 0.0
 	var saved_energy := energy.current_energy if energy != null else 0.0
 	if health != null:
+		var level_health_bonus := 0.0
+		if experience != null and experience.curve != null:
+			level_health_bonus = float(maxi(0, experience.level - 1)) \
+				* experience.curve.health_gain_per_level
 		health.max_health = maxf(
 			1.0,
-			_base_max_health + float(_character_build_bonuses.get(&"max_health_bonus", 0.0)),
+			_base_max_health
+				+ float(_character_build_bonuses.get(&"max_health_bonus", 0.0))
+				+ level_health_bonus,
 		)
 		health.current_health = (
 			health.max_health if restore_to_full
@@ -490,6 +523,7 @@ func to_dict() -> Dictionary:
 	data["hotbar"] = hotbar.to_dict()
 	data["inventory"] = inventory.to_dict() if inventory else {}
 	data["equipment"] = equipment.to_dict() if equipment else {}
+	data["experience"] = experience.to_dict() if experience else {}
 	data["character_build"] = get_character_build_data()
 	data["current_region_id"] = String(current_region_id)
 	data["game_time"] = game_time
@@ -498,6 +532,8 @@ func to_dict() -> Dictionary:
 
 func from_dict(data: Dictionary) -> void:
 	super.from_dict(data)
+	if experience != null:
+		experience.from_dict(data.get("experience", {}))
 	hotbar.from_dict(data.get("hotbar", {}))
 	if inventory != null:
 		inventory.from_dict(data.get("inventory", {}))
@@ -509,3 +545,12 @@ func from_dict(data: Dictionary) -> void:
 	apply_character_build(build_data as Dictionary, false)
 	current_region_id = StringName(str(data.get("current_region_id", current_region_id)))
 	game_time = float(data.get("game_time", game_time))
+
+
+func _on_experience_changed(current: int, to_next: int, level: int) -> void:
+	EventBus.player_experience_changed.emit(current, to_next, level)
+
+
+func _on_leveled_up(new_level: int) -> void:
+	apply_equipment_bonuses()
+	EventBus.notice_requested.emit("LEVEL UP! Reached level %d." % new_level)

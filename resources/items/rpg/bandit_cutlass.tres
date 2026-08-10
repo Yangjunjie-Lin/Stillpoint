@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/training_sword.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"bandit_cutlass"
+display_name = "Bandit Cutlass"
+item_type = 2
+max_stack = 1
+description = "A chipped but keen dungeon blade taken from a defeated raider."
+icon = ExtResource("2")
+equip_slot = 1
+attack_bonus = 6.0
+rarity = &"uncommon"
+visual_archetype = &"one_hand_sword"
+visual_primary_color = Color(0.24, 0.16, 0.12, 1)
+visual_secondary_color = Color(0.68, 0.72, 0.7, 1)
+minimum_level = 1
