@@ -25,6 +25,7 @@ var _root_transform := Transform3D.IDENTITY
 var _parts: Dictionary = {}
 var _base_transforms: Dictionary = {}
 var _arm_chains: Array[Dictionary] = []
+var _leg_chains: Array[Dictionary] = []
 var _state: StringName = &"idle"
 var _time: float = 0.0
 
@@ -34,6 +35,7 @@ func bind(model_root: Node3D) -> void:
 	_parts.clear()
 	_base_transforms.clear()
 	_arm_chains.clear()
+	_leg_chains.clear()
 	_time = 0.0
 	if _root == null:
 		return
@@ -46,6 +48,8 @@ func bind(model_root: Node3D) -> void:
 		_base_transforms[part_name] = part.transform
 	_register_arm_chain(&"LeftArm", &"LeftHand")
 	_register_arm_chain(&"RightArm", &"RightHand")
+	_register_leg_chain(&"LeftLeg", &"LeftBoot")
+	_register_leg_chain(&"RightLeg", &"RightBoot")
 
 
 func set_state(state: StringName) -> void:
@@ -109,44 +113,62 @@ func update(delta: float) -> void:
 			_apply_idle(0.45)
 		_:
 			_apply_idle(1.0)
-	_sync_arm_chains()
+	_sync_limb_chains(_leg_chains)
+	_sync_limb_chains(_arm_chains)
 
 
 func _register_arm_chain(arm_name: StringName, hand_name: StringName) -> void:
-	var arm := _parts.get(arm_name) as Node3D
-	var hand := _parts.get(hand_name) as Node3D
-	if arm == null or hand == null:
+	_register_limb_chain(_arm_chains, arm_name, hand_name)
+
+
+func _register_leg_chain(leg_name: StringName, foot_name: StringName) -> void:
+	_register_limb_chain(_leg_chains, leg_name, foot_name)
+
+
+func _register_limb_chain(
+	chains: Array[Dictionary],
+	limb_name: StringName,
+	extremity_name: StringName,
+) -> void:
+	var limb := _parts.get(limb_name) as Node3D
+	var extremity := _parts.get(extremity_name) as Node3D
+	if limb == null or extremity == null:
 		return
-	var arm_base := arm.transform
-	var hand_base := hand.transform
-	var hand_offset := hand_base.origin - arm_base.origin
-	# Both meshes were authored around their centers. Reflecting the hand offset
-	# across the arm center yields a stable shoulder pivot without requiring a
-	# Skeleton3D asset and keeps every procedural archetype compatible.
-	var shoulder := arm_base.origin - hand_offset
-	_arm_chains.append({
-		"arm": arm,
-		"hand": hand,
-		"arm_base": arm_base,
-		"hand_base": hand_base,
-		"shoulder": shoulder,
+	var limb_base := limb.transform
+	var extremity_base := extremity.transform
+	var extremity_offset := extremity_base.origin - limb_base.origin
+	# Both meshes are authored around their centers. Reflecting the extremity
+	# offset across the limb center reconstructs a stable shoulder/hip pivot,
+	# allowing hands and feet to inherit their parent limb without Skeleton3D.
+	var joint := limb_base.origin - extremity_offset
+	chains.append({
+		"limb": limb,
+		"extremity": extremity,
+		"limb_base": limb_base,
+		"extremity_base": extremity_base,
+		"joint": joint,
 	})
 
 
-func _sync_arm_chains() -> void:
-	for chain in _arm_chains:
-		var arm := chain.get("arm") as Node3D
-		var hand := chain.get("hand") as Node3D
-		if arm == null or hand == null or not is_instance_valid(arm) or not is_instance_valid(hand):
+func _sync_limb_chains(chains: Array[Dictionary]) -> void:
+	for chain in chains:
+		var limb := chain.get("limb") as Node3D
+		var extremity := chain.get("extremity") as Node3D
+		if (
+			limb == null
+			or extremity == null
+			or not is_instance_valid(limb)
+			or not is_instance_valid(extremity)
+		):
 			continue
-		var arm_base: Transform3D = chain["arm_base"]
-		var hand_base: Transform3D = chain["hand_base"]
-		var shoulder: Vector3 = chain["shoulder"]
-		var arm_delta := arm.transform.basis * arm_base.basis.inverse()
-		arm.position = shoulder + arm_delta * (arm_base.origin - shoulder)
-		hand.position = shoulder + arm_delta * (hand_base.origin - shoulder)
-		# Retain wrist gesture rotation, then inherit the whole arm rotation.
-		hand.basis = arm_delta * hand.transform.basis
+		var limb_base: Transform3D = chain["limb_base"]
+		var extremity_base: Transform3D = chain["extremity_base"]
+		var joint: Vector3 = chain["joint"]
+		var limb_delta := limb.transform.basis * limb_base.basis.inverse()
+		limb.position = joint + limb_delta * (limb_base.origin - joint)
+		extremity.position = joint + limb_delta * (extremity_base.origin - joint)
+		# Retain ankle/wrist gesture rotation, then inherit the complete limb turn.
+		extremity.basis = limb_delta * extremity.transform.basis
 
 
 func _reset_pose() -> void:
