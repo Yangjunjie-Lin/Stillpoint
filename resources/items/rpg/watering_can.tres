@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/watering_can.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"watering_can"
+display_name = "Watering Can"
+item_type = 1
+max_stack = 1
+description = "A sturdy can used to water planted fields."
+icon = ExtResource("2")
+visual_archetype = &"watering_can"
+visual_primary_color = Color(0.2, 0.46, 0.62, 1)
+visual_secondary_color = Color(0.72, 0.82, 0.83, 1)

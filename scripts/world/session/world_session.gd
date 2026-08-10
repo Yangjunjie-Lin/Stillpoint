@@ -97,10 +97,15 @@ func _physics_process(_delta: float) -> void:
 		player.update_interaction_targets(nearby)
 
 
-func transition_to(region_id: StringName, spawn_id: StringName = &"spawn") -> void:
+func transition_to(
+	region_id: StringName,
+	spawn_id: StringName = &"spawn",
+	via_portal: bool = true,
+) -> void:
 	var ctx := RegionTransitionContext.new()
+	ctx.source_region_id = current_region_id
 	ctx.target_spawn_id = spawn_id
-	ctx.via_portal = true
+	ctx.via_portal = via_portal
 	if player != null:
 		player.set_input_enabled(false)
 	region_service.enter_region(region_id, spawn_id, ctx)
@@ -358,6 +363,8 @@ func _grant_starter_inventory() -> void:
 		push_warning("WorldSession: invalid profession starter kit; using safe default")
 		if not StarterKitCalculator.grant_safe_default(player.inventory):
 			push_error("WorldSession: could not grant safe starter inventory")
+	if not StarterKitCalculator.grant_farming_essentials(player.inventory):
+		push_error("WorldSession: could not grant farming essentials")
 
 
 func _serialize_pet() -> Dictionary:

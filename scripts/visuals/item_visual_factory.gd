@@ -104,6 +104,27 @@ const HAND_GRIP_POSES := {
 		"rotation_degrees": Vector3(-8, -12, -12),
 		"scale": Vector3.ONE * 0.55,
 	},
+	&"watering_can": {
+		"hand": "right",
+		"grip_kind": "handle_grip",
+		"position": Vector3(0.02, -0.12, 0.08),
+		"rotation_degrees": Vector3(-18, -18, -24),
+		"scale": Vector3.ONE * 0.7,
+	},
+	&"seed_pouch": {
+		"hand": "right",
+		"grip_kind": "palm",
+		"position": Vector3(0.08, -0.08, 0.16),
+		"rotation_degrees": Vector3(-18, -12, -8),
+		"scale": Vector3.ONE * 0.62,
+	},
+	&"root_vegetable": {
+		"hand": "right",
+		"grip_kind": "bundle_grip",
+		"position": Vector3(0.04, -0.06, 0.12),
+		"rotation_degrees": Vector3(-12, -8, -18),
+		"scale": Vector3.ONE * 0.72,
+	},
 }
 
 
@@ -143,6 +164,12 @@ static func create_model(definition: ItemDefinition, for_hand: bool = false) -> 
 			_build_orb(root, definition)
 		&"score_token":
 			_build_token(root, definition)
+		&"watering_can":
+			_build_watering_can(root, definition)
+		&"seed_pouch":
+			_build_seed_pouch(root, definition)
+		&"root_vegetable":
+			_build_root_vegetable(root, definition)
 		_:
 			_build_trinket(root, definition)
 	if for_hand:
@@ -265,6 +292,31 @@ static func _build_token(root: Node3D, definition: ItemDefinition) -> void:
 	for index in 5:
 		var angle := TAU * index / 5.0 - PI * 0.5
 		_sphere(root, "StarPoint%d" % index, 0.075, Vector3(cos(angle) * 0.17, 0.32 + sin(angle) * 0.17, 0.1), definition.visual_secondary_color, 0.55)
+
+
+static func _build_watering_can(root: Node3D, definition: ItemDefinition) -> void:
+	_cylinder(root, "CanBody", 0.24, 0.42, Vector3(0, 0.22, 0), definition.visual_primary_color, Vector3.ZERO, 0.35)
+	_torus(root, "CanHandle", 0.22, 0.28, Vector3(0, 0.48, 0), definition.visual_secondary_color, Vector3(90, 0, 0), 0.45)
+	_cone(root, "Spout", 0.1, 0.045, 0.58, Vector3(0.36, 0.28, 0), definition.visual_secondary_color, Vector3(0, 0, -62), 0.42)
+	_cylinder(root, "Rose", 0.13, 0.08, Vector3(0.63, 0.44, 0), definition.visual_secondary_color, Vector3(0, 0, 62), 0.5)
+	_box(root, "TopRim", Vector3(0.46, 0.055, 0.46), Vector3(0, 0.44, 0), definition.visual_secondary_color, Vector3.ZERO, 0.38)
+
+
+static func _build_seed_pouch(root: Node3D, definition: ItemDefinition) -> void:
+	_sphere(root, "Pouch", 0.25, Vector3(0, 0.22, 0), definition.visual_primary_color, 0.0, Vector3(1.0, 1.15, 0.72))
+	_cylinder(root, "PouchNeck", 0.13, 0.16, Vector3(0, 0.48, 0), definition.visual_primary_color.lightened(0.08))
+	_cylinder(root, "DrawString", 0.018, 0.42, Vector3(0, 0.49, 0), definition.visual_secondary_color, Vector3(0, 0, 90))
+	for index in 5:
+		var angle := TAU * float(index) / 5.0
+		_sphere(root, "Seed%d" % index, 0.045, Vector3(cos(angle) * 0.13, 0.22 + sin(angle) * 0.13, 0.2), definition.visual_secondary_color.darkened(0.3))
+
+
+static func _build_root_vegetable(root: Node3D, definition: ItemDefinition) -> void:
+	_sphere(root, "Root", 0.25, Vector3(0, 0.25, 0), definition.visual_primary_color, 0.0, Vector3(0.9, 1.05, 0.9))
+	_cone(root, "RootTip", 0.11, 0.0, 0.34, Vector3(0, -0.02, 0), definition.visual_primary_color.darkened(0.08), Vector3(0, 0, 180))
+	for index in 4:
+		var angle := TAU * float(index) / 4.0
+		_sphere(root, "Leaf%d" % index, 0.13, Vector3(cos(angle) * 0.12, 0.57, sin(angle) * 0.1), definition.visual_secondary_color, 0.0, Vector3(0.55, 1.45, 0.42))
 
 
 static func _build_trinket(root: Node3D, definition: ItemDefinition) -> void:

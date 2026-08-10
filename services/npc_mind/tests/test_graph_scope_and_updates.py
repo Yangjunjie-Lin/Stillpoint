@@ -113,7 +113,9 @@ def test_graph_endpoint_does_not_return_other_profile_catalog_nodes():
     assert "npc_definition:mira" in node_ids
     assert "npc_definition:bandit" not in node_ids
     assert "skill:ambush" not in node_ids
-    assert "region:base:dungeon" not in node_ids
+    # Public authored world routes remain visible even when a private NPC profile
+    # associated with that region is outside this graph scope.
+    assert "region:base:dungeon" in node_ids
 
 
 def test_in_memory_session_lookup_enforces_full_scope():

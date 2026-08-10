@@ -1,6 +1,6 @@
 class_name RPGRegionVisuals
 extends Node3D
-## Runtime-built low-poly RPG environment kit shared by all three 3D regions.
+## Runtime-built low-poly RPG environment kit shared by the connected 3D regions.
 ## Geometry is deterministic and deliberately stays clear of gameplay-critical
 ## spawn, quest, NPC, and portal coordinates.
 
@@ -8,6 +8,7 @@ enum RegionTheme {
 	TOWN,
 	WILDERNESS,
 	DUNGEON,
+	FARMLAND,
 }
 
 @export var region_theme: RegionTheme = RegionTheme.TOWN
@@ -32,6 +33,8 @@ func build() -> void:
 			_build_wilderness()
 		RegionTheme.DUNGEON:
 			_build_dungeon()
+		RegionTheme.FARMLAND:
+			_build_farmland()
 		_:
 			_build_town()
 
@@ -51,6 +54,9 @@ func _add_environment() -> void:
 			environment.background_color = Color("171923")
 			environment.ambient_light_color = Color("77718a")
 			environment.ambient_light_energy = 0.42
+		RegionTheme.FARMLAND:
+			environment.background_color = Color("9fc8c2")
+			environment.ambient_light_color = Color("e2dfbd")
 		_:
 			environment.background_color = Color("9db8c8")
 			environment.ambient_light_color = Color("e4d7bd")
@@ -158,6 +164,32 @@ func _build_wilderness() -> void:
 		_add_rock(Vector3(-8.0 + cos(angle) * 3.2, 0.15, -3.0 + sin(angle) * 3.2), 0.35 + (index % 3) * 0.08)
 	for position_ in [Vector3(-4, 0, 7), Vector3(5, 0, 5), Vector3(-5, 0, -9), Vector3(6, 0, -11)]:
 		_add_grass_cluster(position_, grass)
+
+
+func _build_farmland() -> void:
+	var soil := Color("795337")
+	var path := Color("a0885e")
+	var timber := Color("61442d")
+	_add_box(_generated, "FarmRoad", Vector3(39.0, 0.07, 3.0), Vector3(0, 0.14, 0), path)
+	_add_box(_generated, "FieldFoundation", Vector3(10.0, 0.05, 8.0), Vector3(-4, 0.14, 3), soil.darkened(0.08))
+	var farmhouse := ResourceRegistry.get_house(&"building:player_farmhouse")
+	if farmhouse == null or not farmhouse.is_valid():
+		push_error("RPGRegionVisuals: invalid player farmhouse definition")
+	else:
+		_add_house(farmhouse)
+	for z in [-1.2, 7.2]:
+		for x in [-9.5, -6.2, -2.9, 0.4, 3.7]:
+			_add_solid_box("FieldFence", Vector3(2.8, 0.75, 0.12), Vector3(x, 0.38, z), timber)
+	for x in [-9.8, 1.8]:
+		for z in [0.1, 3.0, 5.9]:
+			_add_solid_box("FieldFence", Vector3(0.12, 0.75, 2.4), Vector3(x, 0.38, z), timber)
+	var trough := _new_static_body(_generated, "WaterTrough", Vector3(3.8, 0, 6.0))
+	trough.set_meta("ontology_id", "location:farm_water_trough")
+	_add_box(trough, "TroughBody", Vector3(2.4, 0.65, 0.85), Vector3(0, 0.33, 0), Color("6d5138"))
+	_add_box_collision(trough, Vector3(2.4, 0.65, 0.85), Vector3(0, 0.33, 0))
+	_add_box(trough, "TroughWater", Vector3(2.15, 0.06, 0.62), Vector3(0, 0.65, 0), Color("4b8793"), Vector3.ZERO, 0.0, true)
+	for position_ in [Vector3(-14, 0, -10), Vector3(-13, 0, 11), Vector3(15, 0, -11), Vector3(16, 0, 12)]:
+		_add_tree(position_, 0.88, Color("55402d"), Color("5f823d"))
 
 
 func _build_dungeon() -> void:

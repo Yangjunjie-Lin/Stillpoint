@@ -25,6 +25,7 @@
 [ext_resource type="Script" path="res://scripts/characters/npc/stylized_npc_model.gd" id="23"]
 [ext_resource type="Script" path="res://scripts/components/combat_animation_controller.gd" id="24"]
 [ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="25"]
+[ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="26"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -97,6 +98,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.5, 3)
 
 [node name="plaza" type="Marker3D" parent="SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.0, -3)
+
+[node name="from_farmland" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(15, 1.2, 0)
 
 [node name="EntitySpawns" type="Node3D" parent="."]
 
@@ -327,6 +331,15 @@ region_id = &"base:town"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.0, -2)
 script = ExtResource("22")
 region_id = &"base:town"
+
+[node name="FarmlandRoad" type="Area3D" parent="."]
+position = Vector3(19, 0, 0)
+rotation = Vector3(0, 1.5707963, 0)
+script = ExtResource("26")
+region_id = &"base:town"
+target_region_id = &"base:farmland"
+target_spawn_id = &"from_town"
+route_label = "East Road to the Farmland"
 
 [node name="LocalEffects" type="Node3D" parent="."]
 

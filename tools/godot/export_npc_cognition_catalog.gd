@@ -101,6 +101,26 @@ func _build_world_ontology(registry: Node, errors: Array[String]) -> Dictionary:
 		})
 		for target: StringName in region.get("connected_region_ids"):
 			_add_world_edge(edges, node_id, "CONNECTED_TO", "region:%s" % String(target), region_id)
+		for target: StringName in region.get("portal_region_ids"):
+			_add_world_edge(edges, node_id, "PORTAL_TO", "region:%s" % String(target), region_id)
+	for crop: Variant in registry.call("get_all_crops"):
+		if not bool(crop.call("is_valid")):
+			errors.append("Invalid crop definition '%s'" % String(crop.get("id")))
+			continue
+		var crop_id := String(crop.get("id"))
+		var crop_node := "crop:%s" % crop_id
+		var seed_node := "item:%s" % String(crop.get("seed_item_id"))
+		var produce_node := "item:%s" % String(crop.get("produce_item_id"))
+		var region_node := "region:%s" % String(crop.get("soil_region_id"))
+		_add_world_node(nodes, crop_node, "crop", String(crop.get("display_name")), {
+			"watered_days_to_mature": int(crop.get("watered_days_to_mature")),
+			"harvest_quantity": int(crop.get("harvest_quantity")),
+		})
+		_add_world_node(nodes, seed_node, "item", _label_for_node(seed_node), {})
+		_add_world_node(nodes, produce_node, "item", _label_for_node(produce_node), {})
+		_add_world_edge(edges, crop_node, "HAS_SEED", seed_node, crop_id)
+		_add_world_edge(edges, crop_node, "PRODUCES", produce_node, crop_id)
+		_add_world_edge(edges, crop_node, "GROWS_IN", region_node, crop_id)
 	for house: Variant in registry.call("get_all_houses"):
 		if not bool(house.call("is_valid")):
 			errors.append("Invalid house definition '%s'" % String(house.get("id")))
@@ -191,7 +211,7 @@ func _edge_key(edge: Dictionary) -> String:
 
 func _node_type(node_id: String) -> String:
 	var prefix := node_id.get_slice(":", 0)
-	if prefix in ["region", "location", "item", "quest", "concept", "building"]:
+	if prefix in ["region", "location", "item", "quest", "concept", "building", "crop"]:
 		return prefix
 	return "concept"
 

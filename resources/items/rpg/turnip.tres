@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/turnip.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"turnip"
+display_name = "Turnip"
+item_type = 6
+max_stack = 30
+description = "A crisp root vegetable harvested from a watered field."
+icon = ExtResource("2")
+use_kind = 1
+health_restore = 5.0
+energy_restore = 12.0
+visual_archetype = &"root_vegetable"
+visual_primary_color = Color(0.82, 0.48, 0.62, 1)
+visual_secondary_color = Color(0.32, 0.62, 0.3, 1)

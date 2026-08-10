@@ -3,7 +3,7 @@ extends RefCounted
 
 func run() -> bool:
 	var items := ResourceRegistry.get_all_items()
-	var ok := items.size() == 13
+	var ok := items.size() == 16
 	var archetypes: Dictionary = {}
 	for definition in items:
 		var archetype := definition.resolved_visual_archetype()
@@ -27,7 +27,7 @@ func run() -> bool:
 			grip_pose.get("hand", "")
 		)
 		held_model.free()
-	ok = ok and archetypes.size() >= 12
+	ok = ok and archetypes.size() >= 15
 	var sword_pose := ItemVisualFactory.grip_pose_for_archetype(&"one_hand_sword")
 	var sword_basis := Basis.from_euler(
 		Vector3(sword_pose.get("rotation_degrees", Vector3.ZERO)) * PI / 180.0

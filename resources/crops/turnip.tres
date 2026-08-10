@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CropDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/crop_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"turnip"
+display_name = "Turnip"
+seed_item_id = &"turnip_seed"
+produce_item_id = &"turnip"
+watered_days_to_mature = 2
+harvest_quantity = 2
+soil_region_id = &"base:farmland"
+sprout_color = Color(0.45, 0.68, 0.3, 1)
+mature_leaf_color = Color(0.27, 0.55, 0.25, 1)
+produce_color = Color(0.82, 0.48, 0.62, 1)

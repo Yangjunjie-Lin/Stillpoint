@@ -5,6 +5,7 @@
 [ext_resource type="Resource" path="res://content/base/spawns/bandit_0001.tres" id="3"]
 [ext_resource type="Resource" path="res://content/base/spawns/bandit_0002.tres" id="4"]
 [ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="6"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -50,6 +51,9 @@ shape = SubResource("BoxShape3D_floor")
 [node name="spawn" type="Marker3D" parent="SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 
+[node name="from_wilderness" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(0, 1.2, 15)
+
 [node name="EntitySpawns" type="Node3D" parent="."]
 
 [node name="BanditSpawnA" type="Marker3D" parent="EntitySpawns"]
@@ -80,6 +84,14 @@ position = Vector3(0, 1.1, 0)
 rotation = Vector3(1.5708, 0, 0)
 mesh = SubResource("TorusMesh_portal")
 surface_material_override/0 = SubResource("Mat_portal_town")
+
+[node name="WildernessRoad" type="Area3D" parent="."]
+position = Vector3(0, 0, 19)
+script = ExtResource("6")
+region_id = &"base:dungeon"
+target_region_id = &"base:wilderness"
+target_spawn_id = &"from_dungeon"
+route_label = "Mine Road to the Wilderness"
 
 [node name="LocalEffects" type="Node3D" parent="."]
 

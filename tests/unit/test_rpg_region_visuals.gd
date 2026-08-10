@@ -7,6 +7,7 @@ func run() -> bool:
 		RPGRegionVisuals.RegionTheme.TOWN,
 		RPGRegionVisuals.RegionTheme.WILDERNESS,
 		RPGRegionVisuals.RegionTheme.DUNGEON,
+		RPGRegionVisuals.RegionTheme.FARMLAND,
 	]:
 		var visuals := RPGRegionVisuals.new()
 		visuals.region_theme = region_theme
@@ -20,10 +21,19 @@ func run() -> bool:
 			minimum_bodies = 35
 		elif region_theme == RPGRegionVisuals.RegionTheme.DUNGEON:
 			minimum_bodies = 40
+		elif region_theme == RPGRegionVisuals.RegionTheme.FARMLAND:
+			minimum_bodies = 18
 		ok = ok and _static_body_count(generated) >= minimum_bodies
 		ok = ok and _all_static_bodies_have_collision(generated)
-		if region_theme == RPGRegionVisuals.RegionTheme.TOWN:
+		if region_theme in [RPGRegionVisuals.RegionTheme.TOWN, RPGRegionVisuals.RegionTheme.FARMLAND]:
+			var expected_region := (
+				&"base:town"
+				if region_theme == RPGRegionVisuals.RegionTheme.TOWN else &"base:farmland"
+			)
 			for house_id in ResourceRegistry.get_all_house_ids():
+				var definition := ResourceRegistry.get_house(house_id)
+				if definition == null or definition.region_id != expected_region:
+					continue
 				var node_name := "House%s" % String(house_id).trim_prefix("building:").to_pascal_case()
 				var house := generated.get_node_or_null(node_name) as StaticBody3D
 				ok = ok and house != null

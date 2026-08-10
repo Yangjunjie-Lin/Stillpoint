@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/interaction/pickup_interactable_3d.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="5"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -66,6 +67,12 @@ shape = SubResource("BoxShape3D_floor")
 [node name="spawn" type="Marker3D" parent="SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 
+[node name="from_farm" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-15, 1.2, 0)
+
+[node name="from_dungeon" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(0, 1.2, 15)
+
 [node name="EntitySpawns" type="Node3D" parent="."]
 
 [node name="StaticEntities" type="Node3D" parent="."]
@@ -124,6 +131,23 @@ position = Vector3(0, 1.1, 0)
 rotation = Vector3(1.5708, 0, 0)
 mesh = SubResource("TorusMesh_portal")
 surface_material_override/0 = SubResource("Mat_portal_town")
+
+[node name="FarmRoad" type="Area3D" parent="."]
+position = Vector3(-19, 0, 0)
+rotation = Vector3(0, -1.5707963, 0)
+script = ExtResource("5")
+region_id = &"base:wilderness"
+target_region_id = &"base:farmland"
+target_spawn_id = &"from_wilderness"
+route_label = "West Road to the Farmland"
+
+[node name="DungeonRoad" type="Area3D" parent="."]
+position = Vector3(0, 0, 19)
+script = ExtResource("5")
+region_id = &"base:wilderness"
+target_region_id = &"base:dungeon"
+target_spawn_id = &"from_wilderness"
+route_label = "South Mine Road"
 
 [node name="LocalEffects" type="Node3D" parent="."]
 

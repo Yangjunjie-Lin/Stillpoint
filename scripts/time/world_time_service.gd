@@ -28,9 +28,28 @@ func _process(delta: float) -> void:
 
 
 func set_time(new_day: int, new_hour: int, new_minute: int) -> void:
+	var previous_day := day
+	var previous_hour := hour
 	day = maxi(1, new_day)
 	hour = clampi(new_hour, 0, HOURS_PER_DAY - 1)
 	minute = clampi(new_minute, 0, MINUTES_PER_HOUR - 1)
+	if day != previous_day:
+		day_changed.emit(day)
+	if hour != previous_hour:
+		hour_changed.emit(day, hour)
+	minute_changed.emit(day, hour, minute)
+
+
+func advance_days(amount: int = 1, wake_hour: int = 8, wake_minute: int = 0) -> void:
+	if amount <= 0:
+		return
+	for _index in amount:
+		day += 1
+		hour = clampi(wake_hour, 0, HOURS_PER_DAY - 1)
+		minute = clampi(wake_minute, 0, MINUTES_PER_HOUR - 1)
+		_accumulator = 0.0
+		day_changed.emit(day)
+		hour_changed.emit(day, hour)
 	minute_changed.emit(day, hour, minute)
 
 

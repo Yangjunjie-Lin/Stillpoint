@@ -1,0 +1,86 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/farming/farmstead_builder.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/farming/farm_rest_spot.gd" id="4"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(40, 0.2, 40)
+
+[sub_resource type="StandardMaterial3D" id="Mat_farmland"]
+albedo_color = Color(0.38, 0.56, 0.3, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(40, 0.2, 40)
+
+[node name="RegionRoot" type="Node3D"]
+
+[node name="Environment" type="Node3D" parent="."]
+script = ExtResource("1")
+region_theme = 3
+
+[node name="Floor" type="MeshInstance3D" parent="Environment"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("Mat_farmland")
+
+[node name="StaticPhysics" type="Node3D" parent="."]
+
+[node name="FloorBody" type="StaticBody3D" parent="StaticPhysics"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticPhysics/FloorBody"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Navigation" type="Node3D" parent="."]
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="spawn" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(0, 1.2, 0)
+
+[node name="from_town" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-15, 1.2, 0)
+
+[node name="from_wilderness" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(15, 1.2, 0)
+
+[node name="EntitySpawns" type="Node3D" parent="."]
+
+[node name="StaticEntities" type="Node3D" parent="."]
+
+[node name="DynamicEntities" type="Node3D" parent="."]
+
+[node name="Interactables" type="Node3D" parent="."]
+
+[node name="Farmstead" type="Node3D" parent="Interactables"]
+position = Vector3(-4, 0, 3)
+script = ExtResource("3")
+
+[node name="RestSpot" type="Node3D" parent="Interactables"]
+position = Vector3(10, 0, 9)
+script = ExtResource("4")
+region_id = &"base:farmland"
+
+[node name="TownRoad" type="Area3D" parent="."]
+position = Vector3(-19, 0, 0)
+rotation = Vector3(0, -1.5707963, 0)
+script = ExtResource("2")
+region_id = &"base:farmland"
+target_region_id = &"base:town"
+target_spawn_id = &"from_farmland"
+route_label = "West Road to Stillpoint Town"
+
+[node name="WildernessRoad" type="Area3D" parent="."]
+position = Vector3(19, 0, 0)
+rotation = Vector3(0, 1.5707963, 0)
+script = ExtResource("2")
+region_id = &"base:farmland"
+target_region_id = &"base:wilderness"
+target_spawn_id = &"from_farm"
+route_label = "East Road to the Wilderness"
+
+[node name="LocalEffects" type="Node3D" parent="."]
+
+[node name="RegionServices" type="Node3D" parent="."]

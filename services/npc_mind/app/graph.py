@@ -20,6 +20,7 @@ NODE_TYPES = {
     "skill",
     "relationship",
     "memory",
+    "crop",
 }
 EDGE_TYPES = {
     "IS_INSTANCE_OF",
@@ -47,9 +48,21 @@ EDGE_TYPES = {
     "LOCATED_IN",
     "CONTAINS",
     "CONNECTED_TO",
+    "PORTAL_TO",
+    "HAS_SEED",
+    "PRODUCES",
+    "GROWS_IN",
 }
 
-CANONICAL_WORLD_EDGE_TYPES = {"LOCATED_IN", "CONTAINS", "CONNECTED_TO"}
+CANONICAL_WORLD_EDGE_TYPES = {
+    "LOCATED_IN",
+    "CONTAINS",
+    "CONNECTED_TO",
+    "PORTAL_TO",
+    "HAS_SEED",
+    "PRODUCES",
+    "GROWS_IN",
+}
 
 
 @dataclass(slots=True)

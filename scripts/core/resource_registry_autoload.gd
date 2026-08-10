@@ -12,6 +12,7 @@ var _dialogues: Dictionary = {}
 var _quests: Dictionary = {}
 var _regions: Dictionary = {}
 var _houses: Dictionary = {}
+var _crops: Dictionary = {}
 var _pets: Dictionary = {}
 var _mounts: Dictionary = {}
 var _schedules: Dictionary = {}
@@ -80,6 +81,10 @@ func register_region(def: RegionDefinition) -> void:
 
 func register_house(def: HouseDefinition) -> void:
 	_put(_houses, def.id if def else &"", def, "house")
+
+
+func register_crop(def: CropDefinition) -> void:
+	_put(_crops, def.id if def else &"", def, "crop")
 
 
 func register_pet(def: PetDefinition) -> void:
@@ -268,6 +273,19 @@ func get_all_house_ids() -> Array[StringName]:
 	return result
 
 
+func get_crop(id: StringName) -> CropDefinition:
+	return _crops.get(id) as CropDefinition
+
+
+func get_all_crops() -> Array[CropDefinition]:
+	var result: Array[CropDefinition] = []
+	for id in _sorted_keys(_crops):
+		var definition := _crops[id] as CropDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
 func get_pet(id: StringName) -> PetDefinition:
 	return _pets.get(id) as PetDefinition
 
@@ -309,6 +327,7 @@ func load_defaults() -> void:
 	_register_dir("res://resources/quests/", register_quest)
 	_register_dir("res://resources/regions/", register_region)
 	_register_dir("res://resources/houses/", register_house)
+	_register_dir("res://resources/crops/", register_crop)
 	_register_dir("res://resources/pets/", register_pet)
 	_register_dir("res://resources/mounts/", register_mount)
 	_register_dir("res://resources/schedules/", register_schedule)
@@ -332,6 +351,7 @@ func clear_all() -> void:
 	_quests.clear()
 	_regions.clear()
 	_houses.clear()
+	_crops.clear()
 	_pets.clear()
 	_mounts.clear()
 	_schedules.clear()
@@ -356,6 +376,7 @@ func clear_test_registrations() -> void:
 		"quests": _quests,
 		"regions": _regions,
 		"houses": _houses,
+		"crops": _crops,
 		"pets": _pets,
 		"mounts": _mounts,
 		"schedules": _schedules,
@@ -385,6 +406,7 @@ func _capture_default_keys() -> void:
 		"quests": _quests.duplicate(false),
 		"regions": _regions.duplicate(false),
 		"houses": _houses.duplicate(false),
+		"crops": _crops.duplicate(false),
 		"pets": _pets.duplicate(false),
 		"mounts": _mounts.duplicate(false),
 		"schedules": _schedules.duplicate(false),

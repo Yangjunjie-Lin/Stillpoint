@@ -29,6 +29,10 @@ const RELATION_CATEGORIES := {
 	"LOCATED_IN": "spatial",
 	"CONTAINS": "spatial",
 	"CONNECTED_TO": "spatial",
+	"PORTAL_TO": "spatial",
+	"HAS_SEED": "cultivation",
+	"PRODUCES": "cultivation",
+	"GROWS_IN": "cultivation",
 }
 
 const CATEGORY_DEFINITIONS := {
@@ -45,6 +49,7 @@ const CATEGORY_DEFINITIONS := {
 	"memory_event": {"label": "Memory/Event", "color": "#8e6e53", "actions": ["recall", "react_guard"]},
 	"exchange": {"label": "Exchange", "color": "#f1c40f", "actions": ["present_item", "thank"]},
 	"conflict": {"label": "Conflict", "color": "#c0392b", "actions": ["react_guard", "threaten"]},
+	"cultivation": {"label": "Cultivation", "color": "#6b9b45", "actions": ["work", "inspect", "present_item"]},
 }
 
 const ACTION_DEFINITIONS := {

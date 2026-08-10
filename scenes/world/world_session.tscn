@@ -157,6 +157,9 @@ text = "Region: Town"
 [node name="MoveLabel" type="Label" parent="WorldUI/VBox"]
 text = "Walk"
 
+[node name="FarmingLabel" type="Label" parent="WorldUI/VBox"]
+text = ""
+
 [node name="InteractLabel" type="Label" parent="WorldUI/VBox"]
 text = ""
 

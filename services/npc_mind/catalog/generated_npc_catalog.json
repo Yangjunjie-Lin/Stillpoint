@@ -800,6 +800,15 @@
         "color": "#c0392b",
         "label": "Conflict"
       },
+      "cultivation": {
+        "actions": [
+          "work",
+          "inspect",
+          "present_item"
+        ],
+        "color": "#6b9b45",
+        "label": "Cultivation"
+      },
       "exchange": {
         "actions": [
           "present_item",
@@ -882,6 +891,8 @@
       "EXPERIENCED": "memory_event",
       "FEARS": "preference",
       "GAVE": "exchange",
+      "GROWS_IN": "cultivation",
+      "HAS_SEED": "cultivation",
       "HAS_SKILL": "capability",
       "HELPED": "social",
       "IS_INSTANCE_OF": "identity",
@@ -892,6 +903,8 @@
       "LOCATED_IN": "spatial",
       "MEMBER_OF": "affiliation",
       "OWNS": "possession",
+      "PORTAL_TO": "spatial",
+      "PRODUCES": "cultivation",
       "PROMISED": "exchange",
       "RECEIVED": "exchange",
       "RELATED_TO": "knowledge",
@@ -937,6 +950,60 @@
         "source_id": "building:mira_apothecary",
         "source_type": "world_catalog",
         "subject_node_id": "building:mira_apothecary",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:town_east_road",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:player_farmhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_farmhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:wilderness_west_road",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:player_farmhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_farmhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:farm_rest_spot",
+        "predicate": "CONTAINS",
+        "source_id": "building:player_farmhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_farmhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:turnip_field",
+        "predicate": "CONTAINS",
+        "source_id": "building:player_farmhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_farmhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:farmland",
+        "predicate": "LOCATED_IN",
+        "source_id": "building:player_farmhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_farmhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "crop:turnip",
+        "predicate": "RELATED_TO",
+        "source_id": "building:player_farmhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_farmhouse",
         "visibility": "public"
       },
       {
@@ -1022,6 +1089,33 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "region:base:farmland",
+        "predicate": "GROWS_IN",
+        "source_id": "turnip",
+        "source_type": "world_catalog",
+        "subject_node_id": "crop:turnip",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:turnip_seed",
+        "predicate": "HAS_SEED",
+        "source_id": "turnip",
+        "source_type": "world_catalog",
+        "subject_node_id": "crop:turnip",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:turnip",
+        "predicate": "PRODUCES",
+        "source_id": "turnip",
+        "source_type": "world_catalog",
+        "subject_node_id": "crop:turnip",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "building:mira_apothecary",
         "predicate": "LIVES_IN",
         "source_id": "building:mira_apothecary",
@@ -1067,8 +1161,53 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "PORTAL_TO",
+        "source_id": "base:dungeon",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:dungeon",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "CONNECTED_TO",
+        "source_id": "base:farmland",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:farmland",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "region:base:wilderness",
         "predicate": "CONNECTED_TO",
+        "source_id": "base:farmland",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:farmland",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:farmland",
+        "predicate": "CONNECTED_TO",
+        "source_id": "base:town",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:town",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:dungeon",
+        "predicate": "PORTAL_TO",
+        "source_id": "base:town",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:town",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:wilderness",
+        "predicate": "PORTAL_TO",
         "source_id": "base:town",
         "source_type": "world_catalog",
         "subject_node_id": "region:base:town",
@@ -1085,8 +1224,17 @@
       },
       {
         "confidence": 1.0,
-        "object_node_id": "region:base:town",
+        "object_node_id": "region:base:farmland",
         "predicate": "CONNECTED_TO",
+        "source_id": "base:wilderness",
+        "source_type": "world_catalog",
+        "subject_node_id": "region:base:wilderness",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "PORTAL_TO",
         "source_id": "base:wilderness",
         "source_type": "world_catalog",
         "subject_node_id": "region:base:wilderness",
@@ -1138,6 +1286,47 @@
           "yaw_radians": -0.18
         },
         "node_id": "building:mira_apothecary",
+        "node_type": "building",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Stillpoint Farmhouse",
+        "metadata": {
+          "building_type": "farmhouse",
+          "entrance_tags": [
+            "farmyard_door",
+            "player_access"
+          ],
+          "floor_count": 1,
+          "footprint_size": [
+            5.40000009536743,
+            2.5,
+            4.40000009536743
+          ],
+          "landmark_tags": [
+            "cultivated_field",
+            "water_trough"
+          ],
+          "material_tags": [
+            "stone_foundation",
+            "timber_frame",
+            "wood_shingle_roof"
+          ],
+          "owner_npc_definition_ids": [],
+          "primary_function": "farming_and_rest",
+          "public_description": "A working farmhouse beside the continuous road between town and wilderness.",
+          "region_id": "base:farmland",
+          "resident_npc_definition_ids": [],
+          "worker_npc_definition_ids": [],
+          "world_position": [
+            10.0,
+            0.0,
+            7.0
+          ],
+          "yaw_radians": 0.0
+        },
+        "node_id": "building:player_farmhouse",
         "node_type": "building",
         "source": "world_catalog",
         "visibility": "public"
@@ -1268,6 +1457,43 @@
         "visibility": "public"
       },
       {
+        "label": "Turnip",
+        "metadata": {
+          "harvest_quantity": 2,
+          "watered_days_to_mature": 2
+        },
+        "node_id": "crop:turnip",
+        "node_type": "crop",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Turnip",
+        "metadata": {},
+        "node_id": "item:turnip",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Turnip Seed",
+        "metadata": {},
+        "node_id": "item:turnip_seed",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Farm Rest Spot",
+        "metadata": {
+          "contained_by": "building:player_farmhouse"
+        },
+        "node_id": "location:farm_rest_spot",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Guardhouse Watch Desk",
         "metadata": {
           "contained_by": "building:town_guardhouse"
@@ -1306,12 +1532,30 @@
         "visibility": "public"
       },
       {
+        "label": "Town East Road",
+        "metadata": {},
+        "node_id": "location:town_east_road",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Stillpoint Town Plaza",
         "metadata": {
           "location_type": "public_plaza",
           "region_id": "base:town"
         },
         "node_id": "location:town_plaza",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Turnip Field",
+        "metadata": {
+          "contained_by": "building:player_farmhouse"
+        },
+        "node_id": "location:turnip_field",
         "node_type": "location",
         "source": "world_catalog",
         "visibility": "public"
@@ -1327,6 +1571,14 @@
         "visibility": "public"
       },
       {
+        "label": "Wilderness West Road",
+        "metadata": {},
+        "node_id": "location:wilderness_west_road",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Abandoned Mine",
         "metadata": {
           "parent_world_id": "base:world",
@@ -1334,6 +1586,18 @@
           "region_type": "dungeon"
         },
         "node_id": "region:base:dungeon",
+        "node_type": "region",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Stillpoint Farmland",
+        "metadata": {
+          "parent_world_id": "base:world",
+          "region_id": "base:farmland",
+          "region_type": "farmland"
+        },
+        "node_id": "region:base:farmland",
         "node_type": "region",
         "source": "world_catalog",
         "visibility": "public"
