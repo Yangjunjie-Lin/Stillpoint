@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DungeonDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/dungeon_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"returning_stars_hollow"
+display_name = "Hollow of Returning Stars"
+region_id = &"base:dungeon"
+parent_region_id = &"base:wilderness"
+entrance_location_id = &"location:wardens_threshold"
+guard_definition_id = &"dungeon_warden"
+entry_level = 1
+max_depth = 3
+floor_names = ["Echo Gallery", "Lantern Web", "Fallen Star Vault"]
+boss_definition_ids = Array[StringName]([&"mossjaw", &"lantern_widow", &"fallen_star_warden"])
+lore_tags = Array[StringName]([&"ancient_mine", &"returning_bosses", &"starfall", &"adventurers_guild"])

@@ -98,11 +98,78 @@ func _build_world_ontology(registry: Node, errors: Array[String]) -> Dictionary:
 			"region_id": region_id,
 			"region_type": String(region.get("region_type")),
 			"parent_world_id": String(region.get("parent_world_id")),
+			"parent_region_id": String(region.get("parent_region_id")),
+			"dungeon_id": String(region.get("dungeon_id")),
 		})
 		for target: StringName in region.get("connected_region_ids"):
 			_add_world_edge(edges, node_id, "CONNECTED_TO", "region:%s" % String(target), region_id)
 		for target: StringName in region.get("portal_region_ids"):
 			_add_world_edge(edges, node_id, "PORTAL_TO", "region:%s" % String(target), region_id)
+	for dungeon: Variant in registry.call("get_all_dungeons"):
+		if not bool(dungeon.call("is_valid")):
+			errors.append("Invalid dungeon definition '%s'" % String(dungeon.get("id")))
+			continue
+		var data := dungeon.call("to_catalog_dict") as Dictionary
+		var dungeon_id := String(data.get("id", ""))
+		var dungeon_node := "dungeon:%s" % dungeon_id
+		var parent_region_node := "region:%s" % String(data.get("parent_region_id", ""))
+		var dungeon_region_node := "region:%s" % String(data.get("region_id", ""))
+		var entrance_node := String(data.get("entrance_location_id", ""))
+		var guard_node := "npc_definition:%s" % String(data.get("guard_definition_id", ""))
+		_add_world_node(nodes, dungeon_node, "location", String(data.get("display_name", dungeon_id)), {
+			"dungeon_id": dungeon_id,
+			"region_id": String(data.get("region_id", "")),
+			"parent_region_id": String(data.get("parent_region_id", "")),
+			"entry_level": int(data.get("entry_level", 1)),
+			"max_depth": int(data.get("max_depth", 1)),
+			"lore_tags": data.get("lore_tags", []),
+		})
+		_add_world_node(nodes, entrance_node, "location", "Warden's Threshold", {
+			"location_type": "dungeon_gate",
+			"dungeon_id": dungeon_id,
+		})
+		_add_world_node(nodes, guard_node, "npc_definition", _label_for_node(guard_node), {})
+		_add_world_edge(edges, dungeon_node, "LOCATED_IN", parent_region_node, dungeon_id)
+		_add_world_edge(edges, dungeon_node, "RELATED_TO", dungeon_region_node, dungeon_id)
+		_add_world_edge(edges, entrance_node, "LOCATED_IN", parent_region_node, dungeon_id)
+		_add_world_edge(edges, entrance_node, "CONNECTED_TO", dungeon_node, dungeon_id)
+		_add_world_edge(edges, entrance_node, "GUARDED_BY", guard_node, dungeon_id)
+		var floor_names: Array = data.get("floor_names", [])
+		for index in floor_names.size():
+			var depth := index + 1
+			var floor_node := "location:%s:depth_%d" % [dungeon_id, depth]
+			var required_level: int = int([1, 3, 5][mini(index, 2)])
+			var level_node := "concept:combat_level_%d" % required_level
+			_add_world_node(nodes, floor_node, "location", String(floor_names[index]), {
+				"dungeon_id": dungeon_id,
+				"depth": depth,
+				"required_level": required_level,
+			})
+			_add_world_node(nodes, level_node, "concept", "Combat Level %d" % required_level, {})
+			_add_world_edge(edges, dungeon_node, "HAS_DEPTH", floor_node, dungeon_id)
+			_add_world_edge(edges, floor_node, "REQUIRES_LEVEL", level_node, dungeon_id)
+		var boss_ids: Array = data.get("boss_definition_ids", [])
+		for boss_id_variant in boss_ids:
+			var boss_id := StringName(str(boss_id_variant))
+			var boss: Variant = registry.call("get_npc", boss_id)
+			if boss == null or String(boss.get("dungeon_boss_id")).is_empty():
+				errors.append("Dungeon '%s' references invalid boss '%s'" % [dungeon_id, String(boss_id)])
+				continue
+			var boss_node := "npc_definition:%s" % String(boss_id)
+			var depth := int(boss.get("dungeon_depth"))
+			var floor_node := "location:%s:depth_%d" % [dungeon_id, depth]
+			var respawn_node := "concept:respawn_days_%d" % int(boss.get("dungeon_respawn_days"))
+			_add_world_node(nodes, boss_node, "npc_definition", String(boss.get("display_name")), {
+				"boss_id": String(boss.get("dungeon_boss_id")),
+				"depth": depth,
+				"required_level": int(boss.get("dungeon_required_level")),
+				"respawn_days": int(boss.get("dungeon_respawn_days")),
+				"phase": String(boss.get("dungeon_phase")),
+			})
+			_add_world_node(nodes, respawn_node, "concept", "%d Day Return Cycle" % int(boss.get("dungeon_respawn_days")), {})
+			_add_world_edge(edges, dungeon_node, "HAS_BOSS", boss_node, dungeon_id)
+			_add_world_edge(edges, boss_node, "LOCATED_IN", floor_node, dungeon_id)
+			_add_world_edge(edges, boss_node, "RESPAWNS_AFTER", respawn_node, dungeon_id)
 	for crop: Variant in registry.call("get_all_crops"):
 		if not bool(crop.call("is_valid")):
 			errors.append("Invalid crop definition '%s'" % String(crop.get("id")))

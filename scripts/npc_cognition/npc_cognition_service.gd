@@ -106,6 +106,7 @@ func build_turn_payload(npc: NPCController, text: String) -> Dictionary:
 		"world_context": {
 			"region_id": String(npc.region_id),
 			"game_time": WorldTimeService.to_dict(),
+			"visible_entity_ids": _visible_knowledge_roots(npc, persistent_id),
 		},
 	}
 	var player := _session_context.player if _session_context != null else null
@@ -115,6 +116,33 @@ func build_turn_payload(npc: NPCController, text: String) -> Dictionary:
 	if not player_ontology.is_empty():
 		payload["player_ontology"] = player_ontology
 	return payload
+
+
+func _visible_knowledge_roots(npc: NPCController, persistent_id: StringName) -> Array[String]:
+	var result: Array[String] = [
+		"npc_instance:%s" % String(persistent_id),
+		"region:%s" % String(RegionIdUtil.normalize(npc.region_id)),
+		"player:current",
+	]
+	var mind := npc.npc_definition.mind_profile if npc.npc_definition != null else null
+	if mind != null:
+		for seed in mind.knowledge_seeds:
+			if seed != null and not result.has(String(seed.node_id)):
+				result.append(String(seed.node_id))
+	if _session_context != null and _session_context.entity_repository != null:
+		for entity in _session_context.entity_repository.get_loaded_entities_in_region(npc.region_id):
+			if entity == npc or not entity is Node3D:
+				continue
+			if npc.global_position.distance_to((entity as Node3D).global_position) > npc.npc_definition.witness_radius:
+				continue
+			var identity := (entity as Node).get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
+			if identity != null and identity.persistent_id != &"":
+				var node_id := "npc_instance:%s" % String(identity.persistent_id)
+				if not result.has(node_id):
+					result.append(node_id)
+			if result.size() >= 32:
+				break
+	return result
 
 func sync_pending() -> bool:
 	var cache := save_provider.cache

@@ -54,6 +54,11 @@ EDGE_TYPES = {
     "PRODUCES",
     "GROWS_IN",
     "OPENED_BY",
+    "HAS_DEPTH",
+    "HAS_BOSS",
+    "GUARDED_BY",
+    "REQUIRES_LEVEL",
+    "RESPAWNS_AFTER",
 }
 
 CANONICAL_WORLD_EDGE_TYPES = {
@@ -65,6 +70,11 @@ CANONICAL_WORLD_EDGE_TYPES = {
     "PRODUCES",
     "GROWS_IN",
     "OPENED_BY",
+    "HAS_DEPTH",
+    "HAS_BOSS",
+    "GUARDED_BY",
+    "REQUIRES_LEVEL",
+    "RESPAWNS_AFTER",
 }
 
 

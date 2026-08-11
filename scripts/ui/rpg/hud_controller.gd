@@ -52,10 +52,19 @@ func _process(_delta: float) -> void:
 			if _world.current_region_id == &"base:farmland" else ""
 		)
 	if dungeon_label != null:
-		dungeon_label.text = (
-			"Dungeon: %d enemies remain · defeat them for XP and equipment" % _living_dungeon_enemies()
-			if _world.current_region_id == &"base:dungeon" else ""
-		)
+		if _world.current_region_id == &"base:dungeon":
+			var dungeon_name := "Hollow of Returning Stars"
+			var dungeon := ResourceRegistry.get_dungeon(&"returning_stars_hollow")
+			if dungeon != null:
+				dungeon_name = dungeon.display_name
+			var boss_status := _world.dungeon_progression_service.get_boss_status_line()
+			dungeon_label.text = "%s: %d enemies · %s" % [
+				dungeon_name,
+				_living_dungeon_enemies(),
+				boss_status,
+			]
+		else:
+			dungeon_label.text = ""
 	if not _dialogue_open():
 		interact_label.text = player.get_interaction_prompt()
 	_update_hotbar(player)

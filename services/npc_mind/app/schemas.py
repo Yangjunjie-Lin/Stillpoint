@@ -173,6 +173,7 @@ class ConversationResponse(BaseModel):
     memory_citations: list[str] = Field(default_factory=list)
     memory_write_ids: list[str] = Field(default_factory=list)
     memory_writes: list[dict[str, Any]] = Field(default_factory=list)
+    knowledge_updates: list[dict[str, Any]] = Field(default_factory=list)
     proposed_intents: list[ProposedIntent] = Field(default_factory=list)
     usage: dict[str, int] = Field(default_factory=lambda: {"input_tokens": 0, "output_tokens": 0})
     degraded: bool = False

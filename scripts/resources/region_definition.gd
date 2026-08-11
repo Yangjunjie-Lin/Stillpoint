@@ -6,6 +6,8 @@ extends Resource
 @export var scene: PackedScene
 @export var region_type: StringName = &"outdoor"
 @export var parent_world_id: StringName = &"base:world"
+@export var parent_region_id: StringName = &""
+@export var dungeon_id: StringName = &""
 @export var connected_region_ids: Array[StringName] = []
 @export var portal_region_ids: Array[StringName] = []
 @export var allowed_mount_tags: Array[StringName] = []

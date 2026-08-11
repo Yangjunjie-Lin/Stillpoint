@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/npc_definition.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/dialogues/dungeon_warden_gate.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/npcs/dungeon_warden_mind.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = &"dungeon_warden"
+display_name = "Warden Aster"
+faction_id = &"adventurers"
+default_disposition = &"friendly"
+max_health = 180.0
+max_energy = 120.0
+walk_speed = 2.8
+run_speed = 5.5
+default_dialogue = ExtResource("2")
+can_be_attacked = true
+can_be_killed = false
+npc_role = &"guard"
+home_region_id = &"base:wilderness"
+witness_radius = 16.0
+mind_profile = ExtResource("3")

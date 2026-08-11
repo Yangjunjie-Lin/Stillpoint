@@ -11,6 +11,7 @@ var _items: Dictionary = {}
 var _dialogues: Dictionary = {}
 var _quests: Dictionary = {}
 var _regions: Dictionary = {}
+var _dungeons: Dictionary = {}
 var _houses: Dictionary = {}
 var _containers: Dictionary = {}
 var _crops: Dictionary = {}
@@ -78,6 +79,10 @@ func register_region(def: RegionDefinition) -> void:
 				_regions[&"wilderness"] = def
 			"base:dungeon":
 				_regions[&"dungeon"] = def
+
+
+func register_dungeon(def: DungeonDefinition) -> void:
+	_put(_dungeons, def.id if def else &"", def, "dungeon")
 
 
 func register_house(def: HouseDefinition) -> void:
@@ -236,6 +241,19 @@ func get_region(id: StringName) -> RegionDefinition:
 	return _regions.get(id) as RegionDefinition
 
 
+func get_dungeon(id: StringName) -> DungeonDefinition:
+	return _dungeons.get(id) as DungeonDefinition
+
+
+func get_all_dungeons() -> Array[DungeonDefinition]:
+	var result: Array[DungeonDefinition] = []
+	for id in _sorted_keys(_dungeons):
+		var definition := _dungeons[id] as DungeonDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
 func get_all_regions() -> Array[RegionDefinition]:
 	var result: Array[RegionDefinition] = []
 	var seen: Dictionary = {}
@@ -364,6 +382,7 @@ func load_defaults() -> void:
 	_register_dir("res://resources/dialogues/", register_dialogue)
 	_register_dir("res://resources/quests/", register_quest)
 	_register_dir("res://resources/regions/", register_region)
+	_register_dir("res://resources/dungeons/", register_dungeon)
 	_register_dir("res://resources/houses/", register_house)
 	_register_dir("res://resources/containers/", register_container)
 	_register_dir("res://resources/crops/", register_crop)
@@ -389,6 +408,7 @@ func clear_all() -> void:
 	_dialogues.clear()
 	_quests.clear()
 	_regions.clear()
+	_dungeons.clear()
 	_houses.clear()
 	_containers.clear()
 	_crops.clear()
@@ -415,6 +435,7 @@ func clear_test_registrations() -> void:
 		"dialogues": _dialogues,
 		"quests": _quests,
 		"regions": _regions,
+		"dungeons": _dungeons,
 		"houses": _houses,
 		"containers": _containers,
 		"crops": _crops,
@@ -446,6 +467,7 @@ func _capture_default_keys() -> void:
 		"dialogues": _dialogues.duplicate(false),
 		"quests": _quests.duplicate(false),
 		"regions": _regions.duplicate(false),
+		"dungeons": _dungeons.duplicate(false),
 		"houses": _houses.duplicate(false),
 		"containers": _containers.duplicate(false),
 		"crops": _crops.duplicate(false),

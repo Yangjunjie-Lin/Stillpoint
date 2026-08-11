@@ -207,6 +207,44 @@ func resolve_entity_region(entity: Node) -> StringName:
 	return RegionIdUtil.normalize(_current_region_id)
 
 
+func respawn_authored_actor(persistent_id: StringName) -> CharacterController:
+	## Recreates one authored spawn after a timed-reset service clears its death.
+	if _current_region_root == null or _actor_factory == null or _entity_repository == null:
+		return null
+	var existing := _entity_repository.get_loaded_entity(persistent_id)
+	if existing is CharacterController:
+		return existing as CharacterController
+	var marker := _find_spawn_marker_for(persistent_id)
+	if marker == null or marker.spawn_definition == null:
+		return null
+	_entity_repository.clear_snapshot(persistent_id)
+	var definition := marker.spawn_definition
+	var context := ActorSpawnContext.new()
+	context.definition_id = definition.definition_id
+	context.persistent_id = definition.persistent_id
+	context.region_id = _current_region_id
+	context.parent = _get_entity_parent()
+	context.transform = marker.global_transform
+	var actor := _actor_factory.spawn_actor(definition.definition_id, context)
+	_register_entity_tree(actor, _current_region_id, true)
+	return actor
+
+
+func _find_spawn_marker_for(persistent_id: StringName) -> EntitySpawnMarker:
+	if _current_region_root == null:
+		return null
+	var spawns := _current_region_root.get_node_or_null("EntitySpawns")
+	if spawns == null:
+		return null
+	for child in spawns.get_children():
+		if child is EntitySpawnMarker:
+			var marker := child as EntitySpawnMarker
+			if marker.spawn_definition != null \
+				and marker.spawn_definition.persistent_id == persistent_id:
+				return marker
+	return null
+
+
 func _unload_current_region() -> void:
 	if _current_region_id == &"":
 		return

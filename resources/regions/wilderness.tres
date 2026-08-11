@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1")
 id = &"base:wilderness"
-display_name = "Forest Wilderness"
+display_name = "Greywake Wilds"
 region_type = &"wilderness"
 parent_world_id = &"base:world"
 connected_region_ids = Array[StringName]([&"base:farmland", &"base:dungeon"])

@@ -1,7 +1,7 @@
 {
   "catalog_version": 4,
   "game_version": "0.8.0",
-  "npc_count": 3,
+  "npc_count": 7,
   "npcs": [
     {
       "belief_seeds": [],
@@ -206,6 +206,334 @@
         "self_interest"
       ],
       "witness_radius": 12.0
+    },
+    {
+      "belief_seeds": [],
+      "biography": [
+        "Aster keeps the public threshold ledger and listens to returning adventurers."
+      ],
+      "cognitive_skills": [
+        {
+          "allowed_tool_ids": [],
+          "description": "Checks combat readiness and routes adventurers to a permitted depth.",
+          "display_name": "Threshold Routing",
+          "domain_tags": [
+            "dungeon",
+            "routes"
+          ],
+          "id": "threshold_routing",
+          "knowledge_node_ids": [
+            "location:wardens_threshold",
+            "dungeon:returning_stars_hollow"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.94,
+          "response_constraints": []
+        }
+      ],
+      "definition_id": "dungeon_warden",
+      "display_name": "Warden Aster",
+      "goals": [],
+      "id": "dungeon_warden_mind",
+      "identity": {
+        "age_group": "adult",
+        "aliases": [],
+        "birth_region_id": "",
+        "canonical_name": "Aster",
+        "cultural_background": "",
+        "faction_ids": [
+          "adventurers"
+        ],
+        "gender_identity": "unspecified",
+        "home_region_id": "base:wilderness",
+        "languages": [
+          "common"
+        ],
+        "occupation": "dungeon_warden",
+        "private_description": "Aster knows official entry rules and only the reports personally witnessed or told to him.",
+        "public_description": "The sworn guard of the Hollow of Returning Stars.",
+        "social_role": "threshold_guard",
+        "species": "human"
+      },
+      "knowledge_seeds": [
+        {
+          "confidence": 1.0,
+          "content": "Aster guards the Warden's Threshold in the Greywake Wilds.",
+          "domain_tags": [
+            "dungeon",
+            "entry"
+          ],
+          "node_id": "location:wardens_threshold",
+          "node_type": "location",
+          "source_id": "dungeon_warden",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "The Hollow has three charted depths with level-gated travel and returning guardians.",
+          "domain_tags": [
+            "dungeon",
+            "routes",
+            "bosses"
+          ],
+          "node_id": "dungeon:returning_stars_hollow",
+          "node_type": "location",
+          "source_id": "dungeon_warden",
+          "source_type": "authored",
+          "visibility": "public"
+        }
+      ],
+      "linked_gameplay_skill_ids": [],
+      "memory_policy": {
+        "default_half_life_hours": 720.0,
+        "graph_depth": 2,
+        "high_salience_half_life_hours": 17520.0,
+        "max_output_tokens": 400,
+        "prompt_token_budget": 2400,
+        "recent_turn_limit": 8,
+        "retrieval_limit": 10,
+        "weights": {
+          "goal": 0.1,
+          "graph": 0.1,
+          "recency": 0.1,
+          "reinforcement": 0.05,
+          "relationship": 0.1,
+          "salience": 0.15,
+          "semantic": 0.4
+        }
+      },
+      "personality": {
+        "agreeableness": 0.58,
+        "conscientiousness": 0.92,
+        "courage": 0.9,
+        "curiosity": 0.45,
+        "emotional_stability": 0.88,
+        "empathy": 0.5,
+        "extraversion": 0.5,
+        "greed": 0.5,
+        "honesty": 0.9,
+        "humor": 0.5,
+        "openness": 0.5,
+        "patience": 0.78
+      },
+      "relationship_seeds": [],
+      "speech_style": {
+        "dialect_notes": "Measured and exact; distinguishes official records, eyewitness reports, and rumor.",
+        "emotional_expressions": [],
+        "farewell_patterns": [
+          "Return alive, and report what you learn."
+        ],
+        "forbidden_terms": [],
+        "formality": 0.72,
+        "greeting_patterns": [
+          "State your intended depth, traveler."
+        ],
+        "preferred_terms": [
+          "threshold",
+          "depth",
+          "report",
+          "return"
+        ],
+        "sentence_length": "short",
+        "verbosity": 0.38
+      },
+      "system_prompt_addendum": "Never claim knowledge of unseen floors, private conversations, or a boss return unless it appears in Aster's authored knowledge, witnessed events, or told memories.",
+      "taboos": [],
+      "values": [
+        "duty",
+        "evidence",
+        "survival"
+      ],
+      "witness_radius": 16.0
+    },
+    {
+      "belief_seeds": [],
+      "biography": [],
+      "cognitive_skills": [],
+      "definition_id": "fallen_star_warden",
+      "display_name": "Orryx, Fallen-Star Warden",
+      "goals": [],
+      "id": "fallen_star_warden_mind",
+      "identity": {
+        "age_group": "adult",
+        "aliases": [],
+        "birth_region_id": "",
+        "canonical_name": "Orryx, Fallen-Star Warden",
+        "cultural_background": "",
+        "faction_ids": [],
+        "gender_identity": "unspecified",
+        "home_region_id": "base:dungeon",
+        "languages": [
+          "common"
+        ],
+        "occupation": "vault_warden",
+        "private_description": "",
+        "public_description": "An ancient construct bound to the Fallen Star Vault.",
+        "social_role": "third_depth_boss",
+        "species": "starforged_construct"
+      },
+      "knowledge_seeds": [
+        {
+          "confidence": 1.0,
+          "content": "Orryx knows the Fallen Star Vault and its binding directive.",
+          "domain_tags": [
+            "dungeon",
+            "vault"
+          ],
+          "node_id": "location:returning_stars_hollow:depth_3",
+          "node_type": "location",
+          "source_id": "fallen_star_warden",
+          "source_type": "authored",
+          "visibility": "public"
+        }
+      ],
+      "linked_gameplay_skill_ids": [],
+      "memory_policy": {
+        "default_half_life_hours": 1440.0,
+        "graph_depth": 2,
+        "high_salience_half_life_hours": 8760.0,
+        "max_output_tokens": 400,
+        "prompt_token_budget": 2400,
+        "recent_turn_limit": 6,
+        "retrieval_limit": 8,
+        "weights": {
+          "goal": 0.1,
+          "graph": 0.1,
+          "recency": 0.1,
+          "reinforcement": 0.05,
+          "relationship": 0.1,
+          "salience": 0.15,
+          "semantic": 0.4
+        }
+      },
+      "personality": {
+        "agreeableness": 0.12,
+        "conscientiousness": 0.98,
+        "courage": 0.98,
+        "curiosity": 0.5,
+        "emotional_stability": 0.96,
+        "empathy": 0.5,
+        "extraversion": 0.5,
+        "greed": 0.5,
+        "honesty": 0.84,
+        "humor": 0.5,
+        "openness": 0.25,
+        "patience": 0.94
+      },
+      "relationship_seeds": [],
+      "speech_style": {
+        "dialect_notes": "Ceremonial and literal; distinguishes stored directives from newly learned reports.",
+        "emotional_expressions": [],
+        "farewell_patterns": [],
+        "forbidden_terms": [],
+        "formality": 0.9,
+        "greeting_patterns": [],
+        "preferred_terms": [],
+        "sentence_length": "short",
+        "verbosity": 0.26
+      },
+      "system_prompt_addendum": "Know only the Fallen Star Vault, authored directives, direct observations, and information told to this persistent instance.",
+      "taboos": [],
+      "values": [
+        "duty",
+        "containment"
+      ],
+      "witness_radius": 20.0
+    },
+    {
+      "belief_seeds": [],
+      "biography": [],
+      "cognitive_skills": [],
+      "definition_id": "lantern_widow",
+      "display_name": "Veyra, the Lantern Widow",
+      "goals": [],
+      "id": "lantern_widow_mind",
+      "identity": {
+        "age_group": "adult",
+        "aliases": [],
+        "birth_region_id": "",
+        "canonical_name": "Veyra, the Lantern Widow",
+        "cultural_background": "",
+        "faction_ids": [],
+        "gender_identity": "unspecified",
+        "home_region_id": "base:dungeon",
+        "languages": [
+          "common"
+        ],
+        "occupation": "dungeon_guardian",
+        "private_description": "",
+        "public_description": "A luminous web-mother haunting the Lantern Web.",
+        "social_role": "second_depth_boss",
+        "species": "lumen_arachnid"
+      },
+      "knowledge_seeds": [
+        {
+          "confidence": 1.0,
+          "content": "Veyra knows the Lantern Web through vibrations and direct encounters.",
+          "domain_tags": [
+            "dungeon",
+            "territory"
+          ],
+          "node_id": "location:returning_stars_hollow:depth_2",
+          "node_type": "location",
+          "source_id": "lantern_widow",
+          "source_type": "authored",
+          "visibility": "public"
+        }
+      ],
+      "linked_gameplay_skill_ids": [],
+      "memory_policy": {
+        "default_half_life_hours": 504.0,
+        "graph_depth": 2,
+        "high_salience_half_life_hours": 8760.0,
+        "max_output_tokens": 400,
+        "prompt_token_budget": 2400,
+        "recent_turn_limit": 5,
+        "retrieval_limit": 7,
+        "weights": {
+          "goal": 0.1,
+          "graph": 0.1,
+          "recency": 0.1,
+          "reinforcement": 0.05,
+          "relationship": 0.1,
+          "salience": 0.15,
+          "semantic": 0.4
+        }
+      },
+      "personality": {
+        "agreeableness": 0.08,
+        "conscientiousness": 0.82,
+        "courage": 0.86,
+        "curiosity": 0.66,
+        "emotional_stability": 0.8,
+        "empathy": 0.5,
+        "extraversion": 0.5,
+        "greed": 0.5,
+        "honesty": 0.5,
+        "humor": 0.5,
+        "openness": 0.48,
+        "patience": 0.84
+      },
+      "relationship_seeds": [],
+      "speech_style": {
+        "dialect_notes": "Quiet, predatory, and metaphorical; never claims sight beyond her web.",
+        "emotional_expressions": [],
+        "farewell_patterns": [],
+        "forbidden_terms": [],
+        "formality": 0.42,
+        "greeting_patterns": [],
+        "preferred_terms": [],
+        "sentence_length": "short",
+        "verbosity": 0.2
+      },
+      "system_prompt_addendum": "Know only the Lantern Web, direct observations, and information explicitly told to this persistent instance.",
+      "taboos": [],
+      "values": [
+        "brood",
+        "territory"
+      ],
+      "witness_radius": 18.0
     },
     {
       "belief_seeds": [],
@@ -477,6 +805,100 @@
         "honesty"
       ],
       "witness_radius": 12.0
+    },
+    {
+      "belief_seeds": [],
+      "biography": [],
+      "cognitive_skills": [],
+      "definition_id": "mossjaw",
+      "display_name": "Mossjaw, the Buried Fang",
+      "goals": [],
+      "id": "mossjaw_mind",
+      "identity": {
+        "age_group": "adult",
+        "aliases": [],
+        "birth_region_id": "",
+        "canonical_name": "Mossjaw",
+        "cultural_background": "",
+        "faction_ids": [],
+        "gender_identity": "unspecified",
+        "home_region_id": "base:dungeon",
+        "languages": [
+          "common"
+        ],
+        "occupation": "dungeon_guardian",
+        "private_description": "",
+        "public_description": "A root-armored beast guarding the Echo Gallery.",
+        "social_role": "first_depth_boss",
+        "species": "root_beast"
+      },
+      "knowledge_seeds": [
+        {
+          "confidence": 1.0,
+          "content": "Mossjaw knows only the Echo Gallery and threats it has directly sensed.",
+          "domain_tags": [
+            "dungeon",
+            "territory"
+          ],
+          "node_id": "location:returning_stars_hollow:depth_1",
+          "node_type": "location",
+          "source_id": "mossjaw",
+          "source_type": "authored",
+          "visibility": "public"
+        }
+      ],
+      "linked_gameplay_skill_ids": [],
+      "memory_policy": {
+        "default_half_life_hours": 336.0,
+        "graph_depth": 2,
+        "high_salience_half_life_hours": 8760.0,
+        "max_output_tokens": 400,
+        "prompt_token_budget": 2400,
+        "recent_turn_limit": 3,
+        "retrieval_limit": 5,
+        "weights": {
+          "goal": 0.1,
+          "graph": 0.1,
+          "recency": 0.1,
+          "reinforcement": 0.05,
+          "relationship": 0.1,
+          "salience": 0.15,
+          "semantic": 0.4
+        }
+      },
+      "personality": {
+        "agreeableness": 0.05,
+        "conscientiousness": 0.7,
+        "courage": 0.9,
+        "curiosity": 0.5,
+        "emotional_stability": 0.72,
+        "empathy": 0.5,
+        "extraversion": 0.5,
+        "greed": 0.5,
+        "honesty": 0.5,
+        "humor": 0.5,
+        "openness": 0.12,
+        "patience": 0.3
+      },
+      "relationship_seeds": [],
+      "speech_style": {
+        "dialect_notes": "Communicates in territorial growls and fragmentary words.",
+        "emotional_expressions": [],
+        "farewell_patterns": [],
+        "forbidden_terms": [],
+        "formality": 0.0,
+        "greeting_patterns": [],
+        "preferred_terms": [],
+        "sentence_length": "short",
+        "verbosity": 0.05
+      },
+      "system_prompt_addendum": "Know only the Echo Gallery, direct observations, and information explicitly told during this instance's conversations.",
+      "taboos": [],
+      "values": [
+        "territory",
+        "survival"
+      ],
+      "witness_radius": 14.0
     },
     {
       "belief_seeds": [],
@@ -892,6 +1314,9 @@
       "FEARS": "preference",
       "GAVE": "exchange",
       "GROWS_IN": "cultivation",
+      "GUARDED_BY": "affiliation",
+      "HAS_BOSS": "conflict",
+      "HAS_DEPTH": "spatial",
       "HAS_SEED": "cultivation",
       "HAS_SKILL": "capability",
       "HELPED": "social",
@@ -909,6 +1334,8 @@
       "PROMISED": "exchange",
       "RECEIVED": "exchange",
       "RELATED_TO": "knowledge",
+      "REQUIRES_LEVEL": "capability",
+      "RESPAWNS_AFTER": "memory_event",
       "TRUSTS": "social",
       "WITNESSED": "memory_event",
       "WORKS_AT": "vocation"
@@ -1288,6 +1715,168 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "npc_definition:fallen_star_warden",
+        "predicate": "HAS_BOSS",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "dungeon:returning_stars_hollow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "npc_definition:lantern_widow",
+        "predicate": "HAS_BOSS",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "dungeon:returning_stars_hollow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "npc_definition:mossjaw",
+        "predicate": "HAS_BOSS",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "dungeon:returning_stars_hollow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:returning_stars_hollow:depth_1",
+        "predicate": "HAS_DEPTH",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "dungeon:returning_stars_hollow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:returning_stars_hollow:depth_2",
+        "predicate": "HAS_DEPTH",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "dungeon:returning_stars_hollow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:returning_stars_hollow:depth_3",
+        "predicate": "HAS_DEPTH",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "dungeon:returning_stars_hollow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:wilderness",
+        "predicate": "LOCATED_IN",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "dungeon:returning_stars_hollow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:dungeon",
+        "predicate": "RELATED_TO",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "dungeon:returning_stars_hollow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:combat_level_1",
+        "predicate": "REQUIRES_LEVEL",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "location:returning_stars_hollow:depth_1",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:combat_level_3",
+        "predicate": "REQUIRES_LEVEL",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "location:returning_stars_hollow:depth_2",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:combat_level_5",
+        "predicate": "REQUIRES_LEVEL",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "location:returning_stars_hollow:depth_3",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "dungeon:returning_stars_hollow",
+        "predicate": "CONNECTED_TO",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "location:wardens_threshold",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "npc_definition:dungeon_warden",
+        "predicate": "GUARDED_BY",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "location:wardens_threshold",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:wilderness",
+        "predicate": "LOCATED_IN",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "location:wardens_threshold",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:returning_stars_hollow:depth_3",
+        "predicate": "LOCATED_IN",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:fallen_star_warden",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:respawn_days_7",
+        "predicate": "RESPAWNS_AFTER",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:fallen_star_warden",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:returning_stars_hollow:depth_2",
+        "predicate": "LOCATED_IN",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:lantern_widow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:respawn_days_5",
+        "predicate": "RESPAWNS_AFTER",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:lantern_widow",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "building:mira_apothecary",
         "predicate": "LIVES_IN",
         "source_id": "building:mira_apothecary",
@@ -1311,6 +1900,24 @@
         "source_id": "building:mira_apothecary",
         "source_type": "world_catalog",
         "subject_node_id": "npc_definition:mira",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:returning_stars_hollow:depth_1",
+        "predicate": "LOCATED_IN",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:mossjaw",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:respawn_days_3",
+        "predicate": "RESPAWNS_AFTER",
+        "source_id": "returning_stars_hollow",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:mossjaw",
         "visibility": "public"
       },
       {
@@ -1813,6 +2420,54 @@
         "visibility": "public"
       },
       {
+        "label": "Combat Level 1",
+        "metadata": {},
+        "node_id": "concept:combat_level_1",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Combat Level 3",
+        "metadata": {},
+        "node_id": "concept:combat_level_3",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Combat Level 5",
+        "metadata": {},
+        "node_id": "concept:combat_level_5",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "3 Day Return Cycle",
+        "metadata": {},
+        "node_id": "concept:respawn_days_3",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "5 Day Return Cycle",
+        "metadata": {},
+        "node_id": "concept:respawn_days_5",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "7 Day Return Cycle",
+        "metadata": {},
+        "node_id": "concept:respawn_days_7",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Town Supply Chest",
         "metadata": {
           "access_modes": [
@@ -1882,6 +2537,26 @@
         },
         "node_id": "crop:turnip",
         "node_type": "crop",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Hollow of Returning Stars",
+        "metadata": {
+          "dungeon_id": "returning_stars_hollow",
+          "entry_level": 1,
+          "lore_tags": [
+            "ancient_mine",
+            "returning_bosses",
+            "starfall",
+            "adventurers_guild"
+          ],
+          "max_depth": 3,
+          "parent_region_id": "base:wilderness",
+          "region_id": "base:dungeon"
+        },
+        "node_id": "dungeon:returning_stars_hollow",
+        "node_type": "location",
         "source": "world_catalog",
         "visibility": "public"
       },
@@ -1996,6 +2671,42 @@
         "visibility": "public"
       },
       {
+        "label": "Echo Gallery",
+        "metadata": {
+          "depth": 1,
+          "dungeon_id": "returning_stars_hollow",
+          "required_level": 1
+        },
+        "node_id": "location:returning_stars_hollow:depth_1",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Lantern Web",
+        "metadata": {
+          "depth": 2,
+          "dungeon_id": "returning_stars_hollow",
+          "required_level": 3
+        },
+        "node_id": "location:returning_stars_hollow:depth_2",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Fallen Star Vault",
+        "metadata": {
+          "depth": 3,
+          "dungeon_id": "returning_stars_hollow",
+          "required_level": 5
+        },
+        "node_id": "location:returning_stars_hollow:depth_3",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Storehouse Loading Bay",
         "metadata": {
           "contained_by": "building:town_storehouse"
@@ -2035,6 +2746,17 @@
         "visibility": "public"
       },
       {
+        "label": "Warden's Threshold",
+        "metadata": {
+          "dungeon_id": "returning_stars_hollow",
+          "location_type": "dungeon_gate"
+        },
+        "node_id": "location:wardens_threshold",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Wayfarer Inn Common Room",
         "metadata": {
           "contained_by": "building:wayfarer_inn"
@@ -2053,8 +2775,60 @@
         "visibility": "public"
       },
       {
-        "label": "Abandoned Mine",
+        "label": "Dungeon Warden",
+        "metadata": {},
+        "node_id": "npc_definition:dungeon_warden",
+        "node_type": "npc_definition",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Orryx, Fallen-Star Warden",
         "metadata": {
+          "boss_id": "fallen_star_warden",
+          "depth": 3,
+          "phase": "starfall_judgement",
+          "required_level": 5,
+          "respawn_days": 7
+        },
+        "node_id": "npc_definition:fallen_star_warden",
+        "node_type": "npc_definition",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Veyra, the Lantern Widow",
+        "metadata": {
+          "boss_id": "lantern_widow",
+          "depth": 2,
+          "phase": "lumen_web",
+          "required_level": 3,
+          "respawn_days": 5
+        },
+        "node_id": "npc_definition:lantern_widow",
+        "node_type": "npc_definition",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Mossjaw, the Buried Fang",
+        "metadata": {
+          "boss_id": "mossjaw",
+          "depth": 1,
+          "phase": "rootbound_bite",
+          "required_level": 1,
+          "respawn_days": 3
+        },
+        "node_id": "npc_definition:mossjaw",
+        "node_type": "npc_definition",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Hollow of Returning Stars",
+        "metadata": {
+          "dungeon_id": "returning_stars_hollow",
+          "parent_region_id": "base:wilderness",
           "parent_world_id": "base:world",
           "region_id": "base:dungeon",
           "region_type": "dungeon"
@@ -2067,6 +2841,8 @@
       {
         "label": "Stillpoint Farmland",
         "metadata": {
+          "dungeon_id": "",
+          "parent_region_id": "",
           "parent_world_id": "base:world",
           "region_id": "base:farmland",
           "region_type": "farmland"
@@ -2079,6 +2855,8 @@
       {
         "label": "Private Residence",
         "metadata": {
+          "dungeon_id": "",
+          "parent_region_id": "",
           "parent_world_id": "base:world",
           "region_id": "base:player_home",
           "region_type": "private_interior"
@@ -2091,6 +2869,8 @@
       {
         "label": "Stillpoint Town",
         "metadata": {
+          "dungeon_id": "",
+          "parent_region_id": "",
           "parent_world_id": "base:world",
           "region_id": "base:town",
           "region_type": "town"
@@ -2101,8 +2881,10 @@
         "visibility": "public"
       },
       {
-        "label": "Forest Wilderness",
+        "label": "Greywake Wilds",
         "metadata": {
+          "dungeon_id": "",
+          "parent_region_id": "",
           "parent_world_id": "base:world",
           "region_id": "base:wilderness",
           "region_type": "wilderness"

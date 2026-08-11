@@ -1,0 +1,83 @@
+[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/dialogue_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_node.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_choice.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/player_level_condition.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/gameplay/effects/dungeon_travel_effect.gd" id="5"]
+
+[sub_resource type="Resource" id="Level1"]
+script = ExtResource("4")
+minimum_level = 1
+
+[sub_resource type="Resource" id="Level3"]
+script = ExtResource("4")
+minimum_level = 3
+
+[sub_resource type="Resource" id="Level5"]
+script = ExtResource("4")
+minimum_level = 5
+
+[sub_resource type="Resource" id="Travel1"]
+script = ExtResource("5")
+required_success = true
+effect_id = &"travel_depth_1"
+depth = 1
+
+[sub_resource type="Resource" id="Travel2"]
+script = ExtResource("5")
+required_success = true
+effect_id = &"travel_depth_2"
+depth = 2
+
+[sub_resource type="Resource" id="Travel3"]
+script = ExtResource("5")
+required_success = true
+effect_id = &"travel_depth_3"
+depth = 3
+
+[sub_resource type="Resource" id="ChoiceDepth1"]
+script = ExtResource("3")
+text = "Enter the Echo Gallery (Level 1)"
+conditions = Array[ExtResource("4")]([SubResource("Level1")])
+effects = Array[ExtResource("5")]([SubResource("Travel1")])
+
+[sub_resource type="Resource" id="ChoiceDepth2"]
+script = ExtResource("3")
+text = "Descend to the Lantern Web (Level 3)"
+conditions = Array[ExtResource("4")]([SubResource("Level3")])
+effects = Array[ExtResource("5")]([SubResource("Travel2")])
+
+[sub_resource type="Resource" id="ChoiceDepth3"]
+script = ExtResource("3")
+text = "Descend to the Fallen Star Vault (Level 5)"
+conditions = Array[ExtResource("4")]([SubResource("Level5")])
+effects = Array[ExtResource("5")]([SubResource("Travel3")])
+
+[sub_resource type="Resource" id="ChoiceLore"]
+script = ExtResource("3")
+text = "What waits below?"
+next_node_id = &"lore"
+
+[sub_resource type="Resource" id="ChoiceLeave"]
+script = ExtResource("3")
+text = "I will return later."
+
+[sub_resource type="Resource" id="Start"]
+script = ExtResource("2")
+id = &"start"
+speaker = "Warden Aster"
+lines = PackedStringArray("This is the Warden's Threshold. I can send you only as deep as your combat training allows.")
+choices = Array[ExtResource("3")]([SubResource("ChoiceDepth1"), SubResource("ChoiceDepth2"), SubResource("ChoiceDepth3"), SubResource("ChoiceLore"), SubResource("ChoiceLeave")])
+
+[sub_resource type="Resource" id="Lore"]
+script = ExtResource("2")
+id = &"lore"
+speaker = "Warden Aster"
+lines = PackedStringArray("The Hollow lies beneath the Greywake Wilds. Its three guardians reform after several days; only witnessed reports and what travelers tell me change what I know of each return.")
+
+[resource]
+script = ExtResource("1")
+id = &"dungeon_warden_gate"
+nodes = Array[ExtResource("2")]([SubResource("Start"), SubResource("Lore")])
+start_node_id = &"start"

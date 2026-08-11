@@ -30,6 +30,7 @@ from .repository import (
 )
 from .schemas import (
     ConversationResponse,
+    GraphUpdateCandidate,
     NpcGenerationRequest,
     NpcGenerationResult,
     SyncRequest,
@@ -196,6 +197,7 @@ class NpcCognitionService:
                 _safe_provider_error_code(error),
             )
             return self._fallback_response(trusted_request, session, "provider_unavailable", store=True)
+        _augment_told_world_learning(trusted_request, generated, profile.world_ontology)
         usage = {
             "input_tokens": _token_count(trusted_request.text)
             + sum(_token_count(str(item)) for item in trusted_request.retrieved_memories),
@@ -242,7 +244,7 @@ class NpcCognitionService:
                 memory_ids.append(saved.memory_id)
                 memory_writes.append(saved.to_dict())
                 evidence_aliases[candidate.source_id or request.request_id] = saved.memory_id
-        self._apply_graph_candidates(
+        knowledge_updates = self._apply_graph_candidates(
             trusted_request, generated, set(memory_ids), evidence_aliases
         )
         response = ConversationResponse(
@@ -259,6 +261,7 @@ class NpcCognitionService:
             memory_citations=[memory.memory_id for memory in memories],
             memory_write_ids=memory_ids,
             memory_writes=memory_writes,
+            knowledge_updates=knowledge_updates,
             proposed_intents=generated.proposed_intents,
             usage=usage,
             degraded=bool(degradation_reasons),
@@ -549,7 +552,8 @@ class NpcCognitionService:
         generated: NpcGenerationResult,
         memory_ids: set[str],
         evidence_aliases: dict[str, str],
-    ) -> None:
+    ) -> list[dict[str, Any]]:
+        knowledge_updates: list[dict[str, Any]] = []
         for candidate in generated.graph_update_candidates:
             if candidate.predicate not in EDGE_TYPES:
                 self.metrics["graph_candidate_rejected"] = self.metrics.get(
@@ -580,8 +584,7 @@ class NpcCognitionService:
             }
             if not evidence or not evidence.issubset(memory_ids):
                 continue
-            self.repository.add_graph_edge(
-                GraphEdge(
+            edge = GraphEdge(
                     id=str(uuid.uuid4()),
                     owner_npc_persistent_id=request.npc_persistent_id,
                     subject_node_id=candidate.subject_node_id,
@@ -595,7 +598,26 @@ class NpcCognitionService:
                     player_profile_id=request.player_profile_id,
                     world_save_id=request.world_save_id,
                 )
-            )
+            if candidate.predicate == "KNOWS_ABOUT":
+                if candidate.subject_node_id != f"npc_instance:{request.npc_persistent_id}":
+                    self.metrics["graph_candidate_rejected"] = self.metrics.get(
+                        "graph_candidate_rejected", 0
+                    ) + 1
+                    continue
+                edge.visibility = "told"
+                edge.source_type = "player_report"
+                stored = self.repository.strengthen_graph_edge(edge)
+                knowledge_updates.append(
+                    {
+                        "node_id": stored.object_node_id,
+                        "confidence": stored.confidence,
+                        "stage": _knowledge_stage(stored.confidence),
+                        "source": "told",
+                    }
+                )
+            else:
+                self.repository.add_graph_edge(edge)
+        return knowledge_updates
 
     def _store_turn_pair(
         self,
@@ -721,3 +743,72 @@ def _explicit_entity_query(request: NpcGenerationRequest, memory: MemoryRecord) 
     entities = set(re.findall(r"[\w:-]+", request.text.lower()))
     entities.update(item.lower() for item in request.world_context.visible_entity_ids)
     return bool(entities & {item.lower() for item in memory.subject_node_ids})
+
+
+def _knowledge_stage(confidence: float) -> str:
+    if confidence < 0.45:
+        return "rumor"
+    if confidence < 0.7:
+        return "aware"
+    if confidence < 0.9:
+        return "familiar"
+    return "well_understood"
+
+
+def _augment_told_world_learning(
+    request: NpcGenerationRequest,
+    generated: NpcGenerationResult,
+    world_ontology: dict[str, Any],
+) -> None:
+    mentions = _mentioned_world_nodes(request.text, world_ontology)
+    if not mentions:
+        return
+    existing = {
+        (item.subject_node_id, item.predicate, item.object_node_id)
+        for item in generated.graph_update_candidates
+    }
+    for candidate in generated.memory_candidates:
+        if candidate.visibility != "told":
+            continue
+        candidate.subject_node_ids = list(
+            dict.fromkeys(candidate.subject_node_ids + mentions)
+        )[:8]
+        evidence_id = candidate.source_id or request.request_id
+        for node_id in mentions:
+            signature = (
+                f"npc_instance:{request.npc_persistent_id}",
+                "KNOWS_ABOUT",
+                node_id,
+            )
+            if signature in existing:
+                continue
+            generated.graph_update_candidates.append(
+                GraphUpdateCandidate(
+                    subject_node_id=signature[0],
+                    predicate=signature[1],
+                    object_node_id=signature[2],
+                    confidence=min(0.6, candidate.confidence),
+                    visibility="told",
+                    source_type="conversation_turn",
+                    source_id=request.request_id,
+                    evidence_memory_ids=[evidence_id],
+                )
+            )
+            existing.add(signature)
+
+
+def _mentioned_world_nodes(text_value: str, ontology: dict[str, Any]) -> list[str]:
+    normalized = text_value.casefold()
+    result: list[str] = []
+    for raw in ontology.get("nodes", []):
+        if not isinstance(raw, dict):
+            continue
+        node_id = str(raw.get("node_id", "")).strip()
+        label = str(raw.get("label", "")).strip().casefold()
+        id_term = node_id.rsplit(":", 1)[-1].replace("_", " ").casefold()
+        terms = [term for term in (label, id_term) if len(term) >= 4]
+        if node_id and any(term in normalized for term in terms):
+            result.append(node_id)
+        if len(result) >= 8:
+            break
+    return result

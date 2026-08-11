@@ -13,3 +13,11 @@ extends CharacterDefinition
 @export var dialogue_selector: DialogueSelectorDefinition
 ## Authored cognitive identity. Runtime memories are kept in the cognition service.
 @export var mind_profile: NPCMindDefinition
+
+@export_group("Dungeon Progression")
+## Non-empty for a boss whose defeat is temporary and scheduled to return.
+@export var dungeon_boss_id: StringName = &""
+@export_range(0, 99, 1) var dungeon_depth: int = 0
+@export_range(1, 99, 1) var dungeon_required_level: int = 1
+@export_range(1, 365, 1) var dungeon_respawn_days: int = 3
+@export var dungeon_phase: StringName = &""

@@ -6,9 +6,11 @@
 [resource]
 script = ExtResource("1")
 id = &"base:dungeon"
-display_name = "Abandoned Mine"
+display_name = "Hollow of Returning Stars"
 region_type = &"dungeon"
 parent_world_id = &"base:world"
+parent_region_id = &"base:wilderness"
+dungeon_id = &"returning_stars_hollow"
 connected_region_ids = Array[StringName]([&"base:wilderness"])
 portal_region_ids = Array[StringName]([&"base:town"])
 default_spawn_id = &"spawn"

@@ -116,6 +116,7 @@ class CognitionRepository(Protocol):
     def graph_edges_for(self, player: str, save: str, npc: str) -> list[GraphEdge]: ...
     def graph_nodes_for_edges(self, edges: list[GraphEdge]) -> list[GraphNode]: ...
     def add_graph_edge(self, edge: GraphEdge) -> GraphEdge: ...
+    def strengthen_graph_edge(self, edge: GraphEdge) -> GraphEdge: ...
     def graph_node_exists(self, node_id: str, player: str, save: str, npc: str) -> bool: ...
     def delete_npc(self, player: str, save: str, npc: str) -> int: ...
     def delete_player(self, player: str, save: str | None = None) -> int: ...
@@ -402,6 +403,30 @@ class InMemoryRepository:
             return existing
         self.graph.edges[edge.id] = edge
         return edge
+
+    def strengthen_graph_edge(self, edge: GraphEdge) -> GraphEdge:
+        existing = next(
+            (
+                item
+                for item in self.graph.edges.values()
+                if item.player_profile_id == edge.player_profile_id
+                and item.world_save_id == edge.world_save_id
+                and item.owner_npc_persistent_id == edge.owner_npc_persistent_id
+                and item.subject_node_id == edge.subject_node_id
+                and item.predicate == edge.predicate
+                and item.object_node_id == edge.object_node_id
+                and item.visibility == edge.visibility
+            ),
+            None,
+        )
+        if existing is None:
+            return self.add_graph_edge(edge)
+        existing.confidence = min(1.0, max(existing.confidence, edge.confidence) + 0.1)
+        existing.evidence_memory_ids = list(
+            dict.fromkeys(existing.evidence_memory_ids + edge.evidence_memory_ids)
+        )
+        existing.updated_at = _now().isoformat()
+        return existing
 
     def graph_edges_for(self, player: str, save: str, npc: str) -> list[GraphEdge]:
         return _relevant_graph_edges(
@@ -1076,6 +1101,52 @@ class PostgresCognitionRepository:
                 },
             )
         return edge
+
+    def strengthen_graph_edge(self, edge: GraphEdge) -> GraphEdge:
+        params = {
+            "player": edge.player_profile_id,
+            "save": edge.world_save_id,
+            "owner": edge.owner_npc_persistent_id,
+            "subject": edge.subject_node_id,
+            "predicate": edge.predicate,
+            "object": edge.object_node_id,
+            "visibility": edge.visibility,
+        }
+        with self.engine.begin() as connection:
+            row = connection.execute(
+                text(
+                    "SELECT * FROM knowledge_edges WHERE canonical=false "
+                    "AND player_profile_id=:player AND world_save_id=:save "
+                    "AND owner_npc_persistent_id=:owner AND subject_node_id=:subject "
+                    "AND predicate=:predicate AND object_node_id=:object "
+                    "AND visibility=:visibility ORDER BY confidence DESC LIMIT 1 FOR UPDATE"
+                ),
+                params,
+            ).mappings().first()
+            if row is not None:
+                existing = _edge_from_row(row)
+                confidence = min(1.0, max(existing.confidence, edge.confidence) + 0.1)
+                evidence = list(
+                    dict.fromkeys(existing.evidence_memory_ids + edge.evidence_memory_ids)
+                )
+                connection.execute(
+                    text(
+                        "UPDATE knowledge_edges SET confidence=:confidence, "
+                        "evidence_memory_ids=CAST(:evidence AS jsonb), updated_at=:updated "
+                        "WHERE id=:id"
+                    ),
+                    {
+                        "confidence": confidence,
+                        "evidence": json.dumps(evidence),
+                        "updated": _now(),
+                        "id": uuid.UUID(existing.id),
+                    },
+                )
+                existing.confidence = confidence
+                existing.evidence_memory_ids = evidence
+                existing.updated_at = _now().isoformat()
+                return existing
+        return self.add_graph_edge(edge)
 
     def graph_edges_for(self, player: str, save: str, npc: str) -> list[GraphEdge]:
         with self.engine.connect() as connection:

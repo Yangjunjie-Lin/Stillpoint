@@ -1,10 +1,12 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/interaction/pickup_interactable_3d.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/world/spawning/entity_spawn_marker.gd" id="6"]
+[ext_resource type="Resource" path="res://content/base/spawns/dungeon_warden.tres" id="7"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -74,6 +76,11 @@ position = Vector3(-15, 1.2, 0)
 position = Vector3(0, 1.2, 15)
 
 [node name="EntitySpawns" type="Node3D" parent="."]
+
+[node name="DungeonWardenSpawn" type="Marker3D" parent="EntitySpawns"]
+position = Vector3(0, 1, 16)
+script = ExtResource("6")
+spawn_definition = ExtResource("7")
 
 [node name="StaticEntities" type="Node3D" parent="."]
 

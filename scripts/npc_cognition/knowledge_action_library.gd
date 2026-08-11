@@ -34,6 +34,11 @@ const RELATION_CATEGORIES := {
 	"PRODUCES": "cultivation",
 	"GROWS_IN": "cultivation",
 	"OPENED_BY": "capability",
+	"HAS_DEPTH": "spatial",
+	"HAS_BOSS": "conflict",
+	"GUARDED_BY": "affiliation",
+	"REQUIRES_LEVEL": "capability",
+	"RESPAWNS_AFTER": "memory_event",
 }
 
 const CATEGORY_DEFINITIONS := {

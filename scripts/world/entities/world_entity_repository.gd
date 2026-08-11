@@ -52,6 +52,11 @@ func store_snapshot(snapshot: EntitySnapshot) -> void:
 	_snapshots[snapshot.persistent_id] = snapshot
 
 
+func clear_snapshot(persistent_id: StringName) -> void:
+	_snapshots.erase(persistent_id)
+	_dirty_entities.erase(persistent_id)
+
+
 func get_entities_in_region(region_id: StringName) -> Array[StringName]:
 	var norm := RegionIdUtil.normalize(region_id)
 	var result: Array[StringName] = []

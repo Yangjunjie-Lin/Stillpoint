@@ -79,9 +79,13 @@ func spawn_actor(definition_id: StringName, context: ActorSpawnContext) -> Chara
 		push_error("ActorFactory: scene contract failed for %s" % String(definition_id))
 		actor.free()
 		return null
-	parent.add_child(actor)
+	# Set the authored transform before _ready() runs. NPC controllers derive
+	# their home/wander origin from global_position; applying it after add_child
+	# makes newly spawned guards drift to the world origin and can push the player
+	# off a portal spawn point.
 	if context.transform != Transform3D.IDENTITY:
 		actor.global_transform = context.transform
+	parent.add_child(actor)
 	if context.snapshot != null:
 		restore_snapshot_to_actor(actor, context.snapshot)
 	# Snapshot component data can carry an older controller region. Metadata wins.

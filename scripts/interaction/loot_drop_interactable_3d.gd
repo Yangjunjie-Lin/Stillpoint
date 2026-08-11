@@ -104,6 +104,15 @@ func get_item_id() -> StringName:
 	return _item_id
 
 
+func reset_for_respawn() -> void:
+	_active = false
+	_collected = false
+	_item_id = &""
+	_quantity = 0
+	_refresh_state()
+	_mark_dirty()
+
+
 func get_persistence_key() -> StringName:
 	return &"loot_drop"
 
