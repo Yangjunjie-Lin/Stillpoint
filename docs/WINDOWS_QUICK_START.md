@@ -18,6 +18,11 @@ the launcher window) to stop the backend and PostgreSQL container automatically.
 The launcher uses provider credentials only from environment variables; no key
 is stored in the shortcut or in the repository.
 
+The launcher performs a Godot resource import before every Debug Build start, so
+it also works after `.godot` and generated `.import` caches have been removed.
+It safely recovers an orphaned Stillpoint Backend on port `8443`; an unrelated
+process using that port is never terminated automatically.
+
 To recreate the desktop shortcut after moving the repository, run from the
 repository root:
 

@@ -2,19 +2,14 @@ $ErrorActionPreference = "Continue"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $scriptDir "..\.."))
+. (Join-Path $scriptDir "interactive_e2e_processes.ps1")
 $runtimeDir = Join-Path $repoRoot "artifacts\interactive-e2e"
 $backendRoot = Join-Path $repoRoot "services\npc_mind"
 
-foreach ($name in @("godot", "backend")) {
-    $pidPath = Join-Path $runtimeDir "$name.pid"
-    if (Test-Path -LiteralPath $pidPath) {
-        $rawProcessId = (Get-Content -LiteralPath $pidPath -Raw -ErrorAction SilentlyContinue).Trim()
-        if ($rawProcessId -match "^\d+$") {
-            Stop-Process -Id ([int]$rawProcessId) -Force -ErrorAction SilentlyContinue
-        }
-        Remove-Item -LiteralPath $pidPath -Force -ErrorAction SilentlyContinue
-    }
-}
+Stop-StillpointInteractiveSession `
+    -RepoRoot $repoRoot `
+    -RuntimeDir $runtimeDir `
+    -Port 8443
 
 Push-Location $backendRoot
 try {

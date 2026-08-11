@@ -2,12 +2,14 @@ $ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $scriptDir "..\.."))
+. (Join-Path $scriptDir "interactive_e2e_processes.ps1")
 $runtimeDir = Join-Path $repoRoot "artifacts\interactive-e2e"
 $backendRoot = Join-Path $repoRoot "services\npc_mind"
 $godot = Join-Path $repoRoot "artifacts\godot-4.7.1\Godot_v4.7.1-stable_win64_console.exe"
 $databaseUrl = "postgresql+psycopg://stillpoint:stillpoint@127.0.0.1:55432/stillpoint"
 $backendProcess = $null
 $godotProcess = $null
+$postgresStarted = $false
 
 if (-not (Test-Path -LiteralPath $godot)) {
     $godot = Join-Path $repoRoot "tools\godot\Godot_v4.7.1-stable_win64_console.exe"
@@ -95,14 +97,72 @@ $env:LOCALAPPDATA = Join-Path $runtimeDir "localappdata"
 
 New-Item -ItemType Directory -Path $runtimeDir, $env:APPDATA, $env:LOCALAPPDATA -Force | Out-Null
 
+function Invoke-GodotImport {
+    param(
+        [string]$GodotPath,
+        [string]$ProjectPath,
+        [string]$LogPath
+    )
+
+    $sensitiveEnvironmentNames = @(
+        "SILICONFLOW_API_KEY",
+        "OPENAI_API_KEY",
+        "DATABASE_URL",
+        "NPC_MIND_SIGNING_KEY",
+        "NPC_SESSION_TOKEN"
+    )
+    $savedEnvironment = @{}
+    foreach ($name in $sensitiveEnvironmentNames) {
+        $value = [Environment]::GetEnvironmentVariable($name, "Process")
+        if ($null -ne $value) {
+            $savedEnvironment[$name] = $value
+            [Environment]::SetEnvironmentVariable($name, $null, "Process")
+        }
+    }
+
+    $importExitCode = 1
+    try {
+        & $GodotPath `
+            --headless `
+            --path $ProjectPath `
+            --editor `
+            --quit `
+            --log-file $LogPath
+        $importExitCode = $LASTEXITCODE
+    } finally {
+        foreach ($name in $savedEnvironment.Keys) {
+            [Environment]::SetEnvironmentVariable(
+                $name,
+                $savedEnvironment[$name],
+                "Process"
+            )
+        }
+    }
+    if ($importExitCode -ne 0) {
+        throw "Godot resource import failed with exit code $importExitCode."
+    }
+}
+
 try {
-    Write-Host "[1/4] Starting PostgreSQL + pgvector..." -ForegroundColor Cyan
+    Assert-InteractiveE2EAvailable `
+        -RepoRoot $repoRoot `
+        -RuntimeDir $runtimeDir `
+        -Port 8443
+
+    Write-Host "[1/5] Importing Godot resources and script classes..." -ForegroundColor Cyan
+    Invoke-GodotImport `
+        -GodotPath $godot `
+        -ProjectPath $repoRoot `
+        -LogPath (Join-Path $runtimeDir "godot-import.log")
+
+    Write-Host "[2/5] Starting PostgreSQL + pgvector..." -ForegroundColor Cyan
     Push-Location $backendRoot
     try {
         docker compose up -d postgres
         if ($LASTEXITCODE -ne 0) { throw "PostgreSQL failed to start." }
+        $postgresStarted = $true
 
-        Write-Host "[2/4] Applying Alembic migrations..." -ForegroundColor Cyan
+        Write-Host "[3/5] Applying Alembic migrations..." -ForegroundColor Cyan
         python -m alembic -c alembic.ini upgrade head
         if ($LASTEXITCODE -ne 0) { throw "Alembic migration failed." }
     } finally {
@@ -114,7 +174,7 @@ try {
         throw "Port 8443 is already in use by PID $($existingListener[0].OwningProcess). Run STOP_E2E.cmd first."
     }
 
-    Write-Host "[3/4] Starting Uvicorn on 127.0.0.1:8443 (Provider: $providerLabel)..." -ForegroundColor Cyan
+    Write-Host "[4/5] Starting Uvicorn on 127.0.0.1:8443 (Provider: $providerLabel)..." -ForegroundColor Cyan
     $backendProcess = Start-Process `
         -FilePath "python" `
         -ArgumentList @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8443") `
@@ -152,7 +212,7 @@ try {
     Remove-Item Env:NPC_MIND_SIGNING_KEY -ErrorAction SilentlyContinue
     $siliconFlowKey = $null
 
-    Write-Host "[4/4] Opening Stillpoint Debug Build..." -ForegroundColor Cyan
+    Write-Host "[5/5] Opening Stillpoint Debug Build..." -ForegroundColor Cyan
     Write-Host "Provider: $providerLabel" -ForegroundColor Yellow
     Write-Host "Close the game window to stop Backend and PostgreSQL automatically." -ForegroundColor Green
     $godotProcess = Start-Process `
@@ -171,13 +231,21 @@ try {
     if ($godotProcess -and -not $godotProcess.HasExited) {
         Stop-Process -Id $godotProcess.Id -Force -ErrorAction SilentlyContinue
     }
+    if ($godotProcess) {
+        Remove-Item -LiteralPath (Join-Path $runtimeDir "godot.pid") `
+            -Force `
+            -ErrorAction SilentlyContinue
+    }
     if ($backendProcess -and -not $backendProcess.HasExited) {
         Stop-Process -Id $backendProcess.Id -Force -ErrorAction SilentlyContinue
         $backendProcess.WaitForExit(5000) | Out-Null
     }
-    Remove-Item -LiteralPath (Join-Path $runtimeDir "godot.pid") -Force -ErrorAction SilentlyContinue
-    Remove-Item -LiteralPath (Join-Path $runtimeDir "backend.pid") -Force -ErrorAction SilentlyContinue
-    if (Test-Path -LiteralPath $backendRoot) {
+    if ($backendProcess) {
+        Remove-Item -LiteralPath (Join-Path $runtimeDir "backend.pid") `
+            -Force `
+            -ErrorAction SilentlyContinue
+    }
+    if ($postgresStarted -and (Test-Path -LiteralPath $backendRoot)) {
         Push-Location $backendRoot
         try {
             docker compose stop postgres | Out-Host

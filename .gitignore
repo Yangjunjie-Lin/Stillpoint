@@ -31,8 +31,10 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Runtime user data must never be committed
-artifacts/
+# Runtime user data must never be committed. Keep the Godot scan boundary so
+# locally retained logs or research assets are not imported as game resources.
+artifacts/*
+!artifacts/.gdignore
 autosave.json
 leaderboard.json
 .stillpoint/
