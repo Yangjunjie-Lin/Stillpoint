@@ -16,7 +16,7 @@ func run() -> bool:
 	_send_key(tree.root, KEY_ENTER)
 	await WorldTestHelper.await_frames(tree, 2)
 	var settings_panel := menu.get_node("SettingsPanel") as Control
-	var rebind_ui := settings_panel.get_node("Panel/InputRebindUI") as Control
+	var rebind_ui := settings_panel.get_node("Panel/SettingsColumns/InputRebindUI") as Control
 	var rows := rebind_ui.get_node("VBox/Scroll/ActionRows") as VBoxContainer
 	var ok: bool = (
 		settings_focused

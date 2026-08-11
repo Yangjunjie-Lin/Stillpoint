@@ -7,11 +7,9 @@ func run() -> bool:
 	tree.root.add_child(menu)
 	await WorldTestHelper.await_frames(tree)
 
-	var ai := menu.get_node("SettingsPanel/Panel/AIDialogueCheck") as CheckBox
-	var storage := menu.get_node("SettingsPanel/Panel/ConversationStorageCheck") as CheckBox
-	var personalization := menu.get_node(
-		"SettingsPanel/Panel/MemoryPersonalizationCheck"
-	) as CheckBox
+	var ai := menu.get_node("%AIDialogueCheck") as CheckBox
+	var storage := menu.get_node("%ConversationStorageCheck") as CheckBox
+	var personalization := menu.get_node("%MemoryPersonalizationCheck") as CheckBox
 	ai.button_pressed = true
 	storage.button_pressed = true
 	personalization.button_pressed = true

@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/rpg/input_rebind_ui.gd" id="1"]
 
 [node name="InputRebindUI" type="Control"]
-custom_minimum_size = Vector2(430, 280)
+custom_minimum_size = Vector2(430, 270)
 layout_mode = 2
 script = ExtResource("1")
 
@@ -26,7 +26,7 @@ layout_mode = 2
 text = "Choose an action to rebind"
 
 [node name="Scroll" type="ScrollContainer" parent="VBox"]
-custom_minimum_size = Vector2(430, 210)
+custom_minimum_size = Vector2(430, 165)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
