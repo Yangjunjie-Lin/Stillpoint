@@ -39,6 +39,11 @@ const RELATION_CATEGORIES := {
 	"GUARDED_BY": "affiliation",
 	"REQUIRES_LEVEL": "capability",
 	"RESPAWNS_AFTER": "memory_event",
+	"BELONGS_TO": "identity",
+	"PRACTICED_WITH": "capability",
+	"PRACTICED_BY": "capability",
+	"SYNERGIZES_WITH": "capability",
+	"RECOVERS_AFTER": "memory_event",
 }
 
 const CATEGORY_DEFINITIONS := {

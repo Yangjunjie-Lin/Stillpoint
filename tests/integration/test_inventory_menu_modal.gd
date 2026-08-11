@@ -12,6 +12,13 @@ func run() -> bool:
 	if menu != null:
 		menu.open_menu()
 		ok = ok and menu.visible and tree.paused and not world.player.state.input_enabled
+		var proficiency_label := menu.get_node_or_null(
+			"Center/Panel/Margin/VBox/Body/Side/ProficiencyScroll/ProficiencyLabel"
+		) as Label
+		ok = ok and proficiency_label != null
+		ok = ok and "Melee Combat" in proficiency_label.text
+		ok = ok and "Soilworking" in proficiency_label.text
+		ok = ok and "today 0.0/" in proficiency_label.text
 		var close_event := InputEventAction.new()
 		close_event.action = &"open_menu"
 		close_event.pressed = true

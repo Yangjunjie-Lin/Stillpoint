@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"improvised_weapons"
+display_name = "Improvised Weapons"
+category = &"combat"
+description = "Using working tools safely and effectively when they must serve as weapons."
+ontology_node_id = &"skill:improvised_weapons"
+related_skill_ids = Array[StringName]([&"melee_combat", &"soilworking", &"mining"])
+allowed_tool_ids = Array[StringName]([&"field_pick", &"crowbar"])
+practice_action_ids = Array[StringName]([&"land_tool_hit"])
+practice_gain = 0.9
+daily_gain_cap = 10.0
+repetition_soft_limit = 4
+overtraining_threshold = 9
+overtraining_loss = 0.65

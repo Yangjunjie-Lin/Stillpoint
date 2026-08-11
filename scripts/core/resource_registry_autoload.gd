@@ -216,6 +216,15 @@ func get_skill(id: StringName) -> SkillDefinition:
 	return _skills.get(id) as SkillDefinition
 
 
+func get_all_skills() -> Array[SkillDefinition]:
+	var result: Array[SkillDefinition] = []
+	for id in _sorted_keys(_skills):
+		var definition := _skills[id] as SkillDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
 func get_item(id: StringName) -> ItemDefinition:
 	return _items.get(id) as ItemDefinition
 

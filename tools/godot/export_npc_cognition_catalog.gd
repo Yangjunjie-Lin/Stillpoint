@@ -170,6 +170,50 @@ func _build_world_ontology(registry: Node, errors: Array[String]) -> Dictionary:
 			_add_world_edge(edges, dungeon_node, "HAS_BOSS", boss_node, dungeon_id)
 			_add_world_edge(edges, boss_node, "LOCATED_IN", floor_node, dungeon_id)
 			_add_world_edge(edges, boss_node, "RESPAWNS_AFTER", respawn_node, dungeon_id)
+	for skill: Variant in registry.call("get_all_skills"):
+		if not bool(skill.call("is_valid")):
+			errors.append("Invalid gameplay skill definition '%s'" % String(skill.get("id")))
+			continue
+		var data := skill.call("to_catalog_dict") as Dictionary
+		var skill_id := String(data.get("id", ""))
+		var skill_node := String(data.get("node_id", "skill:%s" % skill_id))
+		var category := String(data.get("category", "utility"))
+		var domain_node := "concept:skill_domain_%s" % category
+		var recovery_days := int(data.get("context_recovery_days", 2))
+		var recovery_node := "concept:practice_recovery_%d_days" % recovery_days
+		_add_world_node(nodes, skill_node, "skill", String(data.get("display_name", skill_id)), {
+			"skill_id": skill_id,
+			"category": category,
+			"description": String(data.get("description", "")),
+			"max_proficiency": float(data.get("max_proficiency", 100.0)),
+			"daily_gain_cap": float(data.get("daily_gain_cap", 10.0)),
+			"context_recovery_days": recovery_days,
+			"overtraining_threshold": int(data.get("overtraining_threshold", 9)),
+		})
+		_add_world_node(nodes, domain_node, "concept", "%s Skill Domain" % category.capitalize(), {})
+		_add_world_node(nodes, recovery_node, "concept", "%d Day Practice Recovery" % recovery_days, {})
+		_add_world_edge(edges, skill_node, "BELONGS_TO", domain_node, skill_id)
+		_add_world_edge(edges, skill_node, "RECOVERS_AFTER", recovery_node, skill_id)
+		for tool_id_value: String in data.get("allowed_tool_ids", []):
+			var tool: Variant = registry.call("get_item", StringName(tool_id_value))
+			if tool == null:
+				errors.append("Skill '%s' references unknown tool '%s'" % [skill_id, tool_id_value])
+				continue
+			var tool_node := "item:%s" % tool_id_value
+			_add_world_node(nodes, tool_node, "item", String(tool.get("display_name")), {})
+			_add_world_edge(edges, skill_node, "PRACTICED_WITH", tool_node, skill_id)
+		for action_id: String in data.get("practice_action_ids", []):
+			var action_node := "concept:practice_action_%s" % action_id
+			_add_world_node(nodes, action_node, "concept", action_id.replace("_", " ").capitalize(), {})
+			_add_world_edge(edges, skill_node, "PRACTICED_BY", action_node, skill_id)
+		for related_id: String in data.get("related_skill_ids", []):
+			var related: Variant = registry.call("get_skill", StringName(related_id))
+			if related == null:
+				errors.append("Skill '%s' references unknown related skill '%s'" % [skill_id, related_id])
+				continue
+			var related_node := String(related.call("resolved_ontology_node_id"))
+			_add_world_node(nodes, related_node, "skill", String(related.get("display_name")), {})
+			_add_world_edge(edges, skill_node, "SYNERGIZES_WITH", related_node, skill_id)
 	for crop: Variant in registry.call("get_all_crops"):
 		if not bool(crop.call("is_valid")):
 			errors.append("Invalid crop definition '%s'" % String(crop.get("id")))
@@ -272,7 +316,18 @@ func _add_world_node(
 	label: String,
 	metadata: Dictionary,
 ) -> void:
-	if node_id.is_empty() or nodes.has(node_id):
+	if node_id.is_empty():
+		return
+	if nodes.has(node_id):
+		var existing: Dictionary = nodes[node_id]
+		var merged_metadata: Dictionary = existing.get("metadata", {}).duplicate(true)
+		merged_metadata.merge(metadata, true)
+		existing["metadata"] = merged_metadata
+		if not label.is_empty():
+			existing["label"] = label
+		if not node_type.is_empty():
+			existing["node_type"] = node_type
+		nodes[node_id] = existing
 		return
 	nodes[node_id] = {
 		"node_id": node_id,

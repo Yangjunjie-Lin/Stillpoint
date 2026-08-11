@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"irrigation"
+display_name = "Irrigation"
+category = &"life"
+description = "Supplying water evenly without exhausting the field or the worker."
+ontology_node_id = &"skill:irrigation"
+related_skill_ids = Array[StringName]([&"crop_cultivation", &"harvesting"])
+allowed_tool_ids = Array[StringName]([&"watering_can"])
+practice_action_ids = Array[StringName]([&"water_crop"])
+practice_gain = 0.8
+daily_gain_cap = 7.0
+repetition_soft_limit = 5
+overtraining_threshold = 10

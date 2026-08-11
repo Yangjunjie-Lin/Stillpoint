@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"melee_combat"
+display_name = "Melee Combat"
+category = &"combat"
+description = "Controlling dedicated close-combat weapons under real resistance."
+ontology_node_id = &"skill:melee_combat"
+related_skill_ids = Array[StringName]([&"guarding", &"improvised_weapons"])
+allowed_tool_ids = Array[StringName]([&"training_sword", &"bandit_cutlass"])
+practice_action_ids = Array[StringName]([&"land_melee_hit"])
+practice_gain = 1.0
+daily_gain_cap = 12.0
+repetition_soft_limit = 5
+overtraining_threshold = 11

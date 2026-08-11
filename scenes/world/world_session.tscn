@@ -160,6 +160,9 @@ text = "EN: 100"
 [node name="LevelLabel" type="Label" parent="WorldUI/VBox"]
 text = "LV 1   XP 0 / 100"
 
+[node name="SkillLabel" type="Label" parent="WorldUI/VBox"]
+text = "Skills: --"
+
 [node name="FundsLabel" type="Label" parent="WorldUI/VBox"]
 text = "Coin 500   Bank 0"
 

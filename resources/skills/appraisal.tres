@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"appraisal"
+display_name = "Appraisal"
+category = &"social"
+description = "Recognizing an object's quality, provenance and practical value."
+ontology_node_id = &"skill:appraisal"
+related_skill_ids = Array[StringName]([&"crafting", &"foraging", &"diplomacy"])
+practice_action_ids = Array[StringName]([&"inspect_item", &"value_item"])
+practice_gain = 0.7
+daily_gain_cap = 6.0

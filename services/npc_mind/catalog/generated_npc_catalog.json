@@ -1306,6 +1306,7 @@
     "predicate_categories": {
       "ATTACKED": "conflict",
       "BELIEVES": "belief",
+      "BELONGS_TO": "identity",
       "CONNECTED_TO": "spatial",
       "CONTAINS": "spatial",
       "DISLIKES": "preference",
@@ -1330,12 +1331,16 @@
       "OPENED_BY": "capability",
       "OWNS": "possession",
       "PORTAL_TO": "spatial",
+      "PRACTICED_BY": "capability",
+      "PRACTICED_WITH": "capability",
       "PRODUCES": "cultivation",
       "PROMISED": "exchange",
       "RECEIVED": "exchange",
+      "RECOVERS_AFTER": "memory_event",
       "RELATED_TO": "knowledge",
       "REQUIRES_LEVEL": "capability",
       "RESPAWNS_AFTER": "memory_event",
+      "SYNERGIZES_WITH": "capability",
       "TRUSTS": "social",
       "WITNESSED": "memory_event",
       "WORKS_AT": "vocation"
@@ -2045,6 +2050,1005 @@
         "source_type": "world_catalog",
         "subject_node_id": "region:base:wilderness",
         "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "animal_care",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:animal_care",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_feed_animal",
+        "predicate": "PRACTICED_BY",
+        "source_id": "animal_care",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:animal_care",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_tend_animal",
+        "predicate": "PRACTICED_BY",
+        "source_id": "animal_care",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:animal_care",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "animal_care",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:animal_care",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:crop_cultivation",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "animal_care",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:animal_care",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:survival",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "animal_care",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:animal_care",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_social",
+        "predicate": "BELONGS_TO",
+        "source_id": "appraisal",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:appraisal",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_inspect_item",
+        "predicate": "PRACTICED_BY",
+        "source_id": "appraisal",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:appraisal",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_value_item",
+        "predicate": "PRACTICED_BY",
+        "source_id": "appraisal",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:appraisal",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "appraisal",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:appraisal",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:crafting",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "appraisal",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:appraisal",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:diplomacy",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "appraisal",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:appraisal",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:foraging",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "appraisal",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:appraisal",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_combat",
+        "predicate": "BELONGS_TO",
+        "source_id": "archery",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:archery",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_land_ranged_hit",
+        "predicate": "PRACTICED_BY",
+        "source_id": "archery",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:archery",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "archery",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:archery",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:melee_combat",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "archery",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:archery",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:survival",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "archery",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:archery",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "cooking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:cooking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_prepare_meal",
+        "predicate": "PRACTICED_BY",
+        "source_id": "cooking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:cooking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "cooking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:cooking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:crop_cultivation",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "cooking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:cooking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:foraging",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "cooking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:cooking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:survival",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "cooking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:cooking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "crafting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crafting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_craft_item",
+        "predicate": "PRACTICED_BY",
+        "source_id": "crafting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crafting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_repair_item",
+        "predicate": "PRACTICED_BY",
+        "source_id": "crafting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crafting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "crafting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crafting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:appraisal",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "crafting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crafting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:mining",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "crafting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crafting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "crop_cultivation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crop_cultivation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_plant_seed",
+        "predicate": "PRACTICED_BY",
+        "source_id": "crop_cultivation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crop_cultivation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:turnip_seed",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "crop_cultivation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crop_cultivation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "crop_cultivation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crop_cultivation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:harvesting",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "crop_cultivation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crop_cultivation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:irrigation",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "crop_cultivation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crop_cultivation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:soilworking",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "crop_cultivation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:crop_cultivation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_social",
+        "predicate": "BELONGS_TO",
+        "source_id": "diplomacy",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:diplomacy",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_negotiate",
+        "predicate": "PRACTICED_BY",
+        "source_id": "diplomacy",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:diplomacy",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_resolve_dialogue",
+        "predicate": "PRACTICED_BY",
+        "source_id": "diplomacy",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:diplomacy",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "diplomacy",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:diplomacy",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:appraisal",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "diplomacy",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:diplomacy",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "fishing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:fishing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_catch_fish",
+        "predicate": "PRACTICED_BY",
+        "source_id": "fishing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:fishing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "fishing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:fishing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:cooking",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "fishing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:fishing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:survival",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "fishing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:fishing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "foraging",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:foraging",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_gather_wild_resource",
+        "predicate": "PRACTICED_BY",
+        "source_id": "foraging",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:foraging",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "foraging",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:foraging",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:appraisal",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "foraging",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:foraging",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:harvesting",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "foraging",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:foraging",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:survival",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "foraging",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:foraging",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_combat",
+        "predicate": "BELONGS_TO",
+        "source_id": "guarding",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guarding",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_successful_guard",
+        "predicate": "PRACTICED_BY",
+        "source_id": "guarding",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guarding",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:bandit_cutlass",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "guarding",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guarding",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:crowbar",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "guarding",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guarding",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:field_pick",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "guarding",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guarding",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:training_sword",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "guarding",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guarding",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "guarding",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guarding",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:melee_combat",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "guarding",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guarding",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:survival",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "guarding",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guarding",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "harvesting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:harvesting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_harvest_crop",
+        "predicate": "PRACTICED_BY",
+        "source_id": "harvesting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:harvesting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "harvesting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:harvesting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:crop_cultivation",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "harvesting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:harvesting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:foraging",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "harvesting",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:harvesting",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_combat",
+        "predicate": "BELONGS_TO",
+        "source_id": "improvised_weapons",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:improvised_weapons",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_land_tool_hit",
+        "predicate": "PRACTICED_BY",
+        "source_id": "improvised_weapons",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:improvised_weapons",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:crowbar",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "improvised_weapons",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:improvised_weapons",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:field_pick",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "improvised_weapons",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:improvised_weapons",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "improvised_weapons",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:improvised_weapons",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:melee_combat",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "improvised_weapons",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:improvised_weapons",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:mining",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "improvised_weapons",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:improvised_weapons",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:soilworking",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "improvised_weapons",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:improvised_weapons",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "irrigation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:irrigation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_water_crop",
+        "predicate": "PRACTICED_BY",
+        "source_id": "irrigation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:irrigation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:watering_can",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "irrigation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:irrigation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "irrigation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:irrigation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:crop_cultivation",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "irrigation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:irrigation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:harvesting",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "irrigation",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:irrigation",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_combat",
+        "predicate": "BELONGS_TO",
+        "source_id": "melee_combat",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:melee_combat",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_land_melee_hit",
+        "predicate": "PRACTICED_BY",
+        "source_id": "melee_combat",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:melee_combat",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:bandit_cutlass",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "melee_combat",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:melee_combat",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:training_sword",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "melee_combat",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:melee_combat",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "melee_combat",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:melee_combat",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:guarding",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "melee_combat",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:melee_combat",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:improvised_weapons",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "melee_combat",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:melee_combat",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "mining",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_break_stone",
+        "predicate": "PRACTICED_BY",
+        "source_id": "mining",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_mine_rock",
+        "predicate": "PRACTICED_BY",
+        "source_id": "mining",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:crowbar",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "mining",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:field_pick",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "mining",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "mining",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:crafting",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "mining",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:improvised_weapons",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "mining",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:soilworking",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "mining",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
+        "source_id": "soilworking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:soilworking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_till_soil",
+        "predicate": "PRACTICED_BY",
+        "source_id": "soilworking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:soilworking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:field_pick",
+        "predicate": "PRACTICED_WITH",
+        "source_id": "soilworking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:soilworking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "soilworking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:soilworking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:crop_cultivation",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "soilworking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:soilworking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:harvesting",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "soilworking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:soilworking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:mining",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "soilworking",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:soilworking",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_exploration",
+        "predicate": "BELONGS_TO",
+        "source_id": "survival",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:survival",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_make_camp",
+        "predicate": "PRACTICED_BY",
+        "source_id": "survival",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:survival",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_navigate_hazard",
+        "predicate": "PRACTICED_BY",
+        "source_id": "survival",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:survival",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "survival",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:survival",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:fishing",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "survival",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:survival",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:foraging",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "survival",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:survival",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:guarding",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "survival",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:survival",
+        "visibility": "public"
       }
     ],
     "nodes": [
@@ -2101,7 +3105,7 @@
         "visibility": "public"
       },
       {
-        "label": "Willow Courtyard House",
+        "label": "Player Courtyard House",
         "metadata": {
           "assessed_value": 2700,
           "building_type": "courtyard_residence",
@@ -2146,7 +3150,7 @@
         "visibility": "public"
       },
       {
-        "label": "Stillpoint Farmhouse",
+        "label": "Player Farmhouse",
         "metadata": {
           "assessed_value": 2500,
           "building_type": "farmhouse",
@@ -2191,7 +3195,7 @@
         "visibility": "public"
       },
       {
-        "label": "Merchant Townhouse",
+        "label": "Player Townhouse",
         "metadata": {
           "assessed_value": 3000,
           "building_type": "merchant_residence",
@@ -2444,6 +3448,198 @@
         "visibility": "public"
       },
       {
+        "label": "Break Stone",
+        "metadata": {},
+        "node_id": "concept:practice_action_break_stone",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Catch Fish",
+        "metadata": {},
+        "node_id": "concept:practice_action_catch_fish",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Craft Item",
+        "metadata": {},
+        "node_id": "concept:practice_action_craft_item",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Feed Animal",
+        "metadata": {},
+        "node_id": "concept:practice_action_feed_animal",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Gather Wild Resource",
+        "metadata": {},
+        "node_id": "concept:practice_action_gather_wild_resource",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Harvest Crop",
+        "metadata": {},
+        "node_id": "concept:practice_action_harvest_crop",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Inspect Item",
+        "metadata": {},
+        "node_id": "concept:practice_action_inspect_item",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Land Melee Hit",
+        "metadata": {},
+        "node_id": "concept:practice_action_land_melee_hit",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Land Ranged Hit",
+        "metadata": {},
+        "node_id": "concept:practice_action_land_ranged_hit",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Land Tool Hit",
+        "metadata": {},
+        "node_id": "concept:practice_action_land_tool_hit",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Make Camp",
+        "metadata": {},
+        "node_id": "concept:practice_action_make_camp",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Mine Rock",
+        "metadata": {},
+        "node_id": "concept:practice_action_mine_rock",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Navigate Hazard",
+        "metadata": {},
+        "node_id": "concept:practice_action_navigate_hazard",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Negotiate",
+        "metadata": {},
+        "node_id": "concept:practice_action_negotiate",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Plant Seed",
+        "metadata": {},
+        "node_id": "concept:practice_action_plant_seed",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Prepare Meal",
+        "metadata": {},
+        "node_id": "concept:practice_action_prepare_meal",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Repair Item",
+        "metadata": {},
+        "node_id": "concept:practice_action_repair_item",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Resolve Dialogue",
+        "metadata": {},
+        "node_id": "concept:practice_action_resolve_dialogue",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Successful Guard",
+        "metadata": {},
+        "node_id": "concept:practice_action_successful_guard",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Tend Animal",
+        "metadata": {},
+        "node_id": "concept:practice_action_tend_animal",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Till Soil",
+        "metadata": {},
+        "node_id": "concept:practice_action_till_soil",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Value Item",
+        "metadata": {},
+        "node_id": "concept:practice_action_value_item",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Water Crop",
+        "metadata": {},
+        "node_id": "concept:practice_action_water_crop",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "2 Day Practice Recovery",
+        "metadata": {},
+        "node_id": "concept:practice_recovery_2_days",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "3 Day Return Cycle",
         "metadata": {},
         "node_id": "concept:respawn_days_3",
@@ -2463,6 +3659,38 @@
         "label": "7 Day Return Cycle",
         "metadata": {},
         "node_id": "concept:respawn_days_7",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Combat Skill Domain",
+        "metadata": {},
+        "node_id": "concept:skill_domain_combat",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Exploration Skill Domain",
+        "metadata": {},
+        "node_id": "concept:skill_domain_exploration",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Life Skill Domain",
+        "metadata": {},
+        "node_id": "concept:skill_domain_life",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Social Skill Domain",
+        "metadata": {},
+        "node_id": "concept:skill_domain_social",
         "node_type": "concept",
         "source": "world_catalog",
         "visibility": "public"
@@ -2561,9 +3789,33 @@
         "visibility": "public"
       },
       {
+        "label": "Bandit Cutlass",
+        "metadata": {},
+        "node_id": "item:bandit_cutlass",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Crowbar",
         "metadata": {},
         "node_id": "item:crowbar",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Field Pick",
+        "metadata": {},
+        "node_id": "item:field_pick",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Training Sword",
+        "metadata": {},
+        "node_id": "item:training_sword",
         "node_type": "item",
         "source": "world_catalog",
         "visibility": "public"
@@ -2580,6 +3832,14 @@
         "label": "Turnip Seed",
         "metadata": {},
         "node_id": "item:turnip_seed",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Watering Can",
+        "metadata": {},
+        "node_id": "item:watering_can",
         "node_type": "item",
         "source": "world_catalog",
         "visibility": "public"
@@ -2625,7 +3885,7 @@
       {
         "label": "Home Storage",
         "metadata": {
-          "contained_by": "building:player_courtyard_house"
+          "contained_by": "building:player_townhouse"
         },
         "node_id": "location:home_storage",
         "node_type": "location",
@@ -2653,7 +3913,7 @@
       {
         "label": "Private Home",
         "metadata": {
-          "contained_by": "building:player_courtyard_house"
+          "contained_by": "building:player_townhouse"
         },
         "node_id": "location:private_home",
         "node_type": "location",
@@ -2725,7 +3985,7 @@
         "visibility": "public"
       },
       {
-        "label": "Stillpoint Town Plaza",
+        "label": "Town Plaza",
         "metadata": {
           "location_type": "public_plaza",
           "region_id": "base:town"
@@ -2825,7 +4085,7 @@
         "visibility": "public"
       },
       {
-        "label": "Hollow of Returning Stars",
+        "label": "Base",
         "metadata": {
           "dungeon_id": "returning_stars_hollow",
           "parent_region_id": "base:wilderness",
@@ -2891,6 +4151,278 @@
         },
         "node_id": "region:base:wilderness",
         "node_type": "region",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Animal Care",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 7.0,
+          "description": "Reading animal needs and building trust through consistent care.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "animal_care"
+        },
+        "node_id": "skill:animal_care",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Appraisal",
+        "metadata": {
+          "category": "social",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 6.0,
+          "description": "Recognizing an object's quality, provenance and practical value.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "appraisal"
+        },
+        "node_id": "skill:appraisal",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Archery",
+        "metadata": {
+          "category": "combat",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 11.0,
+          "description": "Controlling ranged weapons through posture, timing and distance judgment.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 11,
+          "skill_id": "archery"
+        },
+        "node_id": "skill:archery",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Cooking",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 8.0,
+          "description": "Preparing ingredients safely and turning them into sustaining meals.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "cooking"
+        },
+        "node_id": "skill:cooking",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Crafting",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 9.0,
+          "description": "Shaping materials into reliable tools, fittings and repairs.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "crafting"
+        },
+        "node_id": "skill:crafting",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Crop Cultivation",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 8.0,
+          "description": "Choosing, sowing and tending crops according to their needs.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 10,
+          "skill_id": "crop_cultivation"
+        },
+        "node_id": "skill:crop_cultivation",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Diplomacy",
+        "metadata": {
+          "category": "social",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 6.0,
+          "description": "Listening, negotiating and communicating without assuming another person's knowledge.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 12,
+          "skill_id": "diplomacy"
+        },
+        "node_id": "skill:diplomacy",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Fishing",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 8.0,
+          "description": "Reading water and landing fish with patient control.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "fishing"
+        },
+        "node_id": "skill:fishing",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Foraging",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 8.0,
+          "description": "Finding and collecting useful wild resources without damaging their habitat.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "foraging"
+        },
+        "node_id": "skill:foraging",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Guarding",
+        "metadata": {
+          "category": "combat",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 10.0,
+          "description": "Reading an incoming strike and absorbing it without losing structure.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "guarding"
+        },
+        "node_id": "skill:guarding",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Harvesting",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 8.0,
+          "description": "Recognizing maturity and gathering produce with minimal loss.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "harvesting"
+        },
+        "node_id": "skill:harvesting",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Improvised Weapons",
+        "metadata": {
+          "category": "combat",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 10.0,
+          "description": "Using working tools safely and effectively when they must serve as weapons.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "improvised_weapons"
+        },
+        "node_id": "skill:improvised_weapons",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Irrigation",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 7.0,
+          "description": "Supplying water evenly without exhausting the field or the worker.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 10,
+          "skill_id": "irrigation"
+        },
+        "node_id": "skill:irrigation",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Melee Combat",
+        "metadata": {
+          "category": "combat",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 12.0,
+          "description": "Controlling dedicated close-combat weapons under real resistance.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 11,
+          "skill_id": "melee_combat"
+        },
+        "node_id": "skill:melee_combat",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Mining",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 10.0,
+          "description": "Reading stone, locating useful seams and striking without wasting force.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "mining"
+        },
+        "node_id": "skill:mining",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Soilworking",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 9.0,
+          "description": "Preparing soil while preserving its structure and the worker's body.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 8,
+          "skill_id": "soilworking"
+        },
+        "node_id": "skill:soilworking",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Survival",
+        "metadata": {
+          "category": "exploration",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 9.0,
+          "description": "Managing exposure, navigation and limited resources away from safety.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "survival"
+        },
+        "node_id": "skill:survival",
+        "node_type": "skill",
         "source": "world_catalog",
         "visibility": "public"
       }

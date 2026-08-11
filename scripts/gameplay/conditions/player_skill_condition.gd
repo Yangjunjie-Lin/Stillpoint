@@ -8,5 +8,6 @@ extends WorldCondition
 func evaluate(context: WorldSessionContext) -> bool:
 	if context.player == null or skill_id == &"":
 		return false
-	# Phase 1: skill levels not yet tracked; treat known skills as level 1.
-	return ResourceRegistry.get_skill(skill_id) != null and min_level <= 1
+	if context.player.skills == null or ResourceRegistry.get_skill(skill_id) == null:
+		return false
+	return context.player.skills.get_level(skill_id) >= maxi(1, min_level)

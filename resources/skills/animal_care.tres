@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"animal_care"
+display_name = "Animal Care"
+category = &"life"
+description = "Reading animal needs and building trust through consistent care."
+ontology_node_id = &"skill:animal_care"
+related_skill_ids = Array[StringName]([&"crop_cultivation", &"survival"])
+practice_action_ids = Array[StringName]([&"feed_animal", &"tend_animal"])
+practice_gain = 0.8
+daily_gain_cap = 7.0

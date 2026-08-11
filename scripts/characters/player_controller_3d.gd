@@ -93,6 +93,10 @@ func _ready() -> void:
 			experience.experience_to_next_level,
 			experience.level,
 		)
+	if not EventBus.combat_hit_confirmed.is_connected(_on_combat_hit_confirmed):
+		EventBus.combat_hit_confirmed.connect(_on_combat_hit_confirmed)
+	if not EventBus.combat_block_confirmed.is_connected(_on_combat_block_confirmed):
+		EventBus.combat_block_confirmed.connect(_on_combat_block_confirmed)
 	apply_character_build(GameManager.get_default_character_build(), true)
 
 
@@ -462,6 +466,83 @@ func grant_combat_experience(amount: int) -> int:
 	var levels := experience.grant_experience(amount, game_time)
 	apply_equipment_bonuses()
 	return levels
+
+
+func practice_skill(
+	skill_id: StringName,
+	activity_id: StringName,
+	tool_id: StringName = &"",
+	base_points: float = -1.0,
+) -> Dictionary:
+	if skills == null:
+		return {}
+	var context := {
+		"day": WorldTimeService.day,
+		"activity_id": String(activity_id),
+		"location_id": _skill_practice_location_id(),
+		"tool_id": String(tool_id),
+	}
+	if base_points >= 0.0:
+		context["base_points"] = base_points
+	var result := skills.practice(skill_id, context)
+	if str(result.get("outcome", "")) in ["gained", "daily_cap", "overtrained"]:
+		EventBus.skill_proficiency_changed.emit(result.duplicate(true))
+		_mark_player_progress_dirty()
+	if str(result.get("outcome", "")) == "overtrained":
+		EventBus.notice_requested.emit(
+			"Overtraining reduced %s proficiency by %.1f. Change place or tool and rest."
+			% [
+				str(result.get("display_name", String(skill_id))),
+				absf(float(result.get("delta", 0.0))),
+			]
+		)
+	return result
+
+
+func _on_combat_hit_confirmed(result: CombatHitResult) -> void:
+	if result == null or result.attacker != self or result.damage_dealt <= 0.0:
+		return
+	var tool := get_selected_item_definition()
+	if tool != null and tool.is_combat_tool():
+		practice_skill(&"improvised_weapons", &"land_tool_hit", tool.id)
+		return
+	var weapon_id := &"" as StringName
+	if equipment != null:
+		var weapon := equipment.get_equipped_definition(ItemDefinition.EquipSlot.WEAPON)
+		if weapon != null:
+			weapon_id = weapon.id
+	practice_skill(&"melee_combat", &"land_melee_hit", weapon_id)
+
+
+func _on_combat_block_confirmed(result: CombatHitResult) -> void:
+	if result == null or result.defender != self:
+		return
+	var weapon_id := &"" as StringName
+	if equipment != null:
+		var weapon := equipment.get_equipped_definition(ItemDefinition.EquipSlot.WEAPON)
+		if weapon != null:
+			weapon_id = weapon.id
+	practice_skill(&"guarding", &"successful_guard", weapon_id)
+
+
+func _skill_practice_location_id() -> String:
+	const CELL_SIZE := 6.0
+	return "%s@%d,%d" % [
+		String(current_region_id),
+		floori(global_position.x / CELL_SIZE),
+		floori(global_position.z / CELL_SIZE),
+	]
+
+
+func _mark_player_progress_dirty() -> void:
+	var node: Node = self
+	while node != null:
+		if node is WorldSession:
+			var session := node as WorldSession
+			if session.save_coordinator != null:
+				session.save_coordinator.mark_dirty(&"player")
+			return
+		node = node.get_parent()
 
 
 func get_effective_movement_speeds() -> Dictionary:

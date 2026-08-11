@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"archery"
+display_name = "Archery"
+category = &"combat"
+description = "Controlling ranged weapons through posture, timing and distance judgment."
+ontology_node_id = &"skill:archery"
+related_skill_ids = Array[StringName]([&"survival", &"melee_combat"])
+practice_action_ids = Array[StringName]([&"land_ranged_hit"])
+practice_gain = 1.0
+daily_gain_cap = 11.0
+repetition_soft_limit = 5
+overtraining_threshold = 11

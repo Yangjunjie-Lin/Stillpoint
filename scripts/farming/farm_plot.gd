@@ -138,6 +138,7 @@ func _till(player: PlayerController3D) -> bool:
 		return false
 	plot_state = PlotState.TILLED
 	last_processed_day = WorldTimeService.day
+	player.practice_skill(&"soilworking", &"till_soil", _selected_item_id(player))
 	EventBus.notice_requested.emit("The soil is ready for seeds.")
 	return true
 
@@ -160,6 +161,7 @@ func _plant(player: PlayerController3D) -> bool:
 	last_processed_day = planted_day
 	growth_stage = 0
 	watered_days.clear()
+	player.practice_skill(&"crop_cultivation", &"plant_seed", crop.seed_item_id)
 	EventBus.notice_requested.emit("%s planted. Water it once per growing day." % crop.display_name)
 	return true
 
@@ -175,6 +177,7 @@ func _water(player: PlayerController3D) -> bool:
 		EventBus.notice_requested.emit("Not enough energy to water this crop.")
 		return false
 	watered_days[str(WorldTimeService.day)] = true
+	player.practice_skill(&"irrigation", &"water_crop", &"watering_can")
 	EventBus.notice_requested.emit("Crop watered for Day %d." % WorldTimeService.day)
 	return true
 
@@ -191,6 +194,7 @@ func _harvest(player: PlayerController3D) -> bool:
 	last_processed_day = WorldTimeService.day
 	growth_stage = 0
 	watered_days.clear()
+	player.practice_skill(&"harvesting", &"harvest_crop", crop.produce_item_id)
 	EventBus.notice_requested.emit("Harvested %d %s." % [crop.harvest_quantity, crop.display_name])
 	return true
 

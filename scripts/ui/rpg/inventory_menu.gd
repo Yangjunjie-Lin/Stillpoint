@@ -4,6 +4,7 @@ extends Control
 
 @onready var backpack_grid: GridContainer = %BackpackGrid
 @onready var equipment_grid: VBoxContainer = %EquipmentGrid
+@onready var proficiency_label: Label = %ProficiencyLabel
 @onready var item_name_label: Label = %ItemName
 @onready var item_type_label: Label = %ItemType
 @onready var description_label: Label = %Description
@@ -162,7 +163,34 @@ func _refresh() -> void:
 	if _equipment != null:
 		for slot in EquipmentComponent.EQUIP_SLOTS:
 			_refresh_equipment_slot(slot)
+	_refresh_proficiencies()
 	_refresh_details()
+
+
+func _refresh_proficiencies() -> void:
+	if proficiency_label == null or _player == null or _player.skills == null:
+		return
+	var lines: Array[String] = []
+	var previous_category := ""
+	for skill_state in _player.skills.get_all_skill_states():
+		var category := str(skill_state.get("category", "utility")).to_upper()
+		if category != previous_category:
+			if not lines.is_empty():
+				lines.append("")
+			lines.append(category)
+			previous_category = category
+		lines.append("%s  %.1f/%.0f  L%d  %s  today %.1f/%.1f" % [
+			str(skill_state.get("display_name", skill_state.get("skill_id", "Skill"))),
+			float(skill_state.get("points", 0.0)),
+			float(skill_state.get("max_proficiency", 100.0)),
+			int(skill_state.get("level", 0)),
+			str(skill_state.get("mastery", "untrained")).replace("_", " "),
+			float(skill_state.get("gained_today", 0.0)),
+			float(skill_state.get("daily_cap", 0.0)),
+		])
+	lines.append("")
+	lines.append("Repeated place/tool practice loses efficiency and capacity; sustained overload can reduce proficiency. Rest or vary training to recover.")
+	proficiency_label.text = "\n".join(lines)
 
 
 func _refresh_equipment_slot(slot: int) -> void:

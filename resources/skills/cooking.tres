@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"cooking"
+display_name = "Cooking"
+category = &"life"
+description = "Preparing ingredients safely and turning them into sustaining meals."
+ontology_node_id = &"skill:cooking"
+related_skill_ids = Array[StringName]([&"foraging", &"crop_cultivation", &"survival"])
+practice_action_ids = Array[StringName]([&"prepare_meal"])
+practice_gain = 1.0
+daily_gain_cap = 8.0

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"crop_cultivation"
+display_name = "Crop Cultivation"
+category = &"life"
+description = "Choosing, sowing and tending crops according to their needs."
+ontology_node_id = &"skill:crop_cultivation"
+related_skill_ids = Array[StringName]([&"soilworking", &"irrigation", &"harvesting"])
+allowed_tool_ids = Array[StringName]([&"turnip_seed"])
+practice_action_ids = Array[StringName]([&"plant_seed"])
+practice_gain = 1.0
+daily_gain_cap = 8.0
+repetition_soft_limit = 5
+overtraining_threshold = 10

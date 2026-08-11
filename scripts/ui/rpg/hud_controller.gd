@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var health_label: Label = $VBox/HealthLabel
 @onready var energy_label: Label = $VBox/EnergyLabel
 @onready var level_label: Label = $VBox/LevelLabel if has_node("VBox/LevelLabel") else null
+@onready var skill_label: Label = $VBox/SkillLabel if has_node("VBox/SkillLabel") else null
 @onready var funds_label: Label = $VBox/FundsLabel if has_node("VBox/FundsLabel") else null
 @onready var time_label: Label = $VBox/TimeLabel
 @onready var region_label: Label = $VBox/RegionLabel
@@ -39,6 +40,8 @@ func _process(_delta: float) -> void:
 			player.experience.current_experience,
 			player.experience.experience_to_next_level,
 		]
+	if skill_label != null and player.skills != null:
+		skill_label.text = player.skills.get_hud_summary(3)
 	if funds_label != null and _world.property_bank_service != null:
 		funds_label.text = "Coin %d   Bank %d" % [
 			_world.property_bank_service.wallet_balance,

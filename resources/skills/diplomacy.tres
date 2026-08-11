@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"diplomacy"
+display_name = "Diplomacy"
+category = &"social"
+description = "Listening, negotiating and communicating without assuming another person's knowledge."
+ontology_node_id = &"skill:diplomacy"
+related_skill_ids = Array[StringName]([&"appraisal"])
+practice_action_ids = Array[StringName]([&"resolve_dialogue", &"negotiate"])
+practice_gain = 0.7
+daily_gain_cap = 6.0
+repetition_soft_limit = 6
+overtraining_threshold = 12
