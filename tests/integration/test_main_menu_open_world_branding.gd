@@ -3,6 +3,7 @@ extends RefCounted
 
 func run() -> bool:
 	var tree := Engine.get_main_loop() as SceneTree
+	var project_icon := str(ProjectSettings.get_setting("application/config/icon", ""))
 	var packed := load("res://scenes/ui/main_menu.tscn") as PackedScene
 	if packed == null:
 		push_error("open-world Main Menu scene did not load")
@@ -41,7 +42,8 @@ func run() -> bool:
 		leaderboard_button.emit_signal("pressed")
 		await WorldTestHelper.await_frames(tree, 1)
 	var ok := (
-		brand_mark != null
+		project_icon == "res://assets/ui/stillpoint_emblem.svg"
+		and brand_mark != null
 		and brand_mark.texture != null
 		and backdrop != null
 		and title != null

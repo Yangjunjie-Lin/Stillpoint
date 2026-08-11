@@ -3,6 +3,9 @@
 Double-click `START_STILLPOINT.cmd` in the repository root, or use the desktop
 shortcut `Stillpoint 0.8.0.lnk`.
 
+The desktop shortcut and Windows Debug export use the shared Stillpoint emblem
+at `assets/ui/stillpoint_emblem.ico`; the in-game UI uses its scalable SVG source.
+
 The launcher starts, in order:
 
 1. PostgreSQL + pgvector;

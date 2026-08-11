@@ -16,9 +16,9 @@ if (-not (Test-Path -LiteralPath $launcher)) {
 
 $desktop = [Environment]::GetFolderPath("Desktop")
 $shortcutPath = Join-Path $desktop "Stillpoint 0.8.0.lnk"
-$godot = Join-Path $RepoRoot "artifacts\godot-4.7.1\Godot_v4.7.1-stable_win64_console.exe"
-if (-not (Test-Path -LiteralPath $godot)) {
-    $godot = Join-Path $RepoRoot "tools\godot\Godot_v4.7.1-stable_win64_console.exe"
+$icon = Join-Path $RepoRoot "assets\ui\stillpoint_emblem.ico"
+if (-not (Test-Path -LiteralPath $icon)) {
+    throw "Stillpoint launcher icon was not found: $icon"
 }
 
 $shell = New-Object -ComObject WScript.Shell
@@ -26,9 +26,7 @@ $shortcut = $shell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $launcher
 $shortcut.WorkingDirectory = $RepoRoot
 $shortcut.Description = "Start Stillpoint Debug, PostgreSQL + pgvector, and NPC backend"
-if (Test-Path -LiteralPath $godot) {
-    $shortcut.IconLocation = "$godot,0"
-}
+$shortcut.IconLocation = "$icon,0"
 $shortcut.Save()
 
 Write-Host "Desktop shortcut created: $shortcutPath" -ForegroundColor Green
