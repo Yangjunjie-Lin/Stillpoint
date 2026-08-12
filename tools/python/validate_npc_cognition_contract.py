@@ -43,6 +43,7 @@ def main() -> int:
                 "dual_wielding": True,
                 "load_posture": "balanced",
                 "presentation": "notable",
+                "display_focus": "decorative",
             },
             "observable_capabilities": [
                 {

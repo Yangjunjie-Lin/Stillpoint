@@ -76,8 +76,8 @@ python tools/python/run_godot_tests.py
 python tools/python/validate_repo.py
 ```
 
-The automated gate currently runs 314 Godot tests with zero unexpected script
-errors, errors, ObjectDB leaks, or resource leaks, plus 199 in-memory-applicable
+The automated gate currently runs 317 Godot tests with zero unexpected script
+errors, errors, ObjectDB leaks, or resource leaks, plus 200 in-memory-applicable
 NPC Mind backend tests and 7 PostgreSQL/pgvector integration tests. See
 [`docs/NPC_COGNITION_0_8_0.md`](docs/NPC_COGNITION_0_8_0.md) for backend,
 migration, authentication, privacy, and local transport setup.

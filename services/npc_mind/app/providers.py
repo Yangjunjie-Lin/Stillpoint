@@ -576,7 +576,8 @@ def _text_player_ontology_context(snapshot: PlayerOntologySnapshot | None) -> st
             f"off hand {loadout['off_hand_form']}; "
             f"dual wielding {loadout['dual_wielding']}; "
             f"posture {loadout['load_posture']}; "
-            f"presentation {loadout['presentation']}"
+            f"presentation {loadout['presentation']}; "
+            f"visible outfit focus {loadout['display_focus']}"
         )
     if capability_parts:
         lines.append("Observable capability tendencies: " + "; ".join(capability_parts))
@@ -621,7 +622,8 @@ def _qwen_player_ontology_context(snapshot: PlayerOntologySnapshot | None) -> st
             "visible loadout: "
             f"main={loadout['main_hand_form']};off={loadout['off_hand_form']};"
             f"dual={loadout['dual_wielding']};posture={loadout['load_posture']};"
-            f"presentation={loadout['presentation']}"
+            f"presentation={loadout['presentation']};"
+            f"visible_outfit_focus={loadout['display_focus']}"
         )
     if capability_parts:
         sections.append("可观察能力倾向：" + "；".join(capability_parts))

@@ -11,6 +11,8 @@ func run() -> bool:
 	var decor := _item(&"test:equipment/decor_head", ItemDefinition.EquipSlot.DECOR_HEAD)
 	decor.equipment_class = ItemDefinition.EquipmentClass.DECORATIVE
 	decor.charisma_bonus = 4.0
+	decor.attack_bonus = 99.0 # Decorative gear must never gain combat authority.
+	decor.defense_bonus = 99.0
 	decor.equipment_weight = 99.0 # Decorative load must still be ignored.
 	decor.required_strength = 99
 	decor.minimum_level = 99

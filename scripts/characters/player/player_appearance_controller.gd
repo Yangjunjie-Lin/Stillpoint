@@ -13,6 +13,7 @@ var current_charm: ItemDefinition
 var current_held_item: ItemDefinition
 var current_off_hand_item: ItemDefinition
 var current_worn_items: Array[ItemDefinition] = []
+var current_presentation_mode: StringName = EquipmentComponent.PRESENTATION_PROFESSION
 
 
 func apply_origin(origin_id: StringName) -> bool:
@@ -54,6 +55,7 @@ func apply_loadout(
 	held_item: ItemDefinition,
 	off_hand_item: ItemDefinition = null,
 	worn_items: Array[ItemDefinition] = [],
+	presentation_mode: StringName = EquipmentComponent.PRESENTATION_PROFESSION,
 ) -> void:
 	current_weapon = weapon
 	current_armor = armor
@@ -61,6 +63,7 @@ func apply_loadout(
 	current_held_item = held_item
 	current_off_hand_item = off_hand_item
 	current_worn_items = worn_items.duplicate()
+	current_presentation_mode = presentation_mode
 	_apply_current_loadout()
 
 
@@ -74,7 +77,7 @@ func _apply_current_loadout() -> void:
 	if current_model is StylizedHeroModel:
 		(current_model as StylizedHeroModel).apply_loadout(
 			current_weapon, current_armor, current_charm, current_held_item,
-			current_off_hand_item, current_worn_items,
+			current_off_hand_item, current_worn_items, current_presentation_mode,
 		)
 
 
@@ -90,3 +93,4 @@ func clear_model() -> void:
 	current_held_item = null
 	current_off_hand_item = null
 	current_worn_items.clear()
+	current_presentation_mode = EquipmentComponent.PRESENTATION_PROFESSION

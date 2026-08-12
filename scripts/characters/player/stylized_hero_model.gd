@@ -28,6 +28,7 @@ var _equipped_charm: ItemDefinition
 var _held_item: ItemDefinition
 var _off_hand_item: ItemDefinition
 var _worn_items: Array[ItemDefinition] = []
+var _presentation_mode: StringName = EquipmentComponent.PRESENTATION_PROFESSION
 var _loadout_attachments: Array[Node3D] = []
 
 
@@ -108,6 +109,7 @@ func apply_loadout(
 	held_item: ItemDefinition,
 	off_hand_item: ItemDefinition = null,
 	worn_items: Array[ItemDefinition] = [],
+	presentation_mode: StringName = EquipmentComponent.PRESENTATION_PROFESSION,
 ) -> void:
 	_equipped_weapon = weapon
 	_equipped_armor = armor
@@ -115,6 +117,7 @@ func apply_loadout(
 	_held_item = held_item
 	_off_hand_item = off_hand_item
 	_worn_items = worn_items.duplicate()
+	_presentation_mode = presentation_mode
 	if is_inside_tree() and _visual_root != null:
 		_rebuild_loadout()
 
@@ -132,6 +135,7 @@ func get_displayed_loadout() -> Dictionary:
 		),
 		"main_hand": String(main_hand.id) if main_hand != null else "",
 		"off_hand": String(_off_hand_item.id) if _off_hand_item != null else "",
+		"presentation_mode": String(_presentation_mode),
 	}
 
 
@@ -153,12 +157,29 @@ func _rebuild_loadout() -> void:
 		_build_legacy_held_alias(_off_hand_item)
 	elif main_hand != null and main_hand.visual_archetype != &"":
 		_build_legacy_held_alias(main_hand)
-	if _equipped_armor != null and _equipped_armor.visual_archetype != &"":
+	if (
+		_presentation_mode == EquipmentComponent.PRESENTATION_PROFESSION
+		and _equipped_armor != null
+		and _equipped_armor.visual_archetype != &""
+	):
 		_build_armor(_equipped_armor)
-	if _equipped_charm != null and _equipped_charm.visual_archetype != &"":
+	if (
+		_presentation_mode == EquipmentComponent.PRESENTATION_PROFESSION
+		and _equipped_charm != null
+		and _equipped_charm.visual_archetype != &""
+	):
 		_build_charm(_equipped_charm)
 	for definition in _worn_items:
-		_build_worn_equipment(definition)
+		if _should_display_worn_item(definition):
+			_build_worn_equipment(definition)
+
+
+func _should_display_worn_item(definition: ItemDefinition) -> bool:
+	if definition == null:
+		return false
+	return definition.is_decorative_equipment() \
+		if _presentation_mode == EquipmentComponent.PRESENTATION_DECORATIVE \
+		else definition.is_attribute_equipment()
 
 
 func _build_handheld(definition: ItemDefinition, force_left: bool = false) -> void:

@@ -35,6 +35,14 @@ func _capture() -> void:
 			world.get_viewport(),
 			"%s/ledger-%02d.png" % [OUTPUT_DIR, page_index + 1],
 		)
+		if page_index == 1:
+			ledger.call("_select_equipment_category", &"decorative")
+			ledger.call("_toggle_equipment_presentation")
+			await _frames(2)
+			_capture_viewport(
+				world.get_viewport(),
+				"%s/ledger-02-decorative.png" % OUTPUT_DIR,
+			)
 	ledger.visible = false
 	await _frames(2)
 

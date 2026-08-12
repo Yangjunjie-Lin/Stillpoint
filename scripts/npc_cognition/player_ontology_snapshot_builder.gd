@@ -79,6 +79,9 @@ static func _build_visible_loadout(player: PlayerController3D) -> Dictionary:
 		presentation = "ornate"
 	elif player.get_charisma() >= CharacterBuildCalculator.BASE_CHARISMA + 2.0:
 		presentation = "notable"
+	var display_focus := "profession"
+	if player.equipment != null:
+		display_focus = String(player.equipment.get_presentation_mode())
 	return {
 		"main_hand_form": _bounded_id(String(main_hand.resolved_hand_form())) \
 			if main_hand != null else "empty",
@@ -87,6 +90,7 @@ static func _build_visible_loadout(player: PlayerController3D) -> Dictionary:
 		"dual_wielding": main_hand != null and off_hand != null,
 		"load_posture": "strained" if bool(load_state.get("overloaded", false)) else "balanced",
 		"presentation": presentation,
+		"display_focus": display_focus,
 	}
 
 

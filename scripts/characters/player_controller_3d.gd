@@ -81,6 +81,8 @@ func _ready() -> void:
 		equipment.equipment_changed.connect(apply_equipment_bonuses)
 	if equipment != null and not equipment.equipment_changed.is_connected(_sync_loadout_visuals):
 		equipment.equipment_changed.connect(_sync_loadout_visuals)
+	if equipment != null and not equipment.presentation_mode_changed.is_connected(_on_presentation_mode_changed):
+		equipment.presentation_mode_changed.connect(_on_presentation_mode_changed)
 	if inventory != null and not inventory.inventory_changed.is_connected(_sync_loadout_visuals):
 		inventory.inventory_changed.connect(_sync_loadout_visuals)
 	if inventory != null and not inventory.inventory_changed.is_connected(apply_equipment_bonuses):
@@ -389,6 +391,11 @@ func apply_equipment_bonuses() -> void:
 			var item_definition := equipment.get_equipped_definition(slot)
 			if item_definition == null:
 				continue
+			# Decorative equipment contributes only through the charisma path in
+			# EquipmentComponent.get_load_state(). Authored combat values on a
+			# decorative resource are deliberately ignored.
+			if item_definition.is_decorative_equipment():
+				continue
 			attack_bonus += item_definition.attack_bonus
 			defense_bonus += item_definition.defense_bonus
 			regen_bonus += item_definition.energy_regen_bonus
@@ -475,7 +482,15 @@ func _sync_loadout_visuals() -> void:
 				worn_items.append(worn)
 	var off_hand := get_off_hand_item_definition()
 	var held_item := get_single_held_item_definition()
-	_appearance_controller.apply_loadout(weapon, armor, charm, held_item, off_hand, worn_items)
+	var presentation_mode := equipment.get_presentation_mode() \
+		if equipment != null else EquipmentComponent.PRESENTATION_PROFESSION
+	_appearance_controller.apply_loadout(
+		weapon, armor, charm, held_item, off_hand, worn_items, presentation_mode
+	)
+
+
+func _on_presentation_mode_changed(_mode: StringName) -> void:
+	_sync_loadout_visuals()
 
 
 func apply_character_build(build_data: Dictionary, restore_to_full: bool = false) -> bool:

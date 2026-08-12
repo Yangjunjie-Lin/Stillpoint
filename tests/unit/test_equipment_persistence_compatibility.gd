@@ -14,9 +14,11 @@ func run() -> bool:
 		"slots": {"weapon": sword.id, "charm": charm.id},
 	})
 	var saved := equipment.to_dict()
+	ok = ok and saved.get("presentation_mode") == "profession"
 	var restored := EquipmentComponent.new()
 	ok = ok and restored.from_dict(saved)
 	ok = ok and restored.to_dict() == saved
+	restored.set_presentation_mode(EquipmentComponent.PRESENTATION_DECORATIVE)
 
 	# Pre-versioned direct slot dictionaries remain loadable. Unknown item IDs,
 	# extra keys, and definitions in the wrong slot are ignored safely.
@@ -29,6 +31,7 @@ func run() -> bool:
 	ok = ok and restored.get_equipped_item(ItemDefinition.EquipSlot.WEAPON) == sword.id
 	ok = ok and restored.get_equipped_item(ItemDefinition.EquipSlot.ARMOR) == &""
 	ok = ok and restored.get_equipped_item(ItemDefinition.EquipSlot.CHARM) == &""
+	ok = ok and restored.get_presentation_mode() == EquipmentComponent.PRESENTATION_PROFESSION
 
 	# Unsupported future and malformed sections fail without mutating live state.
 	var before_invalid := restored.to_dict()

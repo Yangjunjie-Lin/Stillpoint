@@ -396,6 +396,8 @@ func _spawn_player() -> void:
 		player.inventory.inventory_changed.connect(_on_player_items_changed)
 	if player.equipment != null and not player.equipment.equipment_changed.is_connected(_on_player_items_changed):
 		player.equipment.equipment_changed.connect(_on_player_items_changed)
+	if player.equipment != null and not player.equipment.presentation_mode_changed.is_connected(_on_player_presentation_mode_changed):
+		player.equipment.presentation_mode_changed.connect(_on_player_presentation_mode_changed)
 	if player.experience != null and not player.experience.experience_changed.is_connected(_on_player_progression_changed):
 		player.experience.experience_changed.connect(_on_player_progression_changed)
 	if player.skill_loadout != null and not player.skill_loadout.loadout_changed.is_connected(_on_player_items_changed):
@@ -495,3 +497,7 @@ func _on_region_changed(_previous: StringName, current: StringName) -> void:
 func _on_player_items_changed() -> void:
 	if save_coordinator != null:
 		save_coordinator.mark_dirty(&"player")
+
+
+func _on_player_presentation_mode_changed(_mode: StringName) -> void:
+	_on_player_items_changed()

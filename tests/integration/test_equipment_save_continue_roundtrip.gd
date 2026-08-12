@@ -19,6 +19,7 @@ func run() -> bool:
 	ok = ok and _loadout_matches(
 		player, "training_sword", "padded_vest", "wanderer_charm", "training_sword"
 	)
+	player.equipment.set_presentation_mode(EquipmentComponent.PRESENTATION_DECORATIVE)
 	ok = ok and world.save_world_state()
 	world.free()
 
@@ -35,6 +36,7 @@ func run() -> bool:
 	ok = ok and restored_player.equipment.get_equipped_item(
 		ItemDefinition.EquipSlot.CHARM
 	) == &"wanderer_charm"
+	ok = ok and restored_player.equipment.get_presentation_mode() == EquipmentComponent.PRESENTATION_DECORATIVE
 	ok = ok and is_equal_approx(restored_player.combat.damage_bonus, expected_attack)
 	ok = ok and is_equal_approx(restored_player.health.defense, expected_defense)
 	ok = ok and is_equal_approx(restored_player.energy.regen_per_second, expected_regen)
@@ -44,6 +46,7 @@ func run() -> bool:
 		"padded_vest",
 		"wanderer_charm",
 		"training_sword",
+		false,
 	)
 	restored.free()
 	GameManager.resume_requested = false
@@ -66,6 +69,7 @@ func _loadout_matches(
 	armor: String,
 	charm: String,
 	held: String,
+	expect_profession_visual: bool = true,
 ) -> bool:
 	var appearance := player.get_node_or_null(
 		"VisualRoot/CharacterModel"
@@ -81,6 +85,6 @@ func _loadout_matches(
 		and String(loadout.get("held_item", "")) == held
 		and model != null
 		and model.find_child("DisplayedHandheld", true, false) != null
-		and model.find_child("DisplayedArmor", true, false) != null
-		and model.find_child("DisplayedCharm", true, false) != null
+		and (model.find_child("DisplayedArmor", true, false) != null) == expect_profession_visual
+		and (model.find_child("DisplayedCharm", true, false) != null) == expect_profession_visual
 	)

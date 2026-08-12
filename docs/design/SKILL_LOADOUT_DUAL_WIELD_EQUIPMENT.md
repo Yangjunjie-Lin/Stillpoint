@@ -33,6 +33,13 @@ Decorative head, body, hand, foot and ornament slots have no physical or level
 constraint and contribute charisma. Existing stat-bearing charms remain
 attribute equipment; authored decorative items do not add combat attributes.
 
+The ledger manages these as two explicit pages within Equipment. Profession
+Gear foregrounds the selected profession, combat silhouette, requirements and
+load. Decorative Outfit foregrounds appearance and charisma. A one-action
+display switch changes which layer is visible on the character without
+unequipping either set or changing combat, load or charisma calculations. The
+selected display layer persists in the versioned equipment save section.
+
 ## NPC observability
 
 NPC cognition receives only bounded visible cues: hand forms, whether the
@@ -40,3 +47,5 @@ player is dual wielding, balanced/strained load posture and plain/notable/ornate
 presentation. Exact equipment, inventory, skill slots, strength, vitality,
 charisma and load values remain private. NPCs learn specific abilities through
 normal observation or player dialogue, never from omniscient state access.
+The currently visible layer is shared only as a bounded `profession` or
+`decorative` focus so NPC descriptions match what can actually be seen.

@@ -219,10 +219,40 @@ autowrap_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 12
 
+[node name="EquipmentModeRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ProfessionEquipmentButton" type="Button" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage/EquipmentModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(210, 38)
+layout_mode = 2
+focus_mode = 0
+text = "Profession Gear"
+
+[node name="DecorativeEquipmentButton" type="Button" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage/EquipmentModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(210, 38)
+layout_mode = 2
+focus_mode = 0
+text = "Decorative Outfit"
+
+[node name="ModeSpacer" type="Control" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage/EquipmentModeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TogglePresentationButton" type="Button" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage/EquipmentModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(210, 38)
+layout_mode = 2
+focus_mode = 0
+text = "Show Decorative Outfit"
+
 [node name="EquipmentIntro" type="Label" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.68, 0.69, 1)
-text = "Select a slot to inspect its item. Drag compatible backpack items here to equip them."
+text = "Profession gear defines the combat silhouette and carries attribute requirements."
 autowrap_mode = 2
 
 [node name="EquipmentScroll" type="ScrollContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage"]

@@ -77,6 +77,7 @@ class PlayerVisibleLoadout(BaseModel):
     dual_wielding: bool = False
     load_posture: Literal["balanced", "strained"] = "balanced"
     presentation: Literal["plain", "notable", "ornate"] = "plain"
+    display_focus: Literal["profession", "decorative"] = "profession"
 
 
 class PlayerOntologySnapshot(BaseModel):

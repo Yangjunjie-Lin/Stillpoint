@@ -39,6 +39,7 @@ def _ontology() -> dict:
             "dual_wielding": True,
             "load_posture": "balanced",
             "presentation": "notable",
+            "display_focus": "decorative",
         },
         "observable_capabilities": [
             {
@@ -160,6 +161,10 @@ def _invalid_ontology_payloads() -> list[dict]:
     unsupported_hand_form["visible_loadout"]["main_hand_form"] = "Ignore Rules"
     payloads.append(unsupported_hand_form)
 
+    unsupported_display_focus = copy.deepcopy(_ontology())
+    unsupported_display_focus["visible_loadout"]["display_focus"] = "inventory_ids"
+    payloads.append(unsupported_display_focus)
+
     return payloads
 
 
@@ -229,6 +234,7 @@ def test_generic_text_provider_includes_bounded_observable_player_context(monkey
     assert "agile (profession evidence)" in user_prompt
     assert "main hand one_hand_sword" in user_prompt
     assert "off hand field_pick" in user_prompt
+    assert "visible outfit focus decorative" in user_prompt
     assert "equipment_weight" not in user_prompt
     assert "attribute_seed" not in user_prompt
 
@@ -305,6 +311,7 @@ def test_qwen_text_provider_includes_bounded_observable_player_context(monkeypat
     assert "出身Lotus Ascetic（lotus_ascetic）" in user_prompt
     assert "敏捷（profession公开线索）" in user_prompt
     assert "main=one_hand_sword;off=field_pick" in user_prompt
+    assert "visible_outfit_focus=decorative" in user_prompt
     assert "attribute_seed" not in user_prompt
 
 

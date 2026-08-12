@@ -65,6 +65,7 @@ func run() -> bool:
 			"dual_wielding": false,
 			"load_posture": "balanced",
 			"presentation": "plain",
+			"display_focus": "profession",
 		}
 		and capabilities_valid
 		and capability_ids.has("guarded")

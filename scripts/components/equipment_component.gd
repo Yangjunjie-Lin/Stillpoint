@@ -4,8 +4,35 @@ extends Node
 ## from ItemDefinition resources; this component stores only stable item IDs.
 
 signal equipment_changed
+signal presentation_mode_changed(mode: StringName)
 
-const SECTION_VERSION := 2
+const SECTION_VERSION := 3
+const PRESENTATION_PROFESSION: StringName = &"profession"
+const PRESENTATION_DECORATIVE: StringName = &"decorative"
+const PRESENTATION_MODES: Array[StringName] = [
+	PRESENTATION_PROFESSION,
+	PRESENTATION_DECORATIVE,
+]
+const ATTRIBUTE_SLOTS: Array[int] = [
+	ItemDefinition.EquipSlot.WEAPON,
+	ItemDefinition.EquipSlot.ARMOR,
+	ItemDefinition.EquipSlot.CHARM,
+	ItemDefinition.EquipSlot.HEAD,
+	ItemDefinition.EquipSlot.LEGS,
+	ItemDefinition.EquipSlot.FEET,
+	ItemDefinition.EquipSlot.HANDS,
+	ItemDefinition.EquipSlot.WRISTS,
+	ItemDefinition.EquipSlot.RING_LEFT,
+	ItemDefinition.EquipSlot.RING_RIGHT,
+	ItemDefinition.EquipSlot.BELT,
+]
+const DECORATIVE_SLOTS: Array[int] = [
+	ItemDefinition.EquipSlot.DECOR_HEAD,
+	ItemDefinition.EquipSlot.DECOR_BODY,
+	ItemDefinition.EquipSlot.DECOR_HANDS,
+	ItemDefinition.EquipSlot.DECOR_FEET,
+	ItemDefinition.EquipSlot.DECOR_ORNAMENT,
+]
 const EQUIP_SLOTS: Array[int] = [
 	ItemDefinition.EquipSlot.WEAPON,
 	ItemDefinition.EquipSlot.ARMOR,
@@ -26,6 +53,7 @@ const EQUIP_SLOTS: Array[int] = [
 ]
 
 var _equipped: Dictionary = {}
+var _presentation_mode: StringName = PRESENTATION_PROFESSION
 
 
 func _init() -> void:
@@ -45,11 +73,54 @@ func get_equipped_definition(slot: int) -> ItemDefinition:
 	return ResourceRegistry.get_item(item_id)
 
 
+func get_presentation_mode() -> StringName:
+	return _presentation_mode
+
+
+func set_presentation_mode(mode: StringName) -> bool:
+	var normalized := _normalize_presentation_mode(mode)
+	if normalized == _presentation_mode:
+		return false
+	_presentation_mode = normalized
+	presentation_mode_changed.emit(_presentation_mode)
+	return true
+
+
+func toggle_presentation_mode() -> StringName:
+	set_presentation_mode(
+		PRESENTATION_DECORATIVE
+		if _presentation_mode == PRESENTATION_PROFESSION
+		else PRESENTATION_PROFESSION
+	)
+	return _presentation_mode
+
+
+func is_decorative_slot(slot: int) -> bool:
+	return slot in DECORATIVE_SLOTS
+
+
+func get_slots_for_presentation(mode: StringName) -> Array[int]:
+	return DECORATIVE_SLOTS.duplicate() \
+		if _normalize_presentation_mode(mode) == PRESENTATION_DECORATIVE \
+		else ATTRIBUTE_SLOTS.duplicate()
+
+
 func is_slot_compatible(item_id: StringName, slot: int) -> bool:
 	if item_id == &"" or not _is_equipment_slot(slot):
 		return false
 	var definition := ResourceRegistry.get_item(item_id)
-	return definition != null and definition.supports_equip_slot(slot)
+	if definition == null or not definition.supports_equip_slot(slot):
+		return false
+	return definition.is_decorative_equipment() == is_decorative_slot(slot)
+
+
+func is_item_compatible_with_presentation(item_id: StringName, mode: StringName) -> bool:
+	var definition := ResourceRegistry.get_item(item_id)
+	if definition == null or not definition.is_equippable():
+		return false
+	return definition.is_decorative_equipment() \
+		if _normalize_presentation_mode(mode) == PRESENTATION_DECORATIVE \
+		else definition.is_attribute_equipment()
 
 
 func get_load_state(strength: int, vitality: int, level: int) -> Dictionary:
@@ -185,6 +256,7 @@ func to_dict() -> Dictionary:
 	return {
 		"section_version": SECTION_VERSION,
 		"slots": slots,
+		"presentation_mode": String(_presentation_mode),
 	}
 
 
@@ -202,19 +274,32 @@ func from_dict(data: Dictionary) -> bool:
 		var item_id := _read_item_id(serialized_slots.get(key, &""))
 		if is_slot_compatible(item_id, slot):
 			restored[slot] = item_id
-	var changed := restored != _equipped
+	var restored_mode := PRESENTATION_PROFESSION
+	if version >= 3:
+		restored_mode = _normalize_presentation_mode(StringName(str(
+			data.get("presentation_mode", PRESENTATION_PROFESSION)
+		)))
+	var equipment_was_changed := restored != _equipped
+	var mode_was_changed := restored_mode != _presentation_mode
 	_equipped = restored
-	if changed:
+	_presentation_mode = restored_mode
+	if equipment_was_changed:
 		equipment_changed.emit()
+	if mode_was_changed:
+		presentation_mode_changed.emit(_presentation_mode)
 	return true
 
 
 func clear() -> void:
 	var empty := _empty_slot_dictionary()
-	if empty == _equipped:
-		return
+	var equipment_was_changed := empty != _equipped
+	var mode_was_changed := _presentation_mode != PRESENTATION_PROFESSION
 	_equipped = empty
-	equipment_changed.emit()
+	_presentation_mode = PRESENTATION_PROFESSION
+	if equipment_was_changed:
+		equipment_changed.emit()
+	if mode_was_changed:
+		presentation_mode_changed.emit(_presentation_mode)
 
 
 func _duplicate_inventory(inventory: InventoryComponent) -> InventoryComponent:
@@ -237,6 +322,10 @@ func _empty_slot_dictionary() -> Dictionary:
 
 func _is_equipment_slot(slot: int) -> bool:
 	return slot in EQUIP_SLOTS
+
+
+func _normalize_presentation_mode(mode: StringName) -> StringName:
+	return mode if mode in PRESENTATION_MODES else PRESENTATION_PROFESSION
 
 
 func _slot_key(slot: int) -> String:

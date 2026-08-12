@@ -4,6 +4,10 @@ extends Control
 
 @onready var backpack_grid: GridContainer = %BackpackGrid
 @onready var equipment_grid: GridContainer = %EquipmentGrid
+@onready var equipment_intro: Label = %EquipmentIntro
+@onready var profession_equipment_button: Button = %ProfessionEquipmentButton
+@onready var decorative_equipment_button: Button = %DecorativeEquipmentButton
+@onready var toggle_presentation_button: Button = %TogglePresentationButton
 @onready var proficiency_label: RichTextLabel = %ProficiencyLabel
 @onready var character_label: RichTextLabel = %CharacterLabel
 @onready var equipment_summary: Label = %EquipmentSummary
@@ -39,6 +43,7 @@ var _selected_equipment_slot: int = ItemDefinition.EquipSlot.NONE
 var _tree_was_paused: bool = false
 var _player_input_was_enabled: bool = true
 var _active_page: int = 0
+var _equipment_category: StringName = EquipmentComponent.PRESENTATION_PROFESSION
 
 const PAGE_DATA := [
 	{"title": "Backpack", "subtitle": "Carry, arrange and use field supplies",
@@ -59,6 +64,13 @@ func _ready() -> void:
 	equipment_tab.pressed.connect(_select_page.bind(1))
 	skills_tab.pressed.connect(_select_page.bind(2))
 	character_tab.pressed.connect(_select_page.bind(3))
+	profession_equipment_button.pressed.connect(
+		_select_equipment_category.bind(EquipmentComponent.PRESENTATION_PROFESSION)
+	)
+	decorative_equipment_button.pressed.connect(
+		_select_equipment_category.bind(EquipmentComponent.PRESENTATION_DECORATIVE)
+	)
+	toggle_presentation_button.pressed.connect(_toggle_equipment_presentation)
 	_build_backpack_slots(24)
 	_build_equipment_slots()
 	_build_skill_loadout_controls()
@@ -131,6 +143,8 @@ func _bind_world() -> void:
 		_inventory.inventory_changed.connect(_refresh)
 	if _equipment != null and not _equipment.equipment_changed.is_connected(_on_equipment_changed):
 		_equipment.equipment_changed.connect(_on_equipment_changed)
+	if _equipment != null and not _equipment.presentation_mode_changed.is_connected(_on_presentation_mode_changed):
+		_equipment.presentation_mode_changed.connect(_on_presentation_mode_changed)
 	_refresh()
 
 
@@ -169,6 +183,7 @@ func _build_equipment_slots() -> void:
 		button.gui_input.connect(_on_equipment_slot_gui_input.bind(slot))
 		equipment_grid.add_child(button)
 		_equipment_buttons[slot] = button
+	_refresh_equipment_category()
 
 
 func _refresh() -> void:
@@ -201,6 +216,7 @@ func _refresh() -> void:
 	_refresh_skill_loadout()
 	_refresh_character_overview()
 	_refresh_equipment_summary()
+	_refresh_equipment_category()
 	_refresh_capacity()
 	_refresh_details()
 
@@ -347,26 +363,92 @@ func _refresh_character_overview() -> void:
 func _refresh_equipment_summary() -> void:
 	if equipment_summary == null or _equipment == null:
 		return
-	var equipped_count := 0
 	var attack_bonus := 0.0
 	var defense_bonus := 0.0
 	var energy_bonus := 0.0
 	var charisma_bonus := 0.0
+	var attribute_equipped_count := 0
+	var decorative_equipped_count := 0
 	for slot in EquipmentComponent.EQUIP_SLOTS:
 		var definition := _equipment.get_equipped_definition(slot)
 		if definition == null:
 			continue
-		equipped_count += 1
-		attack_bonus += definition.attack_bonus
-		defense_bonus += definition.defense_bonus
-		energy_bonus += definition.energy_regen_bonus
-		charisma_bonus += definition.charisma_bonus
+		if definition.is_decorative_equipment():
+			decorative_equipped_count += 1
+			charisma_bonus += definition.charisma_bonus
+		else:
+			attribute_equipped_count += 1
+			attack_bonus += definition.attack_bonus
+			defense_bonus += definition.defense_bonus
+			energy_bonus += definition.energy_regen_bonus
 	var load_state := _player.get_equipment_load_state() if _player != null else {}
 	var load_label := "OVERLOADED  -%.0f%% effectiveness" % (float(load_state.get("penalty_ratio", 0.0)) * 100.0) \
 		if bool(load_state.get("overloaded", false)) else "Within physical capacity"
-	equipment_summary.text = "LOADOUT EFFECT\n%d / %d slots equipped  ·  %.1f / %.1f load  ·  %s\nAttack +%.1f  Defense +%.1f  Energy +%.1f  Charisma +%.1f" % [
-		equipped_count, EquipmentComponent.EQUIP_SLOTS.size(), float(load_state.get("attribute_weight", 0.0)), float(load_state.get("capacity", 0.0)), load_label, attack_bonus, defense_bonus, energy_bonus, charisma_bonus,
-	]
+	var profession := ResourceRegistry.get_profession(_player.profession_id) if _player != null else null
+	var profession_label := profession.display_name if profession != null else "Adventurer"
+	if _equipment_category == EquipmentComponent.PRESENTATION_DECORATIVE:
+		equipment_summary.text = "DECORATIVE PRESENTATION\n%d / %d slots equipped  ·  Charisma +%.1f  ·  no physical requirements\nActive visible layer: %s" % [
+			decorative_equipped_count, EquipmentComponent.DECORATIVE_SLOTS.size(), charisma_bonus,
+			"Decorative Outfit" if _equipment.get_presentation_mode() == EquipmentComponent.PRESENTATION_DECORATIVE else "Profession Gear",
+		]
+	else:
+		equipment_summary.text = "PROFESSION LOADOUT · %s\n%d / %d slots equipped  ·  %.1f / %.1f load  ·  %s\nAttack +%.1f  Defense +%.1f  Energy +%.1f" % [
+			profession_label, attribute_equipped_count, EquipmentComponent.ATTRIBUTE_SLOTS.size(), float(load_state.get("attribute_weight", 0.0)), float(load_state.get("capacity", 0.0)), load_label, attack_bonus, defense_bonus, energy_bonus,
+		]
+
+
+func _select_equipment_category(category: StringName) -> void:
+	_equipment_category = EquipmentComponent.PRESENTATION_DECORATIVE \
+		if category == EquipmentComponent.PRESENTATION_DECORATIVE \
+		else EquipmentComponent.PRESENTATION_PROFESSION
+	_selected_kind = &""
+	_selected_equipment_slot = ItemDefinition.EquipSlot.NONE
+	status_label.text = ""
+	_refresh()
+
+
+func _toggle_equipment_presentation() -> void:
+	if _equipment == null:
+		return
+	var mode := _equipment.toggle_presentation_mode()
+	status_label.text = "Now showing %s." % (
+		"decorative outfit" if mode == EquipmentComponent.PRESENTATION_DECORATIVE \
+		else "profession gear"
+	)
+	_refresh()
+
+
+func _refresh_equipment_category() -> void:
+	if _equipment == null:
+		return
+	var visible_slots := _equipment.get_slots_for_presentation(_equipment_category)
+	for raw_slot in _equipment_buttons:
+		var button := _equipment_buttons[raw_slot] as InventorySlotButton
+		if button != null:
+			button.visible = int(raw_slot) in visible_slots
+	_apply_category_style(
+		profession_equipment_button,
+		_equipment_category == EquipmentComponent.PRESENTATION_PROFESSION,
+	)
+	_apply_category_style(
+		decorative_equipment_button,
+		_equipment_category == EquipmentComponent.PRESENTATION_DECORATIVE,
+	)
+	var decorative := _equipment_category == EquipmentComponent.PRESENTATION_DECORATIVE
+	if equipment_intro != null:
+		equipment_intro.text = (
+			"Decorative outfit slots focus on appearance and charisma. They have no physical requirements."
+			if decorative else
+			"Profession gear defines the combat silhouette and is governed by level, strength, vitality and load."
+		)
+	if toggle_presentation_button != null:
+		var showing_decor := _equipment.get_presentation_mode() == EquipmentComponent.PRESENTATION_DECORATIVE
+		toggle_presentation_button.text = (
+			"Show Profession Gear" if showing_decor else "Show Decorative Outfit"
+		)
+		toggle_presentation_button.tooltip_text = (
+			"Switch only the visible outfit layer. Equipped bonuses remain active."
+		)
 
 
 func _refresh_capacity() -> void:
@@ -584,6 +666,19 @@ func _refresh_details() -> void:
 		status_label.text = ""
 		action_button.disabled = true
 		return
+	if _active_page == 1 and _selected_kind == &"":
+		var decorative := _equipment_category == EquipmentComponent.PRESENTATION_DECORATIVE
+		item_name_label.text = "Decorative outfit" if decorative else "Profession gear"
+		item_type_label.text = "APPEARANCE & CHARISMA" if decorative else "PROFESSION & ATTRIBUTES"
+		description_label.text = (
+			"Decorative pieces control the visible style layer and raise charisma without physical requirements."
+			if decorative else
+			"Attribute equipment expresses the profession's combat silhouette and is governed by level, strength, vitality and load."
+		)
+		bonuses_label.text = "Use the display switch to change the visible layer instantly. Both equipped sets remain active."
+		status_label.text = ""
+		action_button.disabled = true
+		return
 	var definition: ItemDefinition = null
 	var quantity := 0
 	if _selected_kind == &"inventory" and _inventory != null:
@@ -619,6 +714,10 @@ func _refresh_details() -> void:
 
 
 func _on_equipment_changed() -> void:
+	_refresh()
+
+
+func _on_presentation_mode_changed(_mode: StringName) -> void:
 	_refresh()
 
 
