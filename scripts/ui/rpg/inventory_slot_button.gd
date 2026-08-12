@@ -139,19 +139,19 @@ func _ensure_visual_nodes() -> void:
 	add_child(_icon_rect)
 	_heading_label = Label.new()
 	_heading_label.add_theme_font_size_override("font_size", 11)
-	_heading_label.add_theme_color_override("font_color", Color("5a3c1b"))
+	_heading_label.add_theme_color_override("font_color", Color("76a8a4"))
 	_heading_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_heading_label)
 	_name_label = Label.new()
 	_name_label.add_theme_font_size_override("font_size", 14)
-	_name_label.add_theme_color_override("font_color", Color("362310"))
+	_name_label.add_theme_color_override("font_color", Color("dce3da"))
 	_name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_name_label)
 	_quantity_label = Label.new()
 	_quantity_label.add_theme_font_size_override("font_size", 13)
-	_quantity_label.add_theme_color_override("font_color", Color("2f2111"))
-	_quantity_label.add_theme_color_override("font_shadow_color", Color(1, 0.94, 0.7, 0.9))
+	_quantity_label.add_theme_color_override("font_color", Color("ead9aa"))
+	_quantity_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	_quantity_label.add_theme_constant_override("shadow_offset_x", 1)
 	_quantity_label.add_theme_constant_override("shadow_offset_y", 1)
 	_quantity_label.mouse_filter = Control.MOUSE_FILTER_IGNORE

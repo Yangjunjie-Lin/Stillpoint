@@ -1,10 +1,22 @@
 class_name InventoryMenu
 extends Control
-## Stardew-inspired backpack/equipment modal backed by authoritative components.
+## Categorized RPG data ledger backed by authoritative runtime components.
 
 @onready var backpack_grid: GridContainer = %BackpackGrid
 @onready var equipment_grid: VBoxContainer = %EquipmentGrid
-@onready var proficiency_label: Label = %ProficiencyLabel
+@onready var proficiency_label: RichTextLabel = %ProficiencyLabel
+@onready var character_label: RichTextLabel = %CharacterLabel
+@onready var equipment_summary: Label = %EquipmentSummary
+@onready var page_stack: TabContainer = %PageStack
+@onready var page_title: Label = %PageTitle
+@onready var page_subtitle: Label = %PageSubtitle
+@onready var page_counter: Label = %PageCounter
+@onready var capacity_label: Label = %CapacityLabel
+@onready var category_hint: Label = %CategoryHint
+@onready var backpack_tab: Button = %BackpackTab
+@onready var equipment_tab: Button = %EquipmentTab
+@onready var skills_tab: Button = %SkillsTab
+@onready var character_tab: Button = %CharacterTab
 @onready var item_name_label: Label = %ItemName
 @onready var item_type_label: Label = %ItemType
 @onready var description_label: Label = %Description
@@ -23,13 +35,30 @@ var _selected_inventory_index: int = -1
 var _selected_equipment_slot: int = ItemDefinition.EquipSlot.NONE
 var _tree_was_paused: bool = false
 var _player_input_was_enabled: bool = true
+var _active_page: int = 0
+
+const PAGE_DATA := [
+	{"title": "Backpack", "subtitle": "Carry, arrange and use field supplies",
+		"hint": "Backpack: arrange supplies and inspect item details"},
+	{"title": "Equipment", "subtitle": "Review the active combat and travel loadout",
+		"hint": "Equipment: drag compatible items into a slot or inspect equipped gear"},
+	{"title": "Skill Proficiency", "subtitle": "Compare disciplines, daily progress and fatigue",
+		"hint": "Skills: practice variety preserves learning efficiency and daily capacity"},
+	{"title": "Character", "subtitle": "Identity, affiliation, progression and core capabilities",
+		"hint": "Character: a concise overview of the current adventurer"},
+]
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_apply_theme()
+	backpack_tab.pressed.connect(_select_page.bind(0))
+	equipment_tab.pressed.connect(_select_page.bind(1))
+	skills_tab.pressed.connect(_select_page.bind(2))
+	character_tab.pressed.connect(_select_page.bind(3))
 	_build_backpack_slots(24)
 	_build_equipment_slots()
+	_select_page(0)
 	call_deferred("_bind_world")
 
 
@@ -68,6 +97,7 @@ func open_menu() -> void:
 	get_tree().paused = true
 	visible = true
 	status_label.text = ""
+	_select_page(_active_page)
 	_refresh()
 
 
@@ -106,7 +136,7 @@ func _build_backpack_slots(count: int) -> void:
 	_inventory_buttons.clear()
 	for index in count:
 		var button := InventorySlotButton.new()
-		button.custom_minimum_size = Vector2(78.0, 82.0)
+		button.custom_minimum_size = Vector2(73.0, 78.0)
 		button.focus_mode = Control.FOCUS_NONE
 		button.expand_icon = true
 		button.add_theme_constant_override("icon_max_width", 36)
@@ -164,6 +194,9 @@ func _refresh() -> void:
 		for slot in EquipmentComponent.EQUIP_SLOTS:
 			_refresh_equipment_slot(slot)
 	_refresh_proficiencies()
+	_refresh_character_overview()
+	_refresh_equipment_summary()
+	_refresh_capacity()
 	_refresh_details()
 
 
@@ -177,20 +210,115 @@ func _refresh_proficiencies() -> void:
 		if category != previous_category:
 			if not lines.is_empty():
 				lines.append("")
-			lines.append(category)
+			lines.append("[color=#58c8b6][font_size=15]%s[/font_size][/color]" % category)
 			previous_category = category
-		lines.append("%s  %.1f/%.0f  L%d  %s  today %.1f/%.1f" % [
+		var points := float(skill_state.get("points", 0.0))
+		var maximum := float(skill_state.get("max_proficiency", 100.0))
+		var filled := clampi(roundi(points / maxf(1.0, maximum) * 12.0), 0, 12)
+		var meter := "■".repeat(filled) + "·".repeat(12 - filled)
+		lines.append("[color=#e3d19f]%s[/color]  [color=#5cc7b5]%s[/color]  %.1f/%.0f   L%d  %s   [color=#81999a]today %.1f/%.1f[/color]" % [
 			str(skill_state.get("display_name", skill_state.get("skill_id", "Skill"))),
-			float(skill_state.get("points", 0.0)),
-			float(skill_state.get("max_proficiency", 100.0)),
+			meter,
+			points,
+			maximum,
 			int(skill_state.get("level", 0)),
 			str(skill_state.get("mastery", "untrained")).replace("_", " "),
 			float(skill_state.get("gained_today", 0.0)),
 			float(skill_state.get("daily_cap", 0.0)),
 		])
 	lines.append("")
-	lines.append("Repeated place/tool practice loses efficiency and capacity; sustained overload can reduce proficiency. Rest or vary training to recover.")
+	lines.append("[color=#809697]Training note: repeated use of one place or tool reduces efficiency and capacity. Rest or vary practice to recover.[/color]")
 	proficiency_label.text = "\n".join(lines)
+
+
+func _refresh_character_overview() -> void:
+	if character_label == null or _player == null:
+		return
+	var origin := ResourceRegistry.get_origin(_player.origin_id)
+	var faction := ResourceRegistry.get_faction(_player.selected_faction_id)
+	var profession := ResourceRegistry.get_profession(_player.profession_id)
+	var level := _player.experience.level if _player.experience != null else 1
+	var xp := _player.experience.current_experience if _player.experience != null else 0
+	var next_xp := _player.experience.experience_to_next_level if _player.experience != null else 0
+	var wallet := _world.property_bank_service.wallet_balance if _world != null and _world.property_bank_service != null else 0
+	var bank := _world.property_bank_service.bank_balance if _world != null and _world.property_bank_service != null else 0
+	var health_text := "--"
+	if _player.health != null:
+		health_text = "%.0f / %.0f" % [_player.health.current_health, _player.health.max_health]
+	var energy_text := "--"
+	if _player.energy != null:
+		energy_text = "%.0f / %.0f" % [_player.energy.current_energy, _player.energy.max_energy]
+	character_label.text = "\n".join([
+		"[color=#58c8b6][font_size=15]IDENTITY[/font_size][/color]",
+		"[font_size=22][color=#ead49f]%s[/color][/font_size]" % GameManager.player_name,
+		"Origin       [color=#d0d8d2]%s[/color]" % (origin.display_name if origin != null else String(_player.origin_id)),
+		"Faction      [color=#d0d8d2]%s[/color]" % (faction.display_name if faction != null else String(_player.selected_faction_id)),
+		"Profession   [color=#d0d8d2]%s[/color]" % (profession.display_name if profession != null else String(_player.profession_id)),
+		"",
+		"[color=#58c8b6][font_size=15]PROGRESSION & VITALS[/font_size][/color]",
+		"Level        [color=#ead49f]%d[/color]     XP  %d / %d" % [level, xp, next_xp],
+		"Health       %s     Energy  %s" % [health_text, energy_text],
+		"Strength     %d     Defense  %.1f" % [_player.get_physical_strength(), _player.health.defense if _player.health != null else 0.0],
+		"",
+		"[color=#58c8b6][font_size=15]WORLD STATUS[/font_size][/color]",
+		"Region       %s" % String(_world.current_region_id if _world != null else _player.current_region_id),
+		"Funds        %d coin on hand     %d coin banked" % [wallet, bank],
+	])
+
+
+func _refresh_equipment_summary() -> void:
+	if equipment_summary == null or _equipment == null:
+		return
+	var equipped_count := 0
+	var attack_bonus := 0.0
+	var defense_bonus := 0.0
+	var energy_bonus := 0.0
+	for slot in EquipmentComponent.EQUIP_SLOTS:
+		var definition := _equipment.get_equipped_definition(slot)
+		if definition == null:
+			continue
+		equipped_count += 1
+		attack_bonus += definition.attack_bonus
+		defense_bonus += definition.defense_bonus
+		energy_bonus += definition.energy_regen_bonus
+	equipment_summary.text = "LOADOUT EFFECT\n%d / %d slots equipped\nAttack  +%.1f     Defense  +%.1f     Energy recovery  +%.1f" % [
+		equipped_count, EquipmentComponent.EQUIP_SLOTS.size(), attack_bonus, defense_bonus, energy_bonus,
+	]
+
+
+func _refresh_capacity() -> void:
+	if capacity_label == null or _inventory == null:
+		return
+	var occupied := 0
+	for index in _inventory.slot_count:
+		var stack := _inventory.get_slot(index)
+		if stack != null and not stack.is_empty():
+			occupied += 1
+	capacity_label.text = "%d / %d occupied" % [occupied, _inventory.slot_count]
+
+
+func _select_page(index: int) -> void:
+	_active_page = clampi(index, 0, PAGE_DATA.size() - 1)
+	if page_stack != null:
+		page_stack.current_tab = _active_page
+	var data: Dictionary = PAGE_DATA[_active_page]
+	if page_title != null:
+		page_title.text = str(data.get("title", "Data"))
+	if page_subtitle != null:
+		page_subtitle.text = str(data.get("subtitle", ""))
+	if category_hint != null:
+		category_hint.text = str(data.get("hint", ""))
+	if page_counter != null:
+		page_counter.text = "%02d / %02d" % [_active_page + 1, PAGE_DATA.size()]
+	for entry in [[backpack_tab, 0], [equipment_tab, 1], [skills_tab, 2], [character_tab, 3]]:
+		var button := entry[0] as Button
+		if button != null:
+			_apply_category_style(button, int(entry[1]) == _active_page)
+	if capacity_label != null:
+		capacity_label.visible = _active_page == 0
+	if action_button != null:
+		action_button.visible = _active_page in [0, 1]
+	_refresh_details()
 
 
 func _refresh_equipment_slot(slot: int) -> void:
@@ -351,6 +479,28 @@ func drop_slot_data(button: InventorySlotButton, data: Variant) -> void:
 
 
 func _refresh_details() -> void:
+	if _active_page == 2:
+		item_name_label.text = "Training context"
+		item_type_label.text = "PROFICIENCY & FATIGUE"
+		description_label.text = (
+			"Skills are grouped by discipline so strengths and gaps remain easy to compare. "
+			+ "Daily gain and capacity are shown beside each proficiency."
+		)
+		bonuses_label.text = "Vary the place, tool, and activity to sustain learning efficiency. Rest restores diminished training capacity."
+		status_label.text = ""
+		action_button.disabled = true
+		return
+	if _active_page == 3:
+		item_name_label.text = "Adventurer record"
+		item_type_label.text = "IDENTITY & WORLD STATUS"
+		description_label.text = (
+			"This page collects the character's origin, faction, profession, progression, "
+			+ "vitals, location, and funds in one readable record."
+		)
+		bonuses_label.text = "Server-owned identity data also informs NPC cognition without granting NPCs knowledge they have not learned."
+		status_label.text = ""
+		action_button.disabled = true
+		return
 	var definition: ItemDefinition = null
 	var quantity := 0
 	if _selected_kind == &"inventory" and _inventory != null:
@@ -413,38 +563,67 @@ func _apply_theme() -> void:
 	var panel := get_node_or_null("Center/Panel") as PanelContainer
 	if panel != null:
 		var style := StyleBoxFlat.new()
-		style.bg_color = Color("ead09b")
-		style.border_color = Color("6e4822")
-		style.set_border_width_all(5)
-		style.set_corner_radius_all(14)
-		style.shadow_color = Color(0.08, 0.045, 0.02, 0.55)
-		style.shadow_size = 14
+		style.bg_color = Color("101b21")
+		style.border_color = Color("315d5d")
+		style.set_border_width_all(2)
+		style.set_corner_radius_all(10)
+		style.shadow_color = Color(0.0, 0.0, 0.0, 0.7)
+		style.shadow_size = 18
 		panel.add_theme_stylebox_override("panel", style)
-	var details := get_node_or_null("Center/Panel/Margin/VBox/Body/Side/Details") as PanelContainer
+	var workspace := get_node_or_null("Center/Panel/Margin/VBox/Body/Workspace") as PanelContainer
+	if workspace != null:
+		var workspace_style := StyleBoxFlat.new()
+		workspace_style.bg_color = Color("13242a")
+		workspace_style.border_color = Color("28454a")
+		workspace_style.set_border_width_all(1)
+		workspace_style.set_corner_radius_all(6)
+		workspace.add_theme_stylebox_override("panel", workspace_style)
+	var details := get_node_or_null("Center/Panel/Margin/VBox/Body/Details") as PanelContainer
 	if details != null:
 		var detail_style := StyleBoxFlat.new()
-		detail_style.bg_color = Color("f4e5bd")
-		detail_style.border_color = Color("a6793e")
-		detail_style.set_border_width_all(2)
-		detail_style.set_corner_radius_all(8)
+		detail_style.bg_color = Color("0c171d")
+		detail_style.border_color = Color("2c4a4f")
+		detail_style.set_border_width_all(1)
+		detail_style.set_corner_radius_all(6)
 		details.add_theme_stylebox_override("panel", detail_style)
+	for button in [backpack_tab, equipment_tab, skills_tab, character_tab]:
+		if button != null:
+			_apply_category_style(button, false)
+
+
+func _apply_category_style(button: Button, selected: bool) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color("25494c") if selected else Color("13272d")
+	normal.border_color = Color("56c7b4") if selected else Color("29464b")
+	normal.set_border_width_all(2 if selected else 1)
+	normal.set_corner_radius_all(5)
+	normal.content_margin_left = 13
+	normal.content_margin_right = 13
+	button.add_theme_stylebox_override("normal", normal)
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color("2b5657")
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", hover)
+	button.add_theme_stylebox_override("focus", hover)
+	button.add_theme_color_override("font_color", Color("e9d8aa") if selected else Color("8ba4a4"))
+	button.add_theme_color_override("font_hover_color", Color("f0dfb4"))
 
 
 func _apply_slot_style(button: Button, selected: bool, hotbar_slot: bool) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("f3dfa9") if selected else Color("d9b978")
-	normal.border_color = Color("fff1b9") if selected else (
-		Color("9c6b2f") if hotbar_slot else Color("795127")
+	normal.bg_color = Color("2a4f50") if selected else Color("172c32")
+	normal.border_color = Color("66d0bd") if selected else (
+		Color("8a7445") if hotbar_slot else Color("335157")
 	)
-	normal.set_border_width_all(4 if selected else 2)
-	normal.set_corner_radius_all(7)
+	normal.set_border_width_all(2)
+	normal.set_corner_radius_all(5)
 	button.add_theme_stylebox_override("normal", normal)
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("faebc3")
+	hover.bg_color = Color("315b5c")
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_stylebox_override("pressed", hover)
-	button.add_theme_color_override("font_color", Color("362310"))
-	button.add_theme_color_override("font_hover_color", Color("362310"))
+	button.add_theme_color_override("font_color", Color("d7e0d8"))
+	button.add_theme_color_override("font_hover_color", Color("f2e2b6"))
 	button.add_theme_font_size_override("font_size", 12)
 
 

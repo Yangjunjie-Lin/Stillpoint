@@ -202,61 +202,111 @@ text = "Quest: --"
 
 [node name="DialoguePanel" type="PanelContainer" parent="WorldUI"]
 visible = false
+z_index = 20
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -280.0
-offset_top = -260.0
-offset_right = 280.0
-offset_bottom = -20.0
+offset_left = -450.0
+offset_top = -474.0
+offset_right = 450.0
+offset_bottom = -24.0
 script = ExtResource("18")
 
 [node name="Margin" type="MarginContainer" parent="WorldUI/DialoguePanel"]
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
 
 [node name="VBox" type="VBoxContainer" parent="WorldUI/DialoguePanel/Margin"]
+theme_override_constants/separation = 9
 
-[node name="SpeakerLabel" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
+[node name="DialogueEyebrow" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
+theme_override_colors/font_color = Color(0.34, 0.82, 0.73, 1)
+theme_override_font_sizes/font_size = 11
+text = "CONVERSATION  /  PRESENT MOMENT"
+
+[node name="SpeakerRow" type="HBoxContainer" parent="WorldUI/DialoguePanel/Margin/VBox"]
+theme_override_constants/separation = 10
+
+[node name="SpeakerLabel" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox/SpeakerRow"]
 unique_name_in_owner = true
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.94, 0.85, 0.64, 1)
+theme_override_font_sizes/font_size = 24
 text = "Speaker"
+
+[node name="DialogueMode" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox/SpeakerRow"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.53, 0.67, 0.68, 1)
+theme_override_font_sizes/font_size = 12
+text = "AUTHORED DIALOGUE"
+vertical_alignment = 1
+
+[node name="SpeakerRule" type="HSeparator" parent="WorldUI/DialoguePanel/Margin/VBox"]
 
 [node name="BodyLabel" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 80)
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.84, 0.87, 0.82, 1)
+theme_override_font_sizes/font_size = 17
 autowrap_mode = 3
 text = "..."
 
+[node name="ResponseRule" type="HSeparator" parent="WorldUI/DialoguePanel/Margin/VBox"]
+
+[node name="ResponseHeading" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
+unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.39, 0.76, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "YOUR RESPONSE"
+
 [node name="ChoicesContainer" type="VBoxContainer" parent="WorldUI/DialoguePanel/Margin/VBox"]
 unique_name_in_owner = true
+size_flags_vertical = 3
+theme_override_constants/separation = 6
 
 [node name="ContinueHint" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox"]
 unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.49, 0.62, 0.63, 1)
+theme_override_font_sizes/font_size = 12
 text = "..."
 
 [node name="FreeFormContainer" type="VBoxContainer" parent="WorldUI/DialoguePanel/Margin/VBox"]
 unique_name_in_owner = true
 visible = false
+theme_override_constants/separation = 7
+
+[node name="FreeFormHeading" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer"]
+theme_override_colors/font_color = Color(0.9, 0.8, 0.6, 1)
+theme_override_font_sizes/font_size = 13
+text = "ASK IN YOUR OWN WORDS"
 
 [node name="FreeFormInput" type="LineEdit" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer"]
 unique_name_in_owner = true
-placeholder_text = "Ask something else..."
+custom_minimum_size = Vector2(0, 44)
+placeholder_text = "Type a question or tell this NPC something..."
 
 [node name="Buttons" type="HBoxContainer" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer"]
+theme_override_constants/separation = 8
 
 [node name="FreeFormSubmit" type="Button" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer/Buttons"]
 unique_name_in_owner = true
-text = "Ask"
+custom_minimum_size = Vector2(150, 40)
+text = "Send question"
 
 [node name="FreeFormCancel" type="Button" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer/Buttons"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 40)
 text = "Cancel"
 
 [node name="RequestStatus" type="Label" parent="WorldUI/DialoguePanel/Margin/VBox/FreeFormContainer"]
 unique_name_in_owner = true
+theme_override_colors/font_color = Color(0.52, 0.72, 0.7, 1)
+theme_override_font_sizes/font_size = 12
 text = ""
 
 [node name="HotbarBar" parent="WorldUI" instance=ExtResource("24")]

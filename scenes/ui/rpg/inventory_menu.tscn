@@ -21,7 +21,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
-color = Color(0.055, 0.04, 0.025, 0.78)
+color = Color(0.008, 0.016, 0.022, 0.92)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -32,38 +32,104 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(1060, 650)
+custom_minimum_size = Vector2(1180, 680)
 layout_mode = 2
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 28
+theme_override_constants/margin_left = 26
 theme_override_constants/margin_top = 22
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 22
+theme_override_constants/margin_right = 26
+theme_override_constants/margin_bottom = 20
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 13
 
 [node name="Header" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 14
 
-[node name="Title" type="Label" parent="Center/Panel/Margin/VBox/Header"]
+[node name="HeaderAccent" type="ColorRect" parent="Center/Panel/Margin/VBox/Header"]
+custom_minimum_size = Vector2(5, 62)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.27, 0.15, 0.07, 1)
-theme_override_font_sizes/font_size = 30
-text = "Backpack & Equipment"
+mouse_filter = 2
+color = Color(0.34, 0.82, 0.73, 1)
 
-[node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox/Header"]
+[node name="TitleStack" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Header"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Eyebrow" type="Label" parent="Center/Panel/Margin/VBox/Header/TitleStack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.82, 0.74, 1)
+theme_override_font_sizes/font_size = 12
+text = "CHARACTER DATA  /  FIELD LEDGER"
+
+[node name="Title" type="Label" parent="Center/Panel/Margin/VBox/Header/TitleStack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.86, 0.66, 1)
+theme_override_font_sizes/font_size = 28
+text = "Traveler's Ledger"
+
+[node name="Subtitle" type="Label" parent="Center/Panel/Margin/VBox/Header/TitleStack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.69, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "Inventory, loadout, proficiency and identity in one organized record"
+
+[node name="HeaderSpacer" type="Control" parent="Center/Panel/Margin/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="CloseButton" type="Button" parent="Center/Panel/Margin/VBox/Header"]
-custom_minimum_size = Vector2(44, 42)
+custom_minimum_size = Vector2(94, 42)
 layout_mode = 2
 focus_mode = 0
-text = "×"
+text = "Close  Esc"
+
+[node name="CategoryNav" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BackpackTab" type="Button" parent="Center/Panel/Margin/VBox/CategoryNav"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 42)
+layout_mode = 2
+focus_mode = 0
+text = "01  Backpack"
+
+[node name="EquipmentTab" type="Button" parent="Center/Panel/Margin/VBox/CategoryNav"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 42)
+layout_mode = 2
+focus_mode = 0
+text = "02  Equipment"
+
+[node name="SkillsTab" type="Button" parent="Center/Panel/Margin/VBox/CategoryNav"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 42)
+layout_mode = 2
+focus_mode = 0
+text = "03  Skills"
+
+[node name="CharacterTab" type="Button" parent="Center/Panel/Margin/VBox/CategoryNav"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 42)
+layout_mode = 2
+focus_mode = 0
+text = "04  Character"
+
+[node name="NavSpacer" type="Control" parent="Center/Panel/Margin/VBox/CategoryNav"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PageCounter" type="Label" parent="Center/Panel/Margin/VBox/CategoryNav"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.49, 0.61, 0.63, 1)
+text = "01 / 04"
+vertical_alignment = 1
 
 [node name="Rule" type="HSeparator" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
@@ -71,20 +137,70 @@ layout_mode = 2
 [node name="Body" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 24
+theme_override_constants/separation = 18
 
-[node name="Backpack" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body"]
+[node name="Workspace" type="PanelContainer" parent="Center/Panel/Margin/VBox/Body"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="WorkspaceMargin" type="MarginContainer" parent="Center/Panel/Margin/VBox/Body/Workspace"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="WorkspaceVBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin"]
+layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Label" type="Label" parent="Center/Panel/Margin/VBox/Body/Backpack"]
+[node name="ContentHeader" type="HBoxContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.31, 0.18, 0.08, 1)
-theme_override_font_sizes/font_size = 20
-text = "BACKPACK  ·  24 SLOTS"
 
-[node name="BackpackGrid" type="GridContainer" parent="Center/Panel/Margin/VBox/Body/Backpack"]
+[node name="ContentTitleStack" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/ContentHeader"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="PageTitle" type="Label" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/ContentHeader/ContentTitleStack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.83, 0.65, 1)
+theme_override_font_sizes/font_size = 21
+text = "Backpack"
+
+[node name="PageSubtitle" type="Label" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/ContentHeader/ContentTitleStack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.51, 0.65, 0.66, 1)
+theme_override_font_sizes/font_size = 12
+text = "Carry, arrange and use field supplies"
+
+[node name="ContentHeaderSpacer" type="Control" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/ContentHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CapacityLabel" type="Label" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/ContentHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.34, 0.81, 0.72, 1)
+text = "0 / 24 occupied"
+vertical_alignment = 1
+
+[node name="PageRule" type="HSeparator" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox"]
+layout_mode = 2
+
+[node name="PageStack" type="TabContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+tabs_visible = false
+
+[node name="BackpackPage" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BackpackGrid" type="GridContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/BackpackPage"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -92,118 +208,162 @@ theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 8
 
-[node name="Hint" type="Label" parent="Center/Panel/Margin/VBox/Body/Backpack"]
+[node name="Hint" type="Label" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/BackpackPage"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.37, 0.29, 0.19, 1)
-text = "First row = hotbar  ·  Drag to move  ·  Double-click to use/equip"
+theme_override_colors/font_color = Color(0.48, 0.6, 0.61, 1)
+theme_override_font_sizes/font_size = 12
+text = "Hotbar occupies the first row   •   Drag to move   •   Right-click or double-click to use"
+autowrap_mode = 2
 
-[node name="Separator" type="VSeparator" parent="Center/Panel/Margin/VBox/Body"]
-layout_mode = 2
-
-[node name="Side" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body"]
-custom_minimum_size = Vector2(285, 0)
+[node name="EquipmentPage" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="EquipmentLabel" type="Label" parent="Center/Panel/Margin/VBox/Body/Side"]
+[node name="EquipmentIntro" type="Label" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.31, 0.18, 0.08, 1)
-theme_override_font_sizes/font_size = 20
-text = "EQUIPMENT"
+theme_override_colors/font_color = Color(0.55, 0.68, 0.69, 1)
+text = "Select a slot to inspect its item. Drag compatible backpack items here to equip them."
+autowrap_mode = 2
 
-[node name="EquipmentGrid" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Side"]
+[node name="EquipmentGrid" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage"]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="EquipmentSummary" type="Label" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/EquipmentPage"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.56, 0.7, 0.68, 1)
+text = "Loadout summary"
+autowrap_mode = 2
+
+[node name="SkillsPage" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ProficiencyHeader" type="Label" parent="Center/Panel/Margin/VBox/Body/Side"]
+[node name="SkillSummary" type="Label" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/SkillsPage"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.31, 0.18, 0.08, 1)
-theme_override_font_sizes/font_size = 18
-text = "SKILL PROFICIENCY"
+theme_override_colors/font_color = Color(0.55, 0.68, 0.69, 1)
+text = "Proficiency is grouped by discipline. Daily progress and fatigue are shown together."
+autowrap_mode = 2
 
-[node name="ProficiencyScroll" type="ScrollContainer" parent="Center/Panel/Margin/VBox/Body/Side"]
-custom_minimum_size = Vector2(285, 145)
+[node name="ProficiencyScroll" type="ScrollContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/SkillsPage"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ProficiencyLabel" type="RichTextLabel" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/SkillsPage/ProficiencyScroll"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(700, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.76, 0.82, 0.79, 1)
+theme_override_font_sizes/normal_font_size = 13
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = "No proficiency data"
+
+[node name="CharacterPage" type="ScrollContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack"]
 layout_mode = 2
 horizontal_scroll_mode = 0
 
-[node name="ProficiencyLabel" type="Label" parent="Center/Panel/Margin/VBox/Body/Side/ProficiencyScroll"]
+[node name="CharacterLabel" type="RichTextLabel" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/CharacterPage"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(265, 0)
+custom_minimum_size = Vector2(700, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.24, 0.2, 0.12, 1)
-theme_override_font_sizes/font_size = 12
-text = "No proficiency data"
-autowrap_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.76, 0.82, 0.79, 1)
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = "Character overview"
 
-[node name="Details" type="PanelContainer" parent="Center/Panel/Margin/VBox/Body/Side"]
+[node name="Details" type="PanelContainer" parent="Center/Panel/Margin/VBox/Body"]
+custom_minimum_size = Vector2(330, 0)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Margin" type="MarginContainer" parent="Center/Panel/Margin/VBox/Body/Side/Details"]
+[node name="Margin" type="MarginContainer" parent="Center/Panel/Margin/VBox/Body/Details"]
 layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
 
-[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Side/Details/Margin"]
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Details/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 7
+theme_override_constants/separation = 8
 
-[node name="ItemName" type="Label" parent="Center/Panel/Margin/VBox/Body/Side/Details/Margin/VBox"]
+[node name="DetailsEyebrow" type="Label" parent="Center/Panel/Margin/VBox/Body/Details/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.33, 0.8, 0.72, 1)
+theme_override_font_sizes/font_size = 11
+text = "CONTEXT DETAILS"
+
+[node name="ItemName" type="Label" parent="Center/Panel/Margin/VBox/Body/Details/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.25, 0.13, 0.05, 1)
+theme_override_colors/font_color = Color(0.94, 0.85, 0.65, 1)
 theme_override_font_sizes/font_size = 22
 text = "Select an item"
+autowrap_mode = 2
 
-[node name="ItemType" type="Label" parent="Center/Panel/Margin/VBox/Body/Side/Details/Margin/VBox"]
+[node name="ItemType" type="Label" parent="Center/Panel/Margin/VBox/Body/Details/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.48, 0.31, 0.13, 1)
+theme_override_colors/font_color = Color(0.44, 0.74, 0.7, 1)
+theme_override_font_sizes/font_size = 12
 text = ""
 
-[node name="Description" type="Label" parent="Center/Panel/Margin/VBox/Body/Side/Details/Margin/VBox"]
+[node name="DetailRule" type="HSeparator" parent="Center/Panel/Margin/VBox/Body/Details/Margin/VBox"]
+layout_mode = 2
+
+[node name="Description" type="Label" parent="Center/Panel/Margin/VBox/Body/Details/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.23, 0.16, 0.09, 1)
+theme_override_colors/font_color = Color(0.73, 0.79, 0.77, 1)
 autowrap_mode = 3
 text = "Choose a backpack or equipment slot to inspect it."
 
-[node name="Bonuses" type="Label" parent="Center/Panel/Margin/VBox/Body/Side/Details/Margin/VBox"]
+[node name="Bonuses" type="Label" parent="Center/Panel/Margin/VBox/Body/Details/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.16, 0.36, 0.18, 1)
+theme_override_colors/font_color = Color(0.45, 0.84, 0.62, 1)
 autowrap_mode = 3
 text = ""
 
-[node name="Status" type="Label" parent="Center/Panel/Margin/VBox/Body/Side/Details/Margin/VBox"]
+[node name="Status" type="Label" parent="Center/Panel/Margin/VBox/Body/Details/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.52, 0.16, 0.1, 1)
+theme_override_colors/font_color = Color(0.94, 0.56, 0.43, 1)
 autowrap_mode = 3
 text = ""
 
 [node name="Footer" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
-alignment = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
+
+[node name="CategoryHint" type="Label" parent="Center/Panel/Margin/VBox/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.63, 0.64, 1)
+text = "Backpack: arrange supplies and inspect item details"
+vertical_alignment = 1
 
 [node name="ActionButton" type="Button" parent="Center/Panel/Margin/VBox/Footer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 44)
+custom_minimum_size = Vector2(160, 42)
 layout_mode = 2
 focus_mode = 0
 disabled = true
 text = "Use / Equip"
-
-[node name="CloseHint" type="Label" parent="Center/Panel/Margin/VBox/Footer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.31, 0.2, 0.09, 1)
-text = "Tab / Esc to close"
 
 [connection signal="pressed" from="Center/Panel/Margin/VBox/Header/CloseButton" to="." method="close_menu"]
 [connection signal="pressed" from="Center/Panel/Margin/VBox/Footer/ActionButton" to="." method="_on_action_pressed"]
