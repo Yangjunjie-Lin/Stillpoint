@@ -44,6 +44,9 @@ const RELATION_CATEGORIES := {
 	"PRACTICED_BY": "capability",
 	"SYNERGIZES_WITH": "capability",
 	"RECOVERS_AFTER": "memory_event",
+	"INVOLVES": "knowledge",
+	"DISCOVERED_IN": "spatial",
+	"MAY_REWARD": "exchange",
 }
 
 const CATEGORY_DEFINITIONS := {

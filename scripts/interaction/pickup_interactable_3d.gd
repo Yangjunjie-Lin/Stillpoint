@@ -59,6 +59,7 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 	interaction_enabled = false
 	visible = false
 	if session_ctx != null and _session != null:
+		player.practice_skill(&"foraging", &"gather_wild_resource", item_id)
 		var ev := GameplayEvent.make(
 			GameplayEventTypes.ITEM_COLLECTED,
 			&"base:player/main",

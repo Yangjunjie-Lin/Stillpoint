@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="EncounterDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/encounter_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/event_match_condition.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/player_level_condition.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/world_day_condition.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/gameplay/effects/add_item_effect.gd" id="5"]
+
+[sub_resource type="Resource" id="TalkAster"]
+script = ExtResource("2")
+event_type = &"npc_talked"
+target_definition_id = &"dungeon_warden"
+region_id = &"base:wilderness"
+
+[sub_resource type="Resource" id="Level"]
+script = ExtResource("3")
+minimum_level = 3
+
+[sub_resource type="Resource" id="Day"]
+script = ExtResource("4")
+minimum_day = 2
+
+[sub_resource type="Resource" id="Reward"]
+script = ExtResource("5")
+required_success = true
+effect_id = &"aster_compass"
+item_id = &"aster_compass"
+quantity = 1
+
+[resource]
+script = ExtResource("1")
+id = &"aster_quiet_compass"
+display_name = "The Warden's Quiet Needle"
+discovery_text = "Aster recognizes that you have returned with patience rather than bravado and entrusts you with a quiet compass."
+conditions = Array[WorldCondition]([SubResource("TalkAster"), SubResource("Level"), SubResource("Day")])
+reward_effects = Array[WorldEffect]([SubResource("Reward")])
+participant_node_ids = Array[StringName]([&"npc_definition:dungeon_warden"])
+public_location_node_id = &"location:wardens_threshold"
+public_reward_category_ids = Array[StringName]([&"concept:reward_equipment"])
+lore_tags = Array[StringName]([&"warden", &"patience", &"dungeon"])
+minimum_level_hint = 3
+trigger_chance = 0.42
+hidden_salt = &"quiet_needle_v1"

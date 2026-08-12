@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="EncounterDefinition" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/encounter_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/event_match_condition.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/time_range_condition.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/player_skill_condition.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/gameplay/effects/add_item_effect.gd" id="5"]
+
+[sub_resource type="Resource" id="Explore"]
+script = ExtResource("2")
+event_type = &"location_explored"
+target_definition_id = &"moonleaf_hush"
+region_id = &"base:wilderness"
+
+[sub_resource type="Resource" id="Night"]
+script = ExtResource("3")
+start_hour = 19
+end_hour = 5
+
+[sub_resource type="Resource" id="Foraging"]
+script = ExtResource("4")
+skill_id = &"foraging"
+min_level = 1
+
+[sub_resource type="Resource" id="Reward"]
+script = ExtResource("5")
+required_success = true
+effect_id = &"moonleaf"
+item_id = &"greywake_moonleaf"
+quantity = 1
+
+[resource]
+script = ExtResource("1")
+id = &"moonleaf_hush"
+display_name = "Moonleaf Hush"
+discovery_text = "Your practiced eye catches a silver leaf folding against the wind; it comes free without tearing its root."
+trigger_kind = 1
+visibility_policy = 1
+conditions = Array[WorldCondition]([SubResource("Explore"), SubResource("Night"), SubResource("Foraging")])
+reward_effects = Array[WorldEffect]([SubResource("Reward")])
+public_location_node_id = &"region:base:wilderness"
+public_reward_category_ids = Array[StringName]([&"concept:reward_rare_item"])
+lore_tags = Array[StringName]([&"moon", &"foraging", &"wilderness"])
+trigger_chance = 0.65
+hidden_salt = &"moonleaf_v1"

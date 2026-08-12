@@ -44,6 +44,7 @@ func _export_catalog() -> void:
 	profiles.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return str(a.get("definition_id", "")) < str(b.get("definition_id", "")))
 	var world_ontology := _build_world_ontology(registry, errors)
+	var hidden_encounter_ontology := _build_hidden_encounter_ontology(registry, errors)
 	if not errors.is_empty():
 		for message in errors:
 			push_error("NPC catalog: %s" % message)
@@ -55,6 +56,7 @@ func _export_catalog() -> void:
 		"npc_count": profiles.size(),
 		"npcs": profiles,
 		"world_ontology": world_ontology,
+		"hidden_encounter_ontology": hidden_encounter_ontology,
 		"relation_action_catalog": KnowledgeActionLibrary.catalog(),
 	}
 	var rendered := JSON.stringify(payload, "  ") + "\n"
@@ -307,6 +309,66 @@ func _build_world_ontology(registry: Node, errors: Array[String]) -> Dictionary:
 	edge_list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return _edge_key(a) < _edge_key(b))
 	return {"nodes": node_list, "edges": edge_list}
+
+
+func _build_hidden_encounter_ontology(registry: Node, errors: Array[String]) -> Dictionary:
+	## Never merge this catalog into `world_ontology`: it contains undiscovered
+	## trigger/reward structure and is for trusted server/runtime validation only.
+	var encounters: Array[Dictionary] = []
+	var public_nodes: Array[Dictionary] = []
+	var public_edges: Array[Dictionary] = []
+	for encounter: Variant in registry.call("get_all_encounters"):
+		if not bool(encounter.call("is_valid")):
+			errors.append("Invalid hidden encounter '%s'" % String(encounter.get("id")))
+			continue
+		var data := encounter.call("public_catalog_dict") as Dictionary
+		var encounter_id := String(data.get("id", ""))
+		var encounter_node := String(data.get("node_id", "encounter:%s" % encounter_id))
+		encounters.append({
+			"id": encounter_id,
+			"node_id": encounter_node,
+			"trigger_kind": data.get("trigger_kind", ""),
+			"repeat_policy": data.get("repeat_policy", ""),
+			"visibility_policy": data.get("visibility_policy", ""),
+			"condition_count": (encounter.get("conditions") as Array).size(),
+			"reward_effect_count": (encounter.get("reward_effects") as Array).size(),
+		})
+		public_nodes.append({
+			"node_id": encounter_node,
+			"node_type": "encounter",
+			"label": String(data.get("display_name", encounter_id)),
+			"metadata": {
+				"lore_tags": data.get("lore_tags", []),
+			},
+		})
+		for participant_id: String in data.get("participant_node_ids", []):
+			public_edges.append(_hidden_public_edge(encounter_node, "INVOLVES", participant_id))
+		var location_id := String(data.get("public_location_node_id", ""))
+		if not location_id.is_empty():
+			public_edges.append(_hidden_public_edge(encounter_node, "DISCOVERED_IN", location_id))
+		for category_id: String in data.get("public_reward_category_ids", []):
+			public_edges.append(_hidden_public_edge(encounter_node, "MAY_REWARD", category_id))
+	encounters.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a.get("id", "")) < str(b.get("id", "")))
+	public_nodes.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a.get("node_id", "")) < str(b.get("node_id", "")))
+	public_edges.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return _edge_key(a) < _edge_key(b))
+	return {
+		"schema_version": 1,
+		"visibility": "server_hidden_until_discovery",
+		"encounters": encounters,
+		"discovered_public_nodes": public_nodes,
+		"discovered_public_edges": public_edges,
+	}
+
+
+func _hidden_public_edge(subject: String, predicate: String, object_id: String) -> Dictionary:
+	return {
+		"subject_node_id": subject,
+		"predicate": predicate,
+		"object_node_id": object_id,
+	}
 
 
 func _add_world_node(

@@ -37,6 +37,10 @@ func _exit_tree() -> void:
 func _on_gameplay_event(event: GameplayEvent) -> void:
 	if cache == null or _entity_repository == null or not NPCMemoryEventAdapter.should_record(event):
 		return
+	# Player-private discoveries are not observable merely because an NPC happens
+	# to be loaded in the same region.
+	if str(event.payload.get("visibility", "witnessed")) == "private":
+		return
 	var event_id := _resolve_event_id(event)
 	var event_position := _resolve_event_position(event)
 	for entity in _entity_repository.get_loaded_entities_in_region(event.region_id):

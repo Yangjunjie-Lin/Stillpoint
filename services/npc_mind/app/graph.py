@@ -22,6 +22,7 @@ NODE_TYPES = {
     "relationship",
     "memory",
     "crop",
+    "encounter",
 }
 EDGE_TYPES = {
     "IS_INSTANCE_OF",
@@ -64,6 +65,9 @@ EDGE_TYPES = {
     "PRACTICED_BY",
     "SYNERGIZES_WITH",
     "RECOVERS_AFTER",
+    "INVOLVES",
+    "DISCOVERED_IN",
+    "MAY_REWARD",
 }
 
 CANONICAL_WORLD_EDGE_TYPES = {
@@ -85,6 +89,9 @@ CANONICAL_WORLD_EDGE_TYPES = {
     "PRACTICED_BY",
     "SYNERGIZES_WITH",
     "RECOVERS_AFTER",
+    "INVOLVES",
+    "DISCOVERED_IN",
+    "MAY_REWARD",
 }
 
 

@@ -47,6 +47,9 @@ enum UseKind {
 @export var energy_regen_bonus: float = 0.0
 @export var rarity: StringName = &"common"
 @export_range(0, 100, 1) var starter_balance_value: int = 0
+@export_group("Skill Book")
+@export var teaches_skill_id: StringName = &""
+@export_range(0.0, 100.0, 0.5) var proficiency_points: float = 0.0
 @export_group("World Appearance")
 @export var visual_archetype: StringName = &""
 @export var visual_primary_color: Color = Color("8a7455")
@@ -67,6 +70,14 @@ func is_combat_tool() -> bool:
 		item_type == ItemType.TOOL
 		and use_kind == UseKind.TOOL_ACTION
 		and tool_attack_id != &""
+	)
+
+
+func is_skill_book() -> bool:
+	return (
+		use_kind == UseKind.CONSUME
+		and teaches_skill_id != &""
+		and proficiency_points > 0.0
 	)
 
 

@@ -132,6 +132,13 @@ const HAND_GRIP_POSES := {
 		"rotation_degrees": Vector3(-12, -8, -18),
 		"scale": Vector3.ONE * 0.72,
 	},
+	&"skill_book": {
+		"hand": "right",
+		"grip_kind": "open_palm",
+		"position": Vector3(0.09, -0.08, 0.18),
+		"rotation_degrees": Vector3(-18, -14, -10),
+		"scale": Vector3.ONE * 0.62,
+	},
 }
 
 
@@ -179,6 +186,8 @@ static func create_model(definition: ItemDefinition, for_hand: bool = false) -> 
 			_build_seed_pouch(root, definition)
 		&"root_vegetable":
 			_build_root_vegetable(root, definition)
+		&"skill_book":
+			_build_skill_book(root, definition)
 		_:
 			_build_trinket(root, definition)
 	if for_hand:
@@ -334,6 +343,14 @@ static func _build_root_vegetable(root: Node3D, definition: ItemDefinition) -> v
 	for index in 4:
 		var angle := TAU * float(index) / 4.0
 		_sphere(root, "Leaf%d" % index, 0.13, Vector3(cos(angle) * 0.12, 0.57, sin(angle) * 0.1), definition.visual_secondary_color, 0.0, Vector3(0.55, 1.45, 0.42))
+
+
+static func _build_skill_book(root: Node3D, definition: ItemDefinition) -> void:
+	_box(root, "PageBlock", Vector3(0.42, 0.07, 0.56), Vector3(0, 0.25, 0), Color("e6d7ad"))
+	_box(root, "FrontCover", Vector3(0.47, 0.025, 0.61), Vector3(0, 0.3, 0), definition.visual_primary_color)
+	_box(root, "BackCover", Vector3(0.47, 0.025, 0.61), Vector3(0, 0.2, 0), definition.visual_primary_color.darkened(0.12))
+	_box(root, "Spine", Vector3(0.055, 0.13, 0.61), Vector3(-0.24, 0.25, 0), definition.visual_primary_color.darkened(0.2))
+	_box(root, "CoverSigil", Vector3(0.18, 0.02, 0.2), Vector3(0.03, 0.32, 0), definition.visual_secondary_color, Vector3.ZERO, 0.3)
 
 
 static func _build_trinket(root: Node3D, definition: ItemDefinition) -> void:

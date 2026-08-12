@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mossjaw_manual"
+display_name = "Mossjaw's Root-Grip Manual"
+item_type = 4
+max_stack = 1
+description = "A root-bound skill book describing how to turn heavy working tools without losing balance."
+use_kind = 1
+rarity = &"rare"
+teaches_skill_id = &"improvised_weapons"
+proficiency_points = 8.0
+visual_archetype = &"skill_book"
+visual_primary_color = Color(0.22, 0.42, 0.18, 1)
+visual_secondary_color = Color(0.72, 0.62, 0.3, 1)

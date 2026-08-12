@@ -143,6 +143,16 @@ func get_points(skill_id: StringName) -> float:
 	return maxf(0.0, float(_proficiencies.get(String(skill_id), 0.0)))
 
 
+func set_proficiency_points(skill_id: StringName, points: float) -> bool:
+	var definition := ResourceRegistry.get_skill(skill_id)
+	if definition == null or not is_finite(points):
+		return false
+	var clamped := clampf(points, 0.0, definition.max_proficiency)
+	_proficiencies[String(skill_id)] = clamped
+	proficiency_changed.emit(get_state(skill_id))
+	return true
+
+
 func get_level(skill_id: StringName) -> int:
 	var definition := ResourceRegistry.get_skill(skill_id)
 	return definition.level_from_points(get_points(skill_id)) if definition != null else 0

@@ -40,6 +40,7 @@ var _skip_saved_player_transform: bool = false
 @onready var cognition_service: NPCCognitionService = $WorldServices/NPCCognitionService
 @onready var dungeon_progression_service: DungeonProgressionService = $WorldServices/DungeonProgressionService
 @onready var property_bank_service: PropertyBankService = $WorldServices/PropertyBankService
+@onready var hidden_encounter_service: HiddenEncounterService = $WorldServices/HiddenEncounterService
 
 # Compatibility aliases for tests and legacy code paths.
 var regions_root: Node3D
@@ -251,6 +252,8 @@ func capture_global_world_data() -> Dictionary:
 		"current_region_id": String(current_region_id),
 		"property_banking": property_bank_service.capture_save_data()
 			if property_bank_service != null else {},
+		"hidden_encounters": hidden_encounter_service.capture_save_data()
+			if hidden_encounter_service != null else {},
 	}
 
 
@@ -266,6 +269,11 @@ func restore_global_world_data(data: Dictionary) -> void:
 		property_bank_service.restore_save_data(
 			data.get("property_banking", {}) as Dictionary
 			if data.get("property_banking", {}) is Dictionary else {}
+		)
+	if hidden_encounter_service != null:
+		hidden_encounter_service.restore_save_data(
+			data.get("hidden_encounters", {}) as Dictionary
+			if data.get("hidden_encounters", {}) is Dictionary else {}
 		)
 
 
@@ -344,6 +352,7 @@ func _setup_services() -> void:
 	region_service.setup(self, entity_repository, actor_factory, interaction_index)
 	dungeon_progression_service.setup(self, actor_factory)
 	property_bank_service.setup(self)
+	hidden_encounter_service.setup(self, event_bus)
 	# Resolved from WorldSession root via RegionRuntimeService._get_slot().
 	region_service.active_region_slot_path = NodePath("ActiveRegionSlot")
 	save_coordinator.setup(self, entity_repository, region_service, world_flags)

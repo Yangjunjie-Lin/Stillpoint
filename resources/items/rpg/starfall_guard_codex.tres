@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"starfall_guard_codex"
+display_name = "Codex of the Falling Guard"
+item_type = 4
+max_stack = 1
+description = "A sealed defensive treatise recovered from a forgotten shrine below the Greywake Wilds."
+use_kind = 1
+rarity = &"epic"
+teaches_skill_id = &"guarding"
+proficiency_points = 12.0
+visual_archetype = &"skill_book"
+visual_primary_color = Color(0.18, 0.22, 0.45, 1)
+visual_secondary_color = Color(0.7, 0.82, 1, 1)

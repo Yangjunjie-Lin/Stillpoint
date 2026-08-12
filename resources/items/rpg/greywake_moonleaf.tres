@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/herb.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"greywake_moonleaf"
+display_name = "Greywake Moonleaf"
+item_type = 3
+max_stack = 5
+description = "A rare leaf that opens only when the Greywake Wilds have grown quiet."
+icon = ExtResource("2")
+rarity = &"rare"
+visual_archetype = &"herb_bundle"
+visual_primary_color = Color(0.45, 0.72, 0.68, 1)
+visual_secondary_color = Color(0.78, 0.86, 1, 1)

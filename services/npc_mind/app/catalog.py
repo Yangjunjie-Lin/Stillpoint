@@ -12,6 +12,7 @@ class NpcProfile:
     catalog_revision: str
     payload: dict[str, Any]
     world_ontology: dict[str, Any]
+    hidden_encounter_ontology: dict[str, Any]
 
 
 class NpcCatalogRepository:
@@ -23,6 +24,7 @@ class NpcCatalogRepository:
         revision = f"{document.get('game_version', 'unknown')}:{document.get('catalog_version', 0)}"
         self.catalog_revision = revision
         self.world_ontology = dict(document.get("world_ontology", {}))
+        self.hidden_encounter_ontology = dict(document.get("hidden_encounter_ontology", {}))
         self.relation_action_catalog = dict(document.get("relation_action_catalog", {}))
         self._profiles: dict[str, NpcProfile] = {}
         for raw in document.get("npcs", []):
@@ -38,7 +40,11 @@ class NpcCatalogRepository:
                     ],
                 )
                 self._profiles[definition_id] = NpcProfile(
-                    definition_id, revision, payload, self.world_ontology
+                    definition_id,
+                    revision,
+                    payload,
+                    self.world_ontology,
+                    self.hidden_encounter_ontology,
                 )
 
     def get_profile(self, npc_definition_id: str) -> NpcProfile:

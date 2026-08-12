@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="EncounterDefinition" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/encounter_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/event_match_condition.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/player_level_condition.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/gameplay/conditions/player_skill_condition.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/gameplay/effects/add_item_effect.gd" id="5"]
+
+[sub_resource type="Resource" id="Explore"]
+script = ExtResource("2")
+event_type = &"location_explored"
+target_definition_id = &"fallen_star_lesson"
+region_id = &"base:dungeon"
+
+[sub_resource type="Resource" id="Level"]
+script = ExtResource("3")
+minimum_level = 5
+
+[sub_resource type="Resource" id="Guarding"]
+script = ExtResource("4")
+skill_id = &"guarding"
+min_level = 1
+
+[sub_resource type="Resource" id="Reward"]
+script = ExtResource("5")
+required_success = true
+effect_id = &"guard_codex"
+item_id = &"starfall_guard_codex"
+quantity = 1
+
+[resource]
+script = ExtResource("1")
+id = &"fallen_star_lesson"
+display_name = "The Fallen Star's Lesson"
+discovery_text = "A defensive stance aligns the sealed marks; a forgotten codex releases from the shrine."
+trigger_kind = 1
+visibility_policy = 1
+conditions = Array[WorldCondition]([SubResource("Explore"), SubResource("Level"), SubResource("Guarding")])
+reward_effects = Array[WorldEffect]([SubResource("Reward")])
+public_location_node_id = &"location:returning_stars_hollow:depth_3"
+public_reward_category_ids = Array[StringName]([&"concept:reward_skill_book"])
+lore_tags = Array[StringName]([&"fallen_star", &"guarding", &"shrine"])
+minimum_level_hint = 5
+trigger_chance = 0.55
+hidden_salt = &"fallen_star_lesson_v1"

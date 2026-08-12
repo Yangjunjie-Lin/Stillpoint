@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/spawning/entity_spawn_marker.gd" id="2"]
@@ -16,6 +16,7 @@
 [ext_resource type="Resource" path="res://content/base/spawns/mossjaw.tres" id="14"]
 [ext_resource type="Resource" path="res://content/base/spawns/lantern_widow.tres" id="15"]
 [ext_resource type="Resource" path="res://content/base/spawns/fallen_star_warden.tres" id="16"]
+[ext_resource type="Script" path="res://scripts/world/encounter_exploration_zone.gd" id="17"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -34,6 +35,9 @@ ring_segments = 24
 
 [sub_resource type="StandardMaterial3D" id="Mat_portal_town"]
 albedo_color = Color(0.98, 0.76, 0.22, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape_star_lesson"]
+radius = 2.25
 
 [node name="RegionRoot" type="Node3D"]
 
@@ -275,6 +279,17 @@ region_id = &"base:dungeon"
 target_region_id = &"base:wilderness"
 target_spawn_id = &"from_dungeon"
 route_label = "Mine Road to the Wilderness"
+
+[node name="FallenStarLessonZone" type="Area3D" parent="."]
+position = Vector3(0, 0.5, -15)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("17")
+encounter_id = &"fallen_star_lesson"
+region_id = &"base:dungeon"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FallenStarLessonZone"]
+shape = SubResource("SphereShape_star_lesson")
 
 [node name="LocalEffects" type="Node3D" parent="."]
 

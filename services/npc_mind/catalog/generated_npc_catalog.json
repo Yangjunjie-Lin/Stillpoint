@@ -1,6 +1,114 @@
 {
   "catalog_version": 4,
   "game_version": "0.8.0",
+  "hidden_encounter_ontology": {
+    "discovered_public_edges": [
+      {
+        "object_node_id": "location:wardens_threshold",
+        "predicate": "DISCOVERED_IN",
+        "subject_node_id": "encounter:aster_quiet_compass"
+      },
+      {
+        "object_node_id": "npc_definition:dungeon_warden",
+        "predicate": "INVOLVES",
+        "subject_node_id": "encounter:aster_quiet_compass"
+      },
+      {
+        "object_node_id": "concept:reward_equipment",
+        "predicate": "MAY_REWARD",
+        "subject_node_id": "encounter:aster_quiet_compass"
+      },
+      {
+        "object_node_id": "location:returning_stars_hollow:depth_3",
+        "predicate": "DISCOVERED_IN",
+        "subject_node_id": "encounter:fallen_star_lesson"
+      },
+      {
+        "object_node_id": "concept:reward_skill_book",
+        "predicate": "MAY_REWARD",
+        "subject_node_id": "encounter:fallen_star_lesson"
+      },
+      {
+        "object_node_id": "region:base:wilderness",
+        "predicate": "DISCOVERED_IN",
+        "subject_node_id": "encounter:moonleaf_hush"
+      },
+      {
+        "object_node_id": "concept:reward_rare_item",
+        "predicate": "MAY_REWARD",
+        "subject_node_id": "encounter:moonleaf_hush"
+      }
+    ],
+    "discovered_public_nodes": [
+      {
+        "label": "The Warden's Quiet Needle",
+        "metadata": {
+          "lore_tags": [
+            "warden",
+            "patience",
+            "dungeon"
+          ]
+        },
+        "node_id": "encounter:aster_quiet_compass",
+        "node_type": "encounter"
+      },
+      {
+        "label": "The Fallen Star's Lesson",
+        "metadata": {
+          "lore_tags": [
+            "fallen_star",
+            "guarding",
+            "shrine"
+          ]
+        },
+        "node_id": "encounter:fallen_star_lesson",
+        "node_type": "encounter"
+      },
+      {
+        "label": "Moonleaf Hush",
+        "metadata": {
+          "lore_tags": [
+            "moon",
+            "foraging",
+            "wilderness"
+          ]
+        },
+        "node_id": "encounter:moonleaf_hush",
+        "node_type": "encounter"
+      }
+    ],
+    "encounters": [
+      {
+        "condition_count": 3,
+        "id": "aster_quiet_compass",
+        "node_id": "encounter:aster_quiet_compass",
+        "repeat_policy": "once_per_save",
+        "reward_effect_count": 1,
+        "trigger_kind": "gameplay_event",
+        "visibility_policy": "witnessed"
+      },
+      {
+        "condition_count": 3,
+        "id": "fallen_star_lesson",
+        "node_id": "encounter:fallen_star_lesson",
+        "repeat_policy": "once_per_save",
+        "reward_effect_count": 1,
+        "trigger_kind": "exploration_zone",
+        "visibility_policy": "player_private"
+      },
+      {
+        "condition_count": 3,
+        "id": "moonleaf_hush",
+        "node_id": "encounter:moonleaf_hush",
+        "repeat_policy": "once_per_save",
+        "reward_effect_count": 1,
+        "trigger_kind": "exploration_zone",
+        "visibility_policy": "player_private"
+      }
+    ],
+    "schema_version": 1,
+    "visibility": "server_hidden_until_discovery"
+  },
   "npc_count": 7,
   "npcs": [
     {
@@ -1309,6 +1417,7 @@
       "BELONGS_TO": "identity",
       "CONNECTED_TO": "spatial",
       "CONTAINS": "spatial",
+      "DISCOVERED_IN": "spatial",
       "DISLIKES": "preference",
       "DOUBTS": "belief",
       "EXPERIENCED": "memory_event",
@@ -1321,12 +1430,14 @@
       "HAS_SEED": "cultivation",
       "HAS_SKILL": "capability",
       "HELPED": "social",
+      "INVOLVES": "knowledge",
       "IS_INSTANCE_OF": "identity",
       "KNOWS": "social",
       "KNOWS_ABOUT": "knowledge",
       "LIKES": "preference",
       "LIVES_IN": "spatial",
       "LOCATED_IN": "spatial",
+      "MAY_REWARD": "exchange",
       "MEMBER_OF": "affiliation",
       "OPENED_BY": "capability",
       "OWNS": "possession",

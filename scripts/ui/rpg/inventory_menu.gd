@@ -486,6 +486,12 @@ func _definition_bonuses(definition: ItemDefinition) -> String:
 		parts.append("+%.0f defense" % definition.defense_bonus)
 	if definition.energy_regen_bonus > 0.0:
 		parts.append("+%.1f energy regeneration" % definition.energy_regen_bonus)
+	if definition.is_skill_book():
+		var skill := ResourceRegistry.get_skill(definition.teaches_skill_id)
+		parts.append("Study: +%.1f %s proficiency" % [
+			definition.proficiency_points,
+			skill.display_name if skill != null else String(definition.teaches_skill_id),
+		])
 	return "\n".join(parts)
 
 

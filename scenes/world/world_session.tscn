@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://worldsession001"]
+[gd_scene load_steps=31 format=3 uid="uid://worldsession001"]
 
 [ext_resource type="Script" path="res://scripts/world/session/world_session.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
@@ -28,6 +28,7 @@
 [ext_resource type="Script" path="res://scripts/world/services/dungeon_progression_service.gd" id="26"]
 [ext_resource type="Script" path="res://scripts/economy/property_bank_service.gd" id="27"]
 [ext_resource type="PackedScene" path="res://scenes/ui/rpg/property_storage_menu.tscn" id="28"]
+[ext_resource type="Script" path="res://scripts/world/services/hidden_encounter_service.gd" id="29"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_companion"]
 radius = 0.4
@@ -130,6 +131,9 @@ script = ExtResource("26")
 
 [node name="PropertyBankService" type="Node" parent="WorldServices"]
 script = ExtResource("27")
+
+[node name="HiddenEncounterService" type="Node" parent="WorldServices"]
+script = ExtResource("29")
 
 [node name="CameraRig" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 12)

@@ -289,6 +289,26 @@ func use_inventory_slot(index: int) -> bool:
 		return activated
 	if item_definition.use_kind != ItemDefinition.UseKind.CONSUME:
 		return false
+	if item_definition.is_skill_book():
+		if skills == null or ResourceRegistry.get_skill(item_definition.teaches_skill_id) == null:
+			return false
+		var before := skills.get_points(item_definition.teaches_skill_id)
+		var definition := ResourceRegistry.get_skill(item_definition.teaches_skill_id)
+		if before >= definition.max_proficiency - 0.0001:
+			EventBus.notice_requested.emit("You have already mastered %s." % definition.display_name)
+			return false
+		if not inventory.consume_one(index):
+			return false
+		skills.set_proficiency_points(
+			item_definition.teaches_skill_id,
+			before + item_definition.proficiency_points,
+		)
+		_mark_player_progress_dirty()
+		EventBus.notice_requested.emit(
+			"Studied %s: %s proficiency increased."
+			% [item_definition.display_name, definition.display_name]
+		)
+		return true
 	var health_gain := 0.0
 	var energy_gain := 0.0
 	if health != null and not health.is_dead():

@@ -9,7 +9,7 @@ from typing import Any
 
 from .catalog import NpcCatalogRepository
 from .config import Settings
-from .graph import CANONICAL_WORLD_EDGE_TYPES, EDGE_TYPES, GraphEdge, GraphNode
+from .graph import CANONICAL_WORLD_EDGE_TYPES, EDGE_TYPES, NODE_TYPES, GraphEdge, GraphNode
 from .graph_actions import annotate_graph_edge, build_graph_visualization, select_context_motion
 from .memory import MemoryRecord, lexical_similarity
 from .output_validation import validate_structured_output
@@ -506,11 +506,7 @@ class NpcCognitionService:
                 confidence=float(raw.get("confidence", 1.0)),
                 source_type="gameplay_event",
                 source_id=entry_id,
-                subject_node_ids=[
-                    str(value)
-                    for value in (raw.get("source_entity_id", ""), raw.get("target_entity_id", ""))
-                    if value
-                ],
+                subject_node_ids=_event_subject_node_ids(raw),
                 visibility=str(raw.get("visibility", "witnessed")),
             )
         )
@@ -545,6 +541,96 @@ class NpcCognitionService:
                 world_save_id=request.world_save_id,
             )
         )
+        if event_type == "encounter_discovered":
+            self._materialize_encounter_discovery(
+                request,
+                raw,
+                npc,
+                entry_id,
+                memory.memory_id,
+            )
+
+    def _materialize_encounter_discovery(
+        self,
+        request: SyncRequest,
+        raw: dict[str, Any],
+        npc: str,
+        entry_id: str,
+        evidence_memory_id: str,
+    ) -> None:
+        encounter_id = str(raw.get("definition_id", "")).strip()
+        if not encounter_id:
+            return
+        encounter_node_id = f"encounter:{encounter_id}"
+        hidden = self.catalog.hidden_encounter_ontology
+        node_by_id = {
+            str(node.get("node_id", "")): node
+            for node in hidden.get("discovered_public_nodes", [])
+            if isinstance(node, dict)
+        }
+        authored_node = node_by_id.get(encounter_node_id)
+        if authored_node is None:
+            return
+        self.repository.add_graph_node(
+            GraphNode(
+                node_id=encounter_node_id,
+                node_type="encounter",
+                label=str(authored_node.get("label", encounter_id)),
+                metadata=dict(authored_node.get("metadata", {})),
+                player_profile_id=request.player_profile_id,
+                world_save_id=request.world_save_id,
+                owner_npc_persistent_id=npc,
+                visibility="witnessed",
+                source="gameplay_event",
+            )
+        )
+        for edge_data in hidden.get("discovered_public_edges", []):
+            if not isinstance(edge_data, dict):
+                continue
+            if str(edge_data.get("subject_node_id", "")) != encounter_node_id:
+                continue
+            predicate = str(edge_data.get("predicate", ""))
+            object_id = str(edge_data.get("object_node_id", ""))
+            if predicate not in EDGE_TYPES or not object_id:
+                continue
+            if not self.repository.graph_node_exists(
+                object_id,
+                request.player_profile_id,
+                request.world_save_id,
+                npc,
+            ):
+                self.repository.add_graph_node(
+                    GraphNode(
+                        node_id=object_id,
+                        node_type=_ontology_node_type(object_id),
+                        label=object_id.rsplit(":", 1)[-1].replace("_", " ").title(),
+                        player_profile_id=request.player_profile_id,
+                        world_save_id=request.world_save_id,
+                        owner_npc_persistent_id=npc,
+                        visibility="witnessed",
+                        source="gameplay_event",
+                    )
+                )
+            self.repository.add_graph_edge(
+                GraphEdge(
+                    id=str(uuid.uuid5(
+                        uuid.NAMESPACE_URL,
+                        f"encounter:{request.player_profile_id}:{request.world_save_id}:"
+                        f"{npc}:{encounter_id}:{predicate}:{object_id}",
+                    )),
+                    owner_npc_persistent_id=npc,
+                    subject_node_id=encounter_node_id,
+                    predicate=predicate,
+                    object_node_id=object_id,
+                    confidence=1.0,
+                    visibility="witnessed",
+                    source_type="gameplay_event",
+                    source_id=entry_id,
+                    evidence_memory_ids=[evidence_memory_id],
+                    player_profile_id=request.player_profile_id,
+                    world_save_id=request.world_save_id,
+                )
+            )
 
     def _apply_graph_candidates(
         self,
@@ -743,6 +829,22 @@ def _explicit_entity_query(request: NpcGenerationRequest, memory: MemoryRecord) 
     entities = set(re.findall(r"[\w:-]+", request.text.lower()))
     entities.update(item.lower() for item in request.world_context.visible_entity_ids)
     return bool(entities & {item.lower() for item in memory.subject_node_ids})
+
+
+def _event_subject_node_ids(raw: dict[str, Any]) -> list[str]:
+    values = raw.get("subject_node_ids", [])
+    result = [str(value) for value in values if value] if isinstance(values, list) else []
+    result.extend(
+        str(value)
+        for value in (raw.get("source_entity_id", ""), raw.get("target_entity_id", ""))
+        if value
+    )
+    return list(dict.fromkeys(result))[:16]
+
+
+def _ontology_node_type(node_id: str) -> str:
+    prefix = node_id.split(":", 1)[0]
+    return prefix if prefix in NODE_TYPES else "concept"
 
 
 def _knowledge_stage(confidence: float) -> str:

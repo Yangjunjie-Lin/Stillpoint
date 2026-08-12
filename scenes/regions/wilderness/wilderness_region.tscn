@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/interaction/pickup_interactable_3d.gd" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/world/spawning/entity_spawn_marker.gd" id="6"]
 [ext_resource type="Resource" path="res://content/base/spawns/dungeon_warden.tres" id="7"]
+[ext_resource type="Script" path="res://scripts/world/encounter_exploration_zone.gd" id="8"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -42,6 +43,9 @@ ring_segments = 24
 
 [sub_resource type="StandardMaterial3D" id="Mat_portal_town"]
 albedo_color = Color(0.98, 0.76, 0.22, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape_moonleaf"]
+radius = 2.5
 
 [node name="RegionRoot" type="Node3D"]
 
@@ -155,6 +159,17 @@ region_id = &"base:wilderness"
 target_region_id = &"base:dungeon"
 target_spawn_id = &"from_wilderness"
 route_label = "South Mine Road"
+
+[node name="MoonleafHushZone" type="Area3D" parent="."]
+position = Vector3(12, 0.5, -13)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("8")
+encounter_id = &"moonleaf_hush"
+region_id = &"base:wilderness"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MoonleafHushZone"]
+shape = SubResource("SphereShape_moonleaf")
 
 [node name="LocalEffects" type="Node3D" parent="."]
 
