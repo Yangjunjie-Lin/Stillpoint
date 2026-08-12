@@ -21,6 +21,7 @@ func run() -> bool:
 		ok = ok and ledger.PAGE_DATA.size() == 4
 		ok = ok and ledger.page_stack.get_tab_count() == 4
 		ok = ok and ledger.get_node_or_null("Center/Panel/Margin/VBox/Body/Details") is PanelContainer
+		ok = ok and ledger.backpack_filter_row.get_child_count() == 9
 		ok = ok and ledger.profession_equipment_button.text == "Profession Gear"
 		ok = ok and ledger.decorative_equipment_button.text == "Decorative Outfit"
 		ok = ok and ledger.toggle_presentation_button.text == "Show Decorative Outfit"

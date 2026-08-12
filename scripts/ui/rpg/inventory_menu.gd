@@ -3,6 +3,7 @@ extends Control
 ## Categorized RPG data ledger backed by authoritative runtime components.
 
 @onready var backpack_grid: GridContainer = %BackpackGrid
+@onready var backpack_filter_row: GridContainer = %BackpackFilterRow
 @onready var equipment_grid: GridContainer = %EquipmentGrid
 @onready var equipment_intro: Label = %EquipmentIntro
 @onready var profession_equipment_button: Button = %ProfessionEquipmentButton
@@ -35,6 +36,7 @@ var _player: PlayerController3D
 var _inventory: InventoryComponent
 var _equipment: EquipmentComponent
 var _inventory_buttons: Array[InventorySlotButton] = []
+var _backpack_filter_buttons: Dictionary = {}
 var _equipment_buttons: Dictionary = {}
 var _skill_selectors: Array[OptionButton] = []
 var _selected_kind: StringName = &""
@@ -44,6 +46,19 @@ var _tree_was_paused: bool = false
 var _player_input_was_enabled: bool = true
 var _active_page: int = 0
 var _equipment_category: StringName = EquipmentComponent.PRESENTATION_PROFESSION
+var _backpack_category: int = ItemDefinition.InventoryCategory.ALL
+
+const BACKPACK_CATEGORIES: Array[Dictionary] = [
+	{"id": ItemDefinition.InventoryCategory.ALL, "label": "All"},
+	{"id": ItemDefinition.InventoryCategory.TOOLS, "label": "Tools"},
+	{"id": ItemDefinition.InventoryCategory.WEAPONS, "label": "Weapons"},
+	{"id": ItemDefinition.InventoryCategory.WEARABLES, "label": "Wearables"},
+	{"id": ItemDefinition.InventoryCategory.CONSUMABLES, "label": "Consumables"},
+	{"id": ItemDefinition.InventoryCategory.SKILL_BOOKS, "label": "Skill Books"},
+	{"id": ItemDefinition.InventoryCategory.MATERIALS, "label": "Materials"},
+	{"id": ItemDefinition.InventoryCategory.QUEST_ITEMS, "label": "Quest & Key"},
+	{"id": ItemDefinition.InventoryCategory.OTHER, "label": "Other"},
+]
 
 const PAGE_DATA := [
 	{"title": "Backpack", "subtitle": "Carry, arrange and use field supplies",
@@ -71,6 +86,7 @@ func _ready() -> void:
 		_select_equipment_category.bind(EquipmentComponent.PRESENTATION_DECORATIVE)
 	)
 	toggle_presentation_button.pressed.connect(_toggle_equipment_presentation)
+	_build_backpack_filters()
 	_build_backpack_slots(24)
 	_build_equipment_slots()
 	_build_skill_loadout_controls()
@@ -165,6 +181,23 @@ func _build_backpack_slots(count: int) -> void:
 		_inventory_buttons.append(button)
 
 
+func _build_backpack_filters() -> void:
+	for child in backpack_filter_row.get_children():
+		child.queue_free()
+	_backpack_filter_buttons.clear()
+	for data in BACKPACK_CATEGORIES:
+		var category := int(data.get("id", ItemDefinition.InventoryCategory.ALL))
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(136.0, 34.0)
+		button.focus_mode = Control.FOCUS_NONE
+		button.text = str(data.get("label", "Items"))
+		button.set_meta("category_label", button.text)
+		button.pressed.connect(_select_backpack_category.bind(category))
+		backpack_filter_row.add_child(button)
+		_backpack_filter_buttons[category] = button
+	_refresh_backpack_filters()
+
+
 func _build_equipment_slots() -> void:
 	for child in equipment_grid.get_children():
 		child.queue_free()
@@ -192,14 +225,16 @@ func _refresh() -> void:
 	for index in _inventory_buttons.size():
 		var button := _inventory_buttons[index]
 		var stack := _inventory.get_slot(index)
+		var definition := ResourceRegistry.get_item(stack.item_id) \
+			if stack != null and not stack.is_empty() else null
+		button.visible = _inventory_slot_matches_filter(stack, definition)
 		var selected := _selected_kind == &"inventory" and _selected_inventory_index == index
-		_apply_slot_style(button, selected, index < HotbarController.SLOT_COUNT)
+		_apply_slot_style(button, selected, _hotbar_position_for_inventory_slot(index) >= 0)
 		button.icon = null
 		if stack == null or stack.is_empty():
 			button.set_compact_visual(_slot_heading(index), null, 0, "—")
 			button.tooltip_text = "Slot %d · Empty" % (index + 1)
 			continue
-		var definition := ResourceRegistry.get_item(stack.item_id)
 		var display_name := definition.display_name if definition != null else String(stack.item_id)
 		button.set_compact_visual(
 			_slot_heading(index),
@@ -208,6 +243,7 @@ func _refresh() -> void:
 			_short_name(display_name),
 		)
 		button.tooltip_text = _item_tooltip(definition, display_name, stack.quantity)
+	_refresh_backpack_filters()
 
 	if _equipment != null:
 		for slot in EquipmentComponent.EQUIP_SLOTS:
@@ -407,6 +443,77 @@ func _select_equipment_category(category: StringName) -> void:
 	_refresh()
 
 
+func _select_backpack_category(category: int) -> void:
+	_backpack_category = category if category >= ItemDefinition.InventoryCategory.ALL \
+		and category <= ItemDefinition.InventoryCategory.OTHER \
+		else ItemDefinition.InventoryCategory.ALL
+	if (
+		_selected_kind == &"inventory"
+		and not _inventory_index_matches_filter(_selected_inventory_index)
+	):
+		_selected_kind = &""
+		_selected_inventory_index = -1
+	status_label.text = ""
+	_refresh()
+
+
+func _refresh_backpack_filters() -> void:
+	for raw_category in _backpack_filter_buttons:
+		var button := _backpack_filter_buttons[raw_category] as Button
+		if button != null:
+			button.text = "%s  %d" % [
+				str(button.get_meta("category_label", "Items")),
+				_count_backpack_category_stacks(int(raw_category)),
+			]
+			_apply_category_style(button, int(raw_category) == _backpack_category)
+
+
+func _count_backpack_category_stacks(category: int) -> int:
+	if _inventory == null:
+		return 0
+	var count := 0
+	for index in _inventory.slot_count:
+		var stack := _inventory.get_slot(index)
+		if stack == null or stack.is_empty():
+			continue
+		var definition := ResourceRegistry.get_item(stack.item_id)
+		if category == ItemDefinition.InventoryCategory.ALL or (
+			definition != null and definition.matches_inventory_category(category)
+		):
+			count += 1
+	return count
+
+
+func _inventory_index_matches_filter(index: int) -> bool:
+	if _inventory == null:
+		return false
+	var stack := _inventory.get_slot(index)
+	var definition := ResourceRegistry.get_item(stack.item_id) \
+		if stack != null and not stack.is_empty() else null
+	return _inventory_slot_matches_filter(stack, definition)
+
+
+func _inventory_slot_matches_filter(
+	stack: ItemStack,
+	definition: ItemDefinition,
+) -> bool:
+	if _backpack_category == ItemDefinition.InventoryCategory.ALL:
+		return true
+	if stack == null or stack.is_empty():
+		# Empty real slots stay visible so filtered items can still be moved while
+		# every button continues to target its authoritative inventory index.
+		return true
+	return definition != null and definition.matches_inventory_category(_backpack_category)
+
+
+func get_visible_inventory_indices() -> Array[int]:
+	var result: Array[int] = []
+	for index in _inventory_buttons.size():
+		if _inventory_buttons[index].visible:
+			result.append(index)
+	return result
+
+
 func _toggle_equipment_presentation() -> void:
 	if _equipment == null:
 		return
@@ -459,7 +566,10 @@ func _refresh_capacity() -> void:
 		var stack := _inventory.get_slot(index)
 		if stack != null and not stack.is_empty():
 			occupied += 1
-	capacity_label.text = "%d / %d occupied" % [occupied, _inventory.slot_count]
+	var shown := _count_backpack_category_stacks(_backpack_category)
+	capacity_label.text = "%d shown · %d / %d occupied" % [
+		shown, occupied, _inventory.slot_count,
+	]
 
 
 func _select_page(index: int) -> void:
@@ -571,7 +681,7 @@ func _perform_selected_action() -> void:
 		var definition := ResourceRegistry.get_item(stack.item_id)
 		if definition != null and definition.equip_slot != ItemDefinition.EquipSlot.NONE:
 			succeeded = _equipment != null and _equipment.equip_from_inventory(
-				_inventory, _selected_inventory_index, int(definition.equip_slot)
+				_inventory, _selected_inventory_index
 			)
 			status_label.text = "Equipped %s." % definition.display_name if succeeded \
 				else "That item cannot be equipped here."
@@ -666,6 +776,17 @@ func _refresh_details() -> void:
 		status_label.text = ""
 		action_button.disabled = true
 		return
+	if _active_page == 0 and _selected_kind == &"":
+		item_name_label.text = _backpack_category_label(_backpack_category)
+		item_type_label.text = "BACKPACK CATEGORY"
+		description_label.text = _backpack_category_description(_backpack_category)
+		bonuses_label.text = (
+			"Right-click, double-click, or use the action button to equip and use items directly from their real backpack slots."
+		)
+		status_label.text = ""
+		action_button.disabled = true
+		action_button.text = "Use / Equip"
+		return
 	if _active_page == 1 and _selected_kind == &"":
 		var decorative := _equipment_category == EquipmentComponent.PRESENTATION_DECORATIVE
 		item_name_label.text = "Decorative outfit" if decorative else "Profession gear"
@@ -698,7 +819,7 @@ func _refresh_details() -> void:
 		action_button.text = "Use / Equip"
 		return
 	item_name_label.text = "%s%s" % [definition.display_name, " ×%d" % quantity if quantity > 1 else ""]
-	item_type_label.text = _item_type_name(int(definition.item_type))
+	item_type_label.text = _definition_type_name(definition)
 	description_label.text = definition.description
 	bonuses_label.text = _definition_bonuses(definition)
 	action_button.disabled = false
@@ -810,9 +931,44 @@ func _apply_slot_style(button: Button, selected: bool, hotbar_slot: bool) -> voi
 
 
 func _slot_heading(index: int) -> String:
-	if index < HotbarController.SLOT_COUNT:
-		return "HOTBAR %d" % (index + 1)
+	var hotbar_position := _hotbar_position_for_inventory_slot(index)
+	if hotbar_position >= 0:
+		return "HOTBAR %d" % (hotbar_position + 1)
 	return "SLOT %02d" % (index + 1)
+
+
+func _hotbar_position_for_inventory_slot(index: int) -> int:
+	if _player == null or _player.hotbar == null:
+		return index if index < HotbarController.SLOT_COUNT else -1
+	return _player.hotbar.slot_refs.find(index)
+
+
+func _backpack_category_label(category: int) -> String:
+	for data in BACKPACK_CATEGORIES:
+		if int(data.get("id", -1)) == category:
+			return str(data.get("label", "Items"))
+	return "All"
+
+
+func _backpack_category_description(category: int) -> String:
+	match category:
+		ItemDefinition.InventoryCategory.TOOLS:
+			return "Field tools and utility implements. Their real slots remain available to the 1–9 off-hand mapping."
+		ItemDefinition.InventoryCategory.WEAPONS:
+			return "Main-hand weapons that can be equipped directly from the backpack."
+		ItemDefinition.InventoryCategory.WEARABLES:
+			return "Attribute gear and decorative apparel. Equipping moves one item from the backpack into its compatible body slot."
+		ItemDefinition.InventoryCategory.CONSUMABLES:
+			return "Food, medicine and other one-use supplies."
+		ItemDefinition.InventoryCategory.SKILL_BOOKS:
+			return "Manuals and codices that permanently advance their authored skill proficiency when studied."
+		ItemDefinition.InventoryCategory.MATERIALS:
+			return "Crafting, farming and gathering materials kept in their original backpack slots."
+		ItemDefinition.InventoryCategory.QUEST_ITEMS:
+			return "Quest, gift and key items used by authored world interactions."
+		ItemDefinition.InventoryCategory.OTHER:
+			return "Companion supplies, furniture and miscellaneous possessions."
+	return "Every backpack slot in authoritative order, including the fixed 1–9 off-hand hotbar mappings."
 
 
 func _equipment_slot_name(slot: int) -> String:
@@ -857,6 +1013,22 @@ func _item_type_name(item_type: int) -> String:
 	if item_type < 0 or item_type >= keys.size():
 		return "MISC"
 	return str(keys[item_type]).replace("_", " ")
+
+
+func _definition_type_name(definition: ItemDefinition) -> String:
+	if definition == null:
+		return "MISC"
+	if definition.is_skill_book():
+		return "SKILL BOOK"
+	if definition.is_decorative_equipment():
+		return "DECORATIVE EQUIPMENT · %s" % _equipment_slot_name(
+			int(definition.equip_slot)
+		)
+	if definition.is_attribute_equipment():
+		return "ATTRIBUTE EQUIPMENT · %s" % _equipment_slot_name(
+			int(definition.equip_slot)
+		)
+	return _item_type_name(int(definition.item_type))
 
 
 func _definition_bonuses(definition: ItemDefinition) -> String:

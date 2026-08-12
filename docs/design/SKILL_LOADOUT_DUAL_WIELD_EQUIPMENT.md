@@ -40,6 +40,23 @@ display switch changes which layer is visible on the character without
 unequipping either set or changing combat, load or charisma calculations. The
 selected display layer persists in the versioned equipment save section.
 
+## Backpack binding and categories
+
+The backpack is the sole source and destination for equipment transfers. A
+direct action, right-click or double-click moves one wearable from its real
+inventory slot into the first empty compatible equipment slot; replacing an
+occupied slot returns the old item to the backpack atomically. Unequipping and
+dragging equipment back likewise target real backpack slots and fail safely if
+capacity is unavailable.
+
+Backpack categories separate tools, weapons, wearables, consumables, skill
+books, materials, quest/key items and other possessions. Filtering is purely a
+view operation: buttons retain authoritative inventory indices, empty target
+slots remain available, and neither slot order nor the 1–9 hotbar mapping is
+rewritten. Skill-book classification takes priority over its quest/consume
+authoring fields, and wearable classification uses equipment metadata rather
+than the broad item-type enum.
+
 ## NPC observability
 
 NPC cognition receives only bounded visible cues: hand forms, whether the

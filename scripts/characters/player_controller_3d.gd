@@ -329,9 +329,7 @@ func use_inventory_slot(index: int) -> bool:
 	if item_definition == null:
 		return false
 	if item_definition.equip_slot != ItemDefinition.EquipSlot.NONE:
-		return equipment != null and equipment.equip_from_inventory(
-			inventory, index, int(item_definition.equip_slot)
-		)
+		return equipment != null and equipment.equip_from_inventory(inventory, index)
 	if item_definition.use_kind == ItemDefinition.UseKind.TOOL_ACTION:
 		if combat == null or item_definition.tool_attack_id == &"":
 			return false

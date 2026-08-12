@@ -200,9 +200,27 @@ tabs_visible = false
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="BackpackGrid" type="GridContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/BackpackPage"]
+[node name="BackpackFilterScroll" type="ScrollContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/BackpackPage"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 0
+
+[node name="BackpackFilterRow" type="GridContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/BackpackPage/BackpackFilterScroll"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_constants/separation = 6
+columns = 5
+
+[node name="BackpackScroll" type="ScrollContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/BackpackPage"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="BackpackGrid" type="GridContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack/BackpackPage/BackpackScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
@@ -212,7 +230,7 @@ columns = 9
 layout_mode = 2
 theme_override_colors/font_color = Color(0.48, 0.6, 0.61, 1)
 theme_override_font_sizes/font_size = 12
-text = "Slots 1–9 select the off hand   •   Drag to move   •   Right-click or double-click to use"
+text = "Categories filter display only; real slots and 1–9 mappings stay fixed. Right-click or double-click to equip/use."
 autowrap_mode = 2
 
 [node name="EquipmentPage" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Body/Workspace/WorkspaceMargin/WorkspaceVBox/PageStack"]

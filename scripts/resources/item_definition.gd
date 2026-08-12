@@ -47,6 +47,18 @@ enum UseKind {
 	TOOL_ACTION,
 }
 
+enum InventoryCategory {
+	ALL,
+	TOOLS,
+	WEAPONS,
+	WEARABLES,
+	CONSUMABLES,
+	SKILL_BOOKS,
+	MATERIALS,
+	QUEST_ITEMS,
+	OTHER,
+}
+
 @export var id: StringName = &"item"
 @export var display_name: String = "Item"
 @export var item_type: ItemType = ItemType.MISC
@@ -137,6 +149,30 @@ func is_skill_book() -> bool:
 		and teaches_skill_id != &""
 		and proficiency_points > 0.0
 	)
+
+
+func resolved_inventory_category() -> int:
+	# Priority is intentional: skill books are authored as quest-like consumables,
+	# while weapons are equipment but belong beside tools in the backpack.
+	if is_skill_book():
+		return InventoryCategory.SKILL_BOOKS
+	if item_type == ItemType.TOOL:
+		return InventoryCategory.TOOLS
+	if item_type == ItemType.WEAPON:
+		return InventoryCategory.WEAPONS
+	if is_equippable():
+		return InventoryCategory.WEARABLES
+	if use_kind == UseKind.CONSUME or item_type in [ItemType.CONSUMABLE, ItemType.FOOD]:
+		return InventoryCategory.CONSUMABLES
+	if item_type == ItemType.MATERIAL:
+		return InventoryCategory.MATERIALS
+	if item_type in [ItemType.QUEST, ItemType.GIFT, ItemType.KEY_ITEM]:
+		return InventoryCategory.QUEST_ITEMS
+	return InventoryCategory.OTHER
+
+
+func matches_inventory_category(category: int) -> bool:
+	return category == InventoryCategory.ALL or category == resolved_inventory_category()
 
 
 func supports_utility_action(action_id: StringName) -> bool:

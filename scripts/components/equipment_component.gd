@@ -123,6 +123,23 @@ func is_item_compatible_with_presentation(item_id: StringName, mode: StringName)
 		else definition.is_attribute_equipment()
 
 
+func resolve_auto_equip_slot(item_id: StringName) -> int:
+	var definition := ResourceRegistry.get_item(item_id)
+	if definition == null or not definition.is_equippable():
+		return ItemDefinition.EquipSlot.NONE
+	var candidates: Array[int] = [int(definition.equip_slot)]
+	for alternate in definition.alternate_equip_slots:
+		var slot := int(alternate)
+		if not candidates.has(slot):
+			candidates.append(slot)
+	for slot in candidates:
+		if is_slot_compatible(item_id, slot) and get_equipped_item(slot) == &"":
+			return slot
+	var primary := int(definition.equip_slot)
+	return primary if is_slot_compatible(item_id, primary) \
+		else ItemDefinition.EquipSlot.NONE
+
+
 func get_load_state(strength: int, vitality: int, level: int) -> Dictionary:
 	var attribute_weight := 0.0
 	var requirement_load := 0.0
@@ -170,7 +187,7 @@ func equip_from_inventory(
 	if definition == null:
 		return false
 	var target_slot := requested_slot if requested_slot != ItemDefinition.EquipSlot.NONE \
-		else int(definition.equip_slot)
+		else resolve_auto_equip_slot(source.item_id)
 	if not _is_equipment_slot(target_slot):
 		return false
 	if not definition.supports_equip_slot(target_slot):
