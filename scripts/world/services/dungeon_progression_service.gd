@@ -90,7 +90,10 @@ func _on_actor_spawned(actor: CharacterController) -> void:
 
 
 func _on_enemy_defeated(source: Node, actor: CharacterController) -> void:
-	if _session == null or _session.player == null or not _source_is_player(source):
+	if _session == null or _session.player == null:
+		return
+	var pet_source := _pet_source(source)
+	if pet_source == null and not _source_is_player(source):
 		return
 	if not _is_reward_enemy(actor):
 		return
@@ -103,7 +106,11 @@ func _on_enemy_defeated(source: Node, actor: CharacterController) -> void:
 	var definition := actor.definition as NPCDefinition
 	if definition.dungeon_boss_id != &"":
 		_record_boss_defeat(identity.persistent_id, definition)
-	var levels := _session.player.grant_combat_experience(definition.experience_reward)
+	var levels := 0
+	if pet_source != null:
+		levels = pet_source.runtime_state.record_monster_defeat(definition.experience_reward)
+	else:
+		levels = _session.player.grant_combat_experience(definition.experience_reward)
 	var loot_result: Dictionary = {}
 	if definition.loot_table != null:
 		loot_result = definition.loot_table.roll_one(
@@ -122,9 +129,12 @@ func _on_enemy_defeated(source: Node, actor: CharacterController) -> void:
 				if item_definition != null else String(item_id)
 			)
 	if _session.save_coordinator != null:
-		_session.save_coordinator.mark_dirty(&"player")
+		_session.save_coordinator.mark_dirty(
+			&"companions" if pet_source != null else &"player"
+		)
 		_session.save_coordinator.mark_region_dirty(dungeon_region_id)
-	var message := "Defeated %s: +%d XP" % [
+	var message := "%s defeated %s: +%d XP" % [
+		pet_source.get_display_name() if pet_source != null else "Player",
 		definition.display_name,
 		definition.experience_reward,
 	]
@@ -259,6 +269,15 @@ func _source_is_player(source: Node) -> bool:
 			return true
 		node = node.get_parent()
 	return false
+
+
+func _pet_source(source: Node) -> PetController:
+	var node := source
+	while node != null:
+		if node is PetController:
+			return node as PetController
+		node = node.get_parent()
+	return null
 
 
 func _find_drop_for(enemy_persistent_id: StringName) -> LootDropInteractable3D:

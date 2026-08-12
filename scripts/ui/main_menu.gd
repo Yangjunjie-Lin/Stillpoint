@@ -15,6 +15,7 @@ extends Control
 @onready var ai_dialogue_check: CheckBox = %AIDialogueCheck
 @onready var conversation_storage_check: CheckBox = %ConversationStorageCheck
 @onready var memory_personalization_check: CheckBox = %MemoryPersonalizationCheck
+@onready var pet_proactive_dialogue_check: CheckBox = %PetProactiveDialogueCheck
 @onready var start_button: Button = $Center/VBox/StartButton
 @onready var survival_button: Button = $Center/VBox/SurvivalButton
 @onready var combat_lab_button: Button = $Center/VBox/CombatLabButton
@@ -81,6 +82,7 @@ func _apply_open_world_theme() -> void:
 	for checkbox in [
 		fullscreen_check, ai_dialogue_check,
 		conversation_storage_check, memory_personalization_check,
+		pet_proactive_dialogue_check,
 	]:
 		checkbox.add_theme_color_override("font_color", Color("d7dece"))
 
@@ -159,6 +161,9 @@ func _load_settings_widgets() -> void:
 	ai_dialogue_check.button_pressed = bool(SaveService.settings.get("ai_dialogue_enabled", false))
 	conversation_storage_check.button_pressed = bool(SaveService.settings.get("allow_conversation_storage", false))
 	memory_personalization_check.button_pressed = bool(SaveService.settings.get("allow_memory_personalization", false))
+	pet_proactive_dialogue_check.button_pressed = bool(
+		SaveService.settings.get("pet_proactive_dialogue_enabled", true)
+	)
 
 
 func _on_continue_pressed() -> void:
@@ -285,6 +290,7 @@ func _on_settings_close() -> void:
 	SaveService.settings["ai_dialogue_enabled"] = ai_dialogue_check.button_pressed
 	SaveService.settings["allow_conversation_storage"] = conversation_storage_check.button_pressed
 	SaveService.settings["allow_memory_personalization"] = memory_personalization_check.button_pressed
+	SaveService.settings["pet_proactive_dialogue_enabled"] = pet_proactive_dialogue_check.button_pressed
 	SaveService.save_settings()
 	settings_panel.visible = false
 

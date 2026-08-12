@@ -19,6 +19,7 @@ var _houses: Dictionary = {}
 var _containers: Dictionary = {}
 var _crops: Dictionary = {}
 var _pets: Dictionary = {}
+var _pet_companions: Dictionary = {}
 var _mounts: Dictionary = {}
 var _schedules: Dictionary = {}
 var _attacks: Dictionary = {}
@@ -114,6 +115,10 @@ func register_crop(def: CropDefinition) -> void:
 
 func register_pet(def: PetDefinition) -> void:
 	_put(_pets, def.id if def else &"", def, "pet")
+
+
+func register_pet_companion(def: PetCompanionDefinition) -> void:
+	_put(_pet_companions, def.id if def else &"", def, "pet companion")
 
 
 func register_mount(def: MountDefinition) -> void:
@@ -409,6 +414,19 @@ func get_pet(id: StringName) -> PetDefinition:
 	return _pets.get(id) as PetDefinition
 
 
+func get_pet_companion(id: StringName) -> PetCompanionDefinition:
+	return _pet_companions.get(id) as PetCompanionDefinition
+
+
+func get_all_pet_companions() -> Array[PetCompanionDefinition]:
+	var result: Array[PetCompanionDefinition] = []
+	for id in _sorted_keys(_pet_companions):
+		var definition := _pet_companions[id] as PetCompanionDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
 func get_mount(id: StringName) -> MountDefinition:
 	return _mounts.get(id) as MountDefinition
 
@@ -453,6 +471,7 @@ func load_defaults() -> void:
 	_register_dir("res://resources/containers/", register_container)
 	_register_dir("res://resources/crops/", register_crop)
 	_register_dir("res://resources/pets/", register_pet)
+	_register_dir("res://resources/pet_companions/", register_pet_companion, true)
 	_register_dir("res://resources/mounts/", register_mount)
 	_register_dir("res://resources/schedules/", register_schedule)
 	_register_dir("res://resources/attacks/", register_attack)
@@ -482,6 +501,7 @@ func clear_all() -> void:
 	_containers.clear()
 	_crops.clear()
 	_pets.clear()
+	_pet_companions.clear()
 	_mounts.clear()
 	_schedules.clear()
 	_attacks.clear()
@@ -512,6 +532,7 @@ func clear_test_registrations() -> void:
 		"containers": _containers,
 		"crops": _crops,
 		"pets": _pets,
+		"pet_companions": _pet_companions,
 		"mounts": _mounts,
 		"schedules": _schedules,
 		"attacks": _attacks,
@@ -547,6 +568,7 @@ func _capture_default_keys() -> void:
 		"containers": _containers.duplicate(false),
 		"crops": _crops.duplicate(false),
 		"pets": _pets.duplicate(false),
+		"pet_companions": _pet_companions.duplicate(false),
 		"mounts": _mounts.duplicate(false),
 		"schedules": _schedules.duplicate(false),
 		"attacks": _attacks.duplicate(false),

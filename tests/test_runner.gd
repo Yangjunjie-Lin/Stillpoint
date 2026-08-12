@@ -100,6 +100,7 @@ func _reset_global_state() -> void:
 	settings["ai_dialogue_enabled"] = false
 	settings["allow_conversation_storage"] = false
 	settings["allow_memory_personalization"] = false
+	settings["pet_proactive_dialogue_enabled"] = true
 	_autoload("ResourceRegistry").call("clear_test_registrations")
 	_autoload("RelationshipService").call("reset_all")
 	_autoload("QuestManager").call("reset_all")

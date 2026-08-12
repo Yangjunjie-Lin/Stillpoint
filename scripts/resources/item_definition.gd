@@ -89,6 +89,12 @@ enum InventoryCategory {
 @export_range(0, 100, 1) var required_vitality: int = 0
 @export var rarity: StringName = &"common"
 @export_range(0, 100, 1) var starter_balance_value: int = 0
+@export_group("Pet Care")
+## Bounded tags used by authored pet equipment slots and food preferences.
+@export var pet_tags: Array[StringName] = []
+@export_range(0.0, 100.0, 0.5) var pet_nutrition: float = 0.0
+@export_range(0.0, 25.0, 0.5) var pet_mood_gain: float = 0.0
+@export_range(0.0, 25.0, 0.5) var pet_affection_gain: float = 0.0
 @export_group("Skill Book")
 @export var teaches_skill_id: StringName = &""
 @export_range(0.0, 100.0, 0.5) var proficiency_points: float = 0.0
@@ -154,6 +160,14 @@ func is_skill_book() -> bool:
 	)
 
 
+func is_pet_food() -> bool:
+	return item_type in [ItemType.FOOD, ItemType.PET_ITEM] and pet_nutrition > 0.0
+
+
+func is_pet_equipment() -> bool:
+	return item_type == ItemType.PET_ITEM and pet_nutrition <= 0.0 and not pet_tags.is_empty()
+
+
 func resolved_inventory_category() -> int:
 	# Priority is intentional: skill books are authored as quest-like consumables,
 	# while weapons are equipment but belong beside tools in the backpack.
@@ -200,6 +214,8 @@ func catalog_metadata() -> Dictionary:
 		"required_strength": required_strength,
 		"required_vitality": required_vitality,
 		"visual_archetype": String(resolved_visual_archetype()),
+		"pet_tags": _string_names(pet_tags),
+		"pet_nutrition": pet_nutrition,
 	}
 
 
@@ -244,3 +260,10 @@ func resolved_visual_archetype() -> StringName:
 		ItemType.GIFT, ItemType.QUEST:
 			return &"gift_box"
 	return &"generic_trinket"
+
+
+func _string_names(values: Array[StringName]) -> Array[String]:
+	var result: Array[String] = []
+	for value in values:
+		result.append(String(value))
+	return result

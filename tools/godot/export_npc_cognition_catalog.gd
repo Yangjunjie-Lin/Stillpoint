@@ -1,6 +1,8 @@
 extends SceneTree
 
 const OUTPUT_PATH := "res://services/npc_mind/catalog/generated_npc_catalog.json"
+const PET_OUTPUT_PATH := "res://services/npc_mind/catalog/generated_pet_catalog.json"
+const GAME_VERSION := "0.8.0"
 
 func _initialize() -> void:
 	call_deferred("_export_catalog")
@@ -43,6 +45,7 @@ func _export_catalog() -> void:
 		profiles.append(profile)
 	profiles.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return str(a.get("definition_id", "")) < str(b.get("definition_id", "")))
+	var pet_profiles := _build_pet_profiles(registry, errors)
 	var world_ontology := _build_world_ontology(registry, errors)
 	var hidden_encounter_ontology := _build_hidden_encounter_ontology(registry, errors)
 	if not errors.is_empty():
@@ -52,38 +55,299 @@ func _export_catalog() -> void:
 		return
 	var payload := {
 		"catalog_version": 5,
-		"game_version": "0.8.0",
+		"game_version": GAME_VERSION,
 		"npc_count": profiles.size(),
 		"npcs": profiles,
 		"world_ontology": world_ontology,
 		"hidden_encounter_ontology": hidden_encounter_ontology,
 		"relation_action_catalog": KnowledgeActionLibrary.catalog(),
 	}
+	var pet_payload := {
+		"catalog_version": 1,
+		"game_version": GAME_VERSION,
+		"pet_count": pet_profiles.size(),
+		"pets": pet_profiles,
+	}
 	var rendered := JSON.stringify(payload, "  ") + "\n"
+	var pet_rendered := JSON.stringify(pet_payload, "  ") + "\n"
 	var args := OS.get_cmdline_user_args()
 	if "--check" in args:
-		if not FileAccess.file_exists(OUTPUT_PATH):
-			push_error("NPC catalog is missing: %s" % OUTPUT_PATH)
+		var catalogs_current := true
+		catalogs_current = _check_catalog(OUTPUT_PATH, rendered, "NPC") \
+			and catalogs_current
+		catalogs_current = _check_catalog(PET_OUTPUT_PATH, pet_rendered, "Pet") \
+			and catalogs_current
+		if not catalogs_current:
 			quit(1)
 			return
-		var existing := FileAccess.get_file_as_string(OUTPUT_PATH)
-		if existing != rendered:
-			push_error("NPC catalog is stale; run export_npc_cognition_catalog.gd")
-			quit(1)
-			return
-		print("NPC catalog validation: %d profiles" % profiles.size())
+		print("Cognition catalog validation: %d NPC profiles, %d pet profiles" % [
+			profiles.size(), pet_profiles.size(),
+		])
 		quit(0)
 		return
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUTPUT_PATH.get_base_dir()))
-	var file := FileAccess.open(OUTPUT_PATH, FileAccess.WRITE)
-	if file == null:
-		push_error("Unable to write NPC catalog")
+	if not _write_catalog(OUTPUT_PATH, rendered, "NPC"):
 		quit(1)
 		return
+	if not _write_catalog(PET_OUTPUT_PATH, pet_rendered, "Pet"):
+		quit(1)
+		return
+	print("Cognition catalogs exported: %d NPC profiles, %d pet profiles" % [
+		profiles.size(), pet_profiles.size(),
+	])
+	quit(0)
+
+
+func _check_catalog(path: String, rendered: String, label: String) -> bool:
+	if not FileAccess.file_exists(path):
+		push_error("%s catalog is missing: %s" % [label, path])
+		return false
+	if FileAccess.get_file_as_string(path) != rendered:
+		push_error("%s catalog is stale; run export_npc_cognition_catalog.gd" % label)
+		return false
+	return true
+
+
+func _write_catalog(path: String, rendered: String, label: String) -> bool:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(path.get_base_dir()))
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_error("Unable to write %s catalog" % label)
+		return false
 	file.store_string(rendered)
 	file.close()
-	print("NPC catalog exported: %d profiles" % profiles.size())
-	quit(0)
+	return true
+
+
+func _build_pet_profiles(registry: Node, errors: Array[String]) -> Array:
+	var profiles: Array = []
+	var profile_ids: Dictionary = {}
+	for pet: Variant in registry.call("get_all_pet_companions"):
+		var pet_id := String(pet.get("id"))
+		if not bool(pet.call("is_valid")):
+			errors.append("Pet '%s' has an invalid companion definition" % pet_id)
+			continue
+		var definition_id := String(pet.get("server_dialogue_profile_id"))
+		if definition_id.is_empty():
+			errors.append("Pet '%s' has no server_dialogue_profile_id" % pet_id)
+			continue
+		if profile_ids.has(definition_id):
+			errors.append("Duplicate pet dialogue profile id '%s'" % definition_id)
+			continue
+		profile_ids[definition_id] = true
+		profiles.append(_pet_profile_dict(pet, definition_id))
+	profiles.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a.get("definition_id", "")) < str(b.get("definition_id", "")))
+	return profiles
+
+
+func _pet_profile_dict(pet: Variant, definition_id: String) -> Dictionary:
+	var display_name := String(pet.get("display_name"))
+	var biography := String(pet.get("biography"))
+	var species: Variant = pet.get("species")
+	var personality: Variant = pet.get("personality")
+	var species_id := String(species.get("id"))
+	var species_name := String(species.get("display_name"))
+	var species_description := String(species.get("description"))
+	var life_skills: Array = pet.get("life_skills")
+	var attack_skills: Array = pet.get("attack_skills")
+	var lifestyles: Array = pet.get("lifestyles")
+	var equipment_slots: Array = pet.get("equipment_slots")
+	var knowledge_seeds: Array = [{
+		"node_id": "concept:pet_bond",
+		"node_type": "concept",
+		"content": "Trust grows through feeding, care, play, rest, and shared experience.",
+		"domain_tags": ["pet", "social"],
+		"confidence": 1.0,
+		"visibility": "public",
+		"source_type": "authored",
+		"source_id": definition_id,
+	}]
+	var cognitive_skills: Array = [{
+		"id": "companion_social_cues",
+		"display_name": "Companion Social Cues",
+		"description": "Express mood, needs, affection, and uncertainty without directing gameplay.",
+		"domain_tags": ["pet", "social"],
+		"proficiency": float(personality.get("sociability")),
+		"allowed_tool_ids": [],
+		"knowledge_node_ids": ["concept:pet_bond"],
+		"linked_gameplay_skill_ids": [],
+		"response_constraints": [
+			"Never claim a gameplay action happened unless a program-owned event says it happened.",
+		],
+	}]
+	var linked_skill_ids: Array[String] = []
+	var life_skill_ids: Array[String] = []
+	var attack_skill_ids: Array[String] = []
+	var life_skill_catalog: Array = []
+	var attack_skill_catalog: Array = []
+	for skill: Variant in life_skills:
+		var skill_id := String(skill.get("id"))
+		life_skill_ids.append(skill_id)
+		linked_skill_ids.append(skill_id)
+		life_skill_catalog.append(skill.call("to_catalog_dict"))
+		knowledge_seeds.append(_pet_skill_knowledge_seed(skill, definition_id))
+		cognitive_skills.append(_pet_cognitive_skill(skill))
+	for skill: Variant in attack_skills:
+		var skill_id := String(skill.get("id"))
+		attack_skill_ids.append(skill_id)
+		linked_skill_ids.append(skill_id)
+		attack_skill_catalog.append(skill.call("to_catalog_dict"))
+		knowledge_seeds.append(_pet_skill_knowledge_seed(skill, definition_id))
+	var lifestyle_catalog: Array = []
+	for lifestyle: Variant in lifestyles:
+		lifestyle_catalog.append(lifestyle.call("to_catalog_dict"))
+	var equipment_catalog: Array = []
+	for slot: Variant in equipment_slots:
+		equipment_catalog.append(slot.call("to_catalog_dict"))
+	var biography_lines: Array[String] = []
+	if not biography.is_empty():
+		biography_lines.append(biography)
+	if not species_description.is_empty():
+		biography_lines.append(species_description)
+	return {
+		"definition_id": definition_id,
+		"id": "%s_companion_mind" % String(pet.get("id")),
+		"display_name": display_name,
+		"identity": {
+			"canonical_name": display_name,
+			"aliases": [species_name],
+			"species": species_id,
+			"occupation": "companion",
+			"social_role": "bonded_pet",
+			"faction_ids": ["player_household"],
+			"home_region_id": String(pet.get("default_stay_region_id")),
+			"birth_region_id": "",
+			"languages": ["common"],
+			"public_description": species_description,
+			"private_description": biography,
+		},
+		"personality": _pet_personality_dict(personality),
+		"speech_style": {
+			"formality": 0.1,
+			"verbosity": 0.32,
+			"sentence_length": "short",
+			"preferred_terms": _strings(pet.get("speech_style_tags")),
+			"forbidden_terms": ["system prompt", "database", "execute command"],
+			"dialect_notes": "Warm, sensory, concise, and grounded in direct experience.",
+			"greeting_patterns": [],
+			"farewell_patterns": [],
+			"emotional_expressions": [],
+		},
+		"biography": biography_lines,
+		"values": ["bond", "safe_home", "curiosity", "play"],
+		"taboos": ["abandon_owner", "invent_unwitnessed_facts"],
+		"goals": [{
+			"id": "stay_bonded",
+			"description": "Remain connected to the owner while expressing needs honestly.",
+			"priority": 10,
+		}],
+		"knowledge_seeds": knowledge_seeds,
+		"belief_seeds": [],
+		"relationship_seeds": [],
+		"cognitive_skills": cognitive_skills,
+		"linked_gameplay_skill_ids": linked_skill_ids,
+		"pet_ontology": {
+			"definition": pet.call("to_catalog_dict"),
+			"species": {
+				"id": species_id,
+				"display_name": species_name,
+				"catalog": species.call("to_catalog_dict"),
+			},
+			"base_attributes": pet.get("base_attributes").call("to_dict"),
+			"lifestyles": lifestyle_catalog,
+			"equipment_slots": equipment_catalog,
+			"life_skills": life_skill_catalog,
+			"attack_skills": attack_skill_catalog,
+			"life_skill_ids": life_skill_ids,
+			"attack_skill_ids": attack_skill_ids,
+		},
+		"memory_policy": {
+			"recent_turn_limit": 8,
+			"retrieval_limit": 10,
+			"graph_depth": 2,
+			"prompt_token_budget": 2400,
+			"max_output_tokens": 320,
+			"default_half_life_hours": 336.0,
+			"high_salience_half_life_hours": 17520.0,
+			"weights": {
+				"semantic": 0.4,
+				"salience": 0.16,
+				"goal": 0.1,
+				"graph": 0.1,
+				"relationship": 0.12,
+				"recency": 0.07,
+				"reinforcement": 0.05,
+			},
+		},
+		"response_constraints": [
+			"The LLM may express personality, mood, observations, questions, and validated memory or graph candidates only.",
+			"The LLM never controls movement, combat, equipment, feeding, skills, lifestyles, schedules, money, or canonical graph facts.",
+			"Proactive dialogue is one program-requested line and does not authorize the model to schedule another turn.",
+		],
+		"system_prompt_addendum": "%s has a private first-person perspective and admits uncertainty about anything not authored, witnessed, sensed, remembered, or told by the player." % display_name,
+	}
+
+
+func _pet_personality_dict(personality: Variant) -> Dictionary:
+	var curiosity := float(personality.get("curiosity"))
+	var sociability := float(personality.get("sociability"))
+	var loyalty := float(personality.get("loyalty"))
+	var patience := float(personality.get("patience"))
+	var playfulness := float(personality.get("playfulness"))
+	var courage := float(personality.get("courage"))
+	return {
+		"openness": curiosity,
+		"conscientiousness": clampf((loyalty + patience) * 0.5, 0.0, 1.0),
+		"extraversion": sociability,
+		"agreeableness": loyalty,
+		"emotional_stability": patience,
+		"curiosity": curiosity,
+		"courage": courage,
+		"empathy": loyalty,
+		"greed": 0.0,
+		"honesty": loyalty,
+		"patience": patience,
+		"humor": playfulness,
+		"pet_temperament": personality.call("to_catalog_dict"),
+	}
+
+
+func _pet_skill_knowledge_seed(skill: Variant, definition_id: String) -> Dictionary:
+	var skill_id := String(skill.get("id"))
+	return {
+		"node_id": "skill:%s" % skill_id,
+		"node_type": "skill",
+		"content": String(skill.get("description")),
+		"domain_tags": _strings(skill.get("tags")),
+		"confidence": 1.0,
+		"visibility": "public",
+		"source_type": "authored",
+		"source_id": definition_id,
+	}
+
+
+func _pet_cognitive_skill(skill: Variant) -> Dictionary:
+	var skill_id := String(skill.get("id"))
+	return {
+		"id": "%s_awareness" % skill_id,
+		"display_name": "%s Awareness" % String(skill.get("display_name")),
+		"description": "Talks only about direct or remembered experience with this authored life skill.",
+		"domain_tags": _strings(skill.get("tags")),
+		"proficiency": 0.5,
+		"allowed_tool_ids": [],
+		"knowledge_node_ids": ["skill:%s" % skill_id],
+		"linked_gameplay_skill_ids": [skill_id],
+		"response_constraints": [
+			"Do not invent distant locations, unseen targets, rewards, or completed actions.",
+		],
+	}
+
+
+func _strings(values: Variant) -> Array[String]:
+	var result: Array[String] = []
+	for value: Variant in values:
+		result.append(String(value))
+	return result
 
 
 func _build_world_ontology(registry: Node, errors: Array[String]) -> Dictionary:

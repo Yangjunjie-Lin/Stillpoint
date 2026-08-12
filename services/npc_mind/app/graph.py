@@ -7,6 +7,11 @@ from typing import Any
 NODE_TYPES = {
     "npc_definition",
     "npc_instance",
+    "pet_definition",
+    "pet_instance",
+    "pet_species",
+    "pet_lifestyle",
+    "pet_equipment_slot",
     "player",
     "region",
     "faction",

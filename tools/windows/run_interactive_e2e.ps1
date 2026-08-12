@@ -15,7 +15,23 @@ if (-not (Test-Path -LiteralPath $godot)) {
     $godot = Join-Path $repoRoot "tools\godot\Godot_v4.7.1-stable_win64_console.exe"
 }
 if (-not (Test-Path -LiteralPath $godot)) {
-    throw "Godot 4.7.1 console executable was not found."
+    $wingetPackages = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages"
+    $godot = Get-ChildItem `
+        -LiteralPath $wingetPackages `
+        -Filter "Godot_v4.7.1-stable_win64_console.exe" `
+        -Recurse `
+        -ErrorAction SilentlyContinue |
+        Select-Object -First 1 -ExpandProperty FullName
+}
+if ([string]::IsNullOrWhiteSpace($godot) -or -not (Test-Path -LiteralPath $godot)) {
+    $godotCommand = Get-Command godot_console, godot -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($null -ne $godotCommand) {
+        $godot = $godotCommand.Source
+    }
+}
+if ([string]::IsNullOrWhiteSpace($godot) -or -not (Test-Path -LiteralPath $godot)) {
+    throw "Godot 4.7.1 console executable was not found. Install GodotEngine.GodotEngine with winget or place it under artifacts\godot-4.7.1."
 }
 
 $siliconFlowKey = $env:SILICONFLOW_API_KEY

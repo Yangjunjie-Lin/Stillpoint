@@ -1408,26 +1408,29 @@ def _seed_graph(
 ) -> None:
     data = profile.payload
     revision = profile.catalog_revision
-    definition_node = f"npc_definition:{profile.npc_definition_id}"
+    definition_node = profile.definition_node_id
     repository.add_graph_node(
         GraphNode(
             definition_node,
-            "npc_definition",
+            f"{profile.entity_kind}_definition",
             str(data.get("display_name", profile.npc_definition_id)),
-            {"definition_id": profile.npc_definition_id},
+            {
+                "definition_id": profile.npc_definition_id,
+                "entity_kind": profile.entity_kind,
+            },
             catalog_revision=revision,
             visibility="public",
             source="catalog",
         )
     )
     _seed_world_ontology(repository, profile)
-    instance_node = f"npc_instance:{npc}"
+    instance_node = profile.instance_node_id(npc)
     repository.add_graph_node(
         GraphNode(
             instance_node,
-            "npc_instance",
+            f"{profile.entity_kind}_instance",
             str(data.get("display_name", profile.npc_definition_id)),
-            {"persistent_id": npc},
+            {"persistent_id": npc, "entity_kind": profile.entity_kind},
             player_profile_id=player,
             world_save_id=save,
             owner_npc_persistent_id=npc,
@@ -1459,6 +1462,45 @@ def _seed_graph(
             canonical_relations.append((f"skill:{skill_id}", "skill", "HAS_SKILL", skill_id))
     for skill_id in data.get("linked_gameplay_skill_ids", []):
         canonical_relations.append((f"skill:{skill_id}", "skill", "HAS_SKILL", str(skill_id)))
+    if profile.entity_kind == "pet":
+        pet_ontology = data.get("pet_ontology", {})
+        if isinstance(pet_ontology, dict):
+            species = pet_ontology.get("species", {})
+            if isinstance(species, dict) and species.get("id"):
+                species_id = str(species["id"])
+                canonical_relations.append(
+                    (f"pet_species:{species_id}", "pet_species", "IS_INSTANCE_OF", species_id)
+                )
+            for lifestyle in pet_ontology.get("lifestyles", []):
+                if isinstance(lifestyle, dict) and lifestyle.get("id"):
+                    lifestyle_id = str(lifestyle["id"])
+                    canonical_relations.append(
+                        (
+                            f"pet_lifestyle:{lifestyle_id}",
+                            "pet_lifestyle",
+                            "RELATED_TO",
+                            str(lifestyle.get("display_name", lifestyle_id)),
+                        )
+                    )
+            for slot in pet_ontology.get("equipment_slots", []):
+                if isinstance(slot, dict) and slot.get("id"):
+                    slot_id = str(slot["id"])
+                    canonical_relations.append(
+                        (
+                            f"pet_equipment_slot:{slot_id}",
+                            "pet_equipment_slot",
+                            "CONTAINS",
+                            str(slot.get("display_name", slot_id)),
+                        )
+                    )
+            for skill_id in pet_ontology.get("life_skill_ids", []):
+                canonical_relations.append(
+                    (f"skill:{skill_id}", "skill", "HAS_SKILL", str(skill_id))
+                )
+            for skill_id in pet_ontology.get("attack_skill_ids", []):
+                canonical_relations.append(
+                    (f"skill:{skill_id}", "skill", "HAS_SKILL", str(skill_id))
+                )
     for node_id, node_type, predicate, label in canonical_relations:
         repository.add_graph_node(
             GraphNode(
@@ -1659,7 +1701,7 @@ def _relevant_graph_edges(
         node_id
         for edge in scoped
         for node_id in (edge.subject_node_id, edge.object_node_id)
-        if node_id.startswith("npc_definition:")
+        if node_id.startswith(("npc_definition:", "pet_definition:"))
     }
     canonical_pool = [
         edge for edge in edges if edge.owner_npc_persistent_id in (None, "")
@@ -1677,7 +1719,7 @@ def _relevant_graph_edges(
                 continue
             if edge not in canonical:
                 canonical.append(edge)
-            if not edge.object_node_id.startswith("npc_definition:"):
+            if not edge.object_node_id.startswith(("npc_definition:", "pet_definition:")):
                 next_frontier.add(edge.object_node_id)
         frontier = next_frontier - seen_nodes
         seen_nodes |= next_frontier

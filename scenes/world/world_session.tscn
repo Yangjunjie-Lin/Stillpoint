@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://worldsession001"]
+[gd_scene load_steps=35 format=3 uid="uid://worldsession001"]
 
 [ext_resource type="Script" path="res://scripts/world/session/world_session.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
@@ -30,6 +30,10 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/rpg/property_storage_menu.tscn" id="28"]
 [ext_resource type="Script" path="res://scripts/world/services/hidden_encounter_service.gd" id="29"]
 [ext_resource type="PackedScene" path="res://scenes/ui/rpg/commerce_menu.tscn" id="30"]
+[ext_resource type="Script" path="res://scripts/pets/stylized_pet_model.gd" id="31"]
+[ext_resource type="PackedScene" path="res://scenes/ui/rpg/pet_companion_menu.tscn" id="32"]
+[ext_resource type="Script" path="res://scripts/interaction/pet_interactable.gd" id="33"]
+[ext_resource type="Script" path="res://scripts/pets/pet_hurtbox_3d.gd" id="34"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_companion"]
 radius = 0.4
@@ -56,15 +60,31 @@ script = ExtResource("13")
 [node name="WorldEntityIdentity" type="Node" parent="PersistentRoot/CompanionRoot/Pet"]
 script = ExtResource("16")
 persistent_id = &"base:town/companion/pet"
-definition_id = &"pet"
+definition_id = &"mossfox"
+region_id = &"base:town"
 persistence_policy = 3
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PersistentRoot/CompanionRoot/Pet"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
 shape = SubResource("Capsule_companion")
 
-[node name="Visual" type="MeshInstance3D" parent="PersistentRoot/CompanionRoot/Pet"]
-mesh = SubResource("BoxMesh_companion")
+[node name="PetHurtbox3D" type="Area3D" parent="PersistentRoot/CompanionRoot/Pet"]
+script = ExtResource("34")
+team = &"player"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PersistentRoot/CompanionRoot/Pet/PetHurtbox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("Capsule_companion")
+
+[node name="VisualRoot" type="Node3D" parent="PersistentRoot/CompanionRoot/Pet"]
+rotation = Vector3(0, 3.1415927, 0)
+
+[node name="PetModel" type="Node3D" parent="PersistentRoot/CompanionRoot/Pet/VisualRoot"]
+script = ExtResource("31")
+
+[node name="PetInteractable" type="Node3D" parent="PersistentRoot/CompanionRoot/Pet"]
+script = ExtResource("33")
+pet_path = NodePath("..")
 
 [node name="Mount" type="CharacterBody3D" parent="PersistentRoot/CompanionRoot"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.0, -2)
@@ -202,6 +222,8 @@ text = "Quest: --"
 [node name="PropertyStorageMenu" parent="WorldUI" instance=ExtResource("28")]
 
 [node name="CommerceMenu" parent="WorldUI" instance=ExtResource("30")]
+
+[node name="PetCompanionMenu" parent="WorldUI" instance=ExtResource("32")]
 
 [node name="DialoguePanel" type="PanelContainer" parent="WorldUI"]
 visible = false

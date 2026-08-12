@@ -139,6 +139,27 @@ const HAND_GRIP_POSES := {
 		"rotation_degrees": Vector3(-18, -14, -10),
 		"scale": Vector3.ONE * 0.62,
 	},
+	&"pet_collar": {
+		"hand": "right",
+		"grip_kind": "present_loop",
+		"position": Vector3(0.08, -0.11, 0.18),
+		"rotation_degrees": Vector3(-72, 0, -8),
+		"scale": Vector3.ONE * 0.68,
+	},
+	&"pet_harness": {
+		"hand": "right",
+		"grip_kind": "support_folded_gear",
+		"position": Vector3(0.1, -0.12, 0.2),
+		"rotation_degrees": Vector3(-68, -8, -10),
+		"scale": Vector3.ONE * 0.58,
+	},
+	&"pet_charm": {
+		"hand": "right",
+		"grip_kind": "pinch_ring",
+		"position": Vector3(0.03, -0.17, 0.14),
+		"rotation_degrees": Vector3(8, 0, 5),
+		"scale": Vector3.ONE * 0.72,
+	},
 }
 
 
@@ -188,6 +209,12 @@ static func create_model(definition: ItemDefinition, for_hand: bool = false) -> 
 			_build_root_vegetable(root, definition)
 		&"skill_book":
 			_build_skill_book(root, definition)
+		&"pet_collar":
+			_build_pet_collar(root, definition)
+		&"pet_harness":
+			_build_pet_harness(root, definition)
+		&"pet_charm":
+			_build_pet_charm(root, definition)
 		_:
 			_build_trinket(root, definition)
 	if for_hand:
@@ -351,6 +378,34 @@ static func _build_skill_book(root: Node3D, definition: ItemDefinition) -> void:
 	_box(root, "BackCover", Vector3(0.47, 0.025, 0.61), Vector3(0, 0.2, 0), definition.visual_primary_color.darkened(0.12))
 	_box(root, "Spine", Vector3(0.055, 0.13, 0.61), Vector3(-0.24, 0.25, 0), definition.visual_primary_color.darkened(0.2))
 	_box(root, "CoverSigil", Vector3(0.18, 0.02, 0.2), Vector3(0.03, 0.32, 0), definition.visual_secondary_color, Vector3.ZERO, 0.3)
+
+
+static func _build_pet_collar(root: Node3D, definition: ItemDefinition) -> void:
+	_torus(root, "FlexibleCollarBand", 0.25, 0.31, Vector3(0, 0.28, 0), definition.visual_primary_color, Vector3(90, 0, 0))
+	_box(root, "BuckleBody", Vector3(0.18, 0.13, 0.075), Vector3(0.3, 0.28, 0), definition.visual_secondary_color, Vector3(0, 0, 8), 0.62)
+	_box(root, "BuckleTongue", Vector3(0.16, 0.025, 0.09), Vector3(0.25, 0.28, 0.005), definition.visual_secondary_color.lightened(0.16), Vector3(0, 0, 8), 0.72)
+	_cylinder(root, "TagHanger", 0.012, 0.16, Vector3(0, 0.01, 0), definition.visual_secondary_color, Vector3.ZERO, 0.55)
+	_sphere(root, "ReturnTag", 0.09, Vector3(0, -0.1, 0), definition.visual_secondary_color, 0.48, Vector3(0.85, 1.0, 0.36))
+	_torus(root, "TagBorder", 0.065, 0.09, Vector3(0, -0.1, 0.035), definition.visual_secondary_color.lightened(0.18), Vector3(90, 0, 0), 0.72)
+
+
+static func _build_pet_harness(root: Node3D, definition: ItemDefinition) -> void:
+	_box(root, "MosswovenBackPad", Vector3(0.52, 0.12, 0.68), Vector3(0, 0.28, 0), definition.visual_primary_color)
+	_box(root, "BackPadTrim", Vector3(0.57, 0.045, 0.73), Vector3(0, 0.34, 0), definition.visual_secondary_color.darkened(0.05), Vector3.ZERO, 0.18)
+	_box(root, "SpinePanel", Vector3(0.18, 0.055, 0.64), Vector3(0, 0.37, 0), definition.visual_primary_color.lightened(0.12))
+	_torus(root, "ChestStrap", 0.2, 0.25, Vector3(0, 0.18, -0.25), definition.visual_secondary_color, Vector3(90, 0, 0))
+	_torus(root, "BellyStrap", 0.22, 0.27, Vector3(0, 0.18, 0.24), definition.visual_secondary_color, Vector3(90, 0, 0))
+	_box(root, "LeftBuckle", Vector3(0.09, 0.1, 0.06), Vector3(-0.26, 0.2, 0.23), definition.visual_secondary_color.lightened(0.2), Vector3.ZERO, 0.65)
+	_box(root, "RightBuckle", Vector3(0.09, 0.1, 0.06), Vector3(0.26, 0.2, 0.23), definition.visual_secondary_color.lightened(0.2), Vector3.ZERO, 0.65)
+
+
+static func _build_pet_charm(root: Node3D, definition: ItemDefinition) -> void:
+	_torus(root, "AttachmentRing", 0.075, 0.105, Vector3(0, 0.51, 0), definition.visual_primary_color, Vector3(90, 0, 0), 0.72)
+	_cylinder(root, "CharmLink", 0.014, 0.18, Vector3(0, 0.4, 0), definition.visual_primary_color, Vector3.ZERO, 0.66)
+	_cone(root, "QuietBell", 0.16, 0.095, 0.28, Vector3(0, 0.18, 0), definition.visual_primary_color, Vector3.ZERO, 0.64)
+	_torus(root, "BellLip", 0.12, 0.165, Vector3(0, 0.04, 0), definition.visual_primary_color.lightened(0.16), Vector3.ZERO, 0.76)
+	_sphere(root, "MutedClapper", 0.045, Vector3(0, -0.045, 0), definition.visual_secondary_color, 0.55)
+	_sphere(root, "CalmingInlay", 0.055, Vector3(0, 0.19, 0.1), definition.visual_secondary_color, 0.32, Vector3(0.75, 1.0, 0.35))
 
 
 static func _build_trinket(root: Node3D, definition: ItemDefinition) -> void:

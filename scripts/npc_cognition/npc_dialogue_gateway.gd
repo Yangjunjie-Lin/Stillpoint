@@ -50,10 +50,15 @@ static func parse_retry_config(value: String, fallback: int = 1) -> int:
 	return clampi(cleaned.to_int(), 0, 3)
 
 func _ready() -> void:
+	# Dialogue panels pause the world while awaiting HTTP. Keep both this adapter
+	# and its transport alive so a paused modal can receive its response.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	if _http != null:
+		_http.process_mode = Node.PROCESS_MODE_ALWAYS
 		return
 	_http = HTTPRequest.new()
 	_http.name = "NpcMindHTTPRequest"
+	_http.process_mode = Node.PROCESS_MODE_ALWAYS
 	_http.timeout = timeout_seconds
 	_http.download_chunk_size = mini(maximum_response_bytes, 65536)
 	add_child(_http)
@@ -86,6 +91,18 @@ func cancel() -> void:
 		return
 	_replace_http_transport()
 	_finish({"ok": false, "error_code": "cancelled", "request_id": _active_request_id})
+
+
+func cancel_request(request_id: String) -> bool:
+	## Cancel only when the caller owns the gateway's active request.
+	## Multiple cognition adapters share this transport, so an unscoped cancel
+	## from one adapter must never terminate another adapter's HTTP request.
+	var expected_id := request_id.strip_edges()
+	if expected_id.is_empty() or not is_busy() or expected_id != _active_request_id:
+		return false
+	_replace_http_transport()
+	_finish({"ok": false, "error_code": "cancelled", "request_id": expected_id})
+	return true
 
 static func validate_turn_request(payload: Dictionary) -> Dictionary:
 	for field in ["request_id", "player_profile_id", "world_save_id", "npc_definition_id", "npc_persistent_id", "session_id", "text"]:

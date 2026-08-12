@@ -133,6 +133,12 @@ class NpcCognitionService:
         if len(request.text) > self.settings.max_input_length:
             raise ValueError("input_too_long")
         profile = self.catalog.get_profile(request.npc_definition_id)
+        if request.entity_kind != profile.entity_kind:
+            raise ValueError("entity_kind_mismatch")
+        proactive_pet_turn = (
+            profile.entity_kind == "pet"
+            and request.dialogue_context.origin == "entity_proactive"
+        )
         self.repository.deploy_profile(
             profile,
             request.player_profile_id,
@@ -164,6 +170,21 @@ class NpcCognitionService:
             update={
                 # Client-supplied npc_profile is always discarded.
                 "npc_profile": profile.payload,
+                "entity_kind": profile.entity_kind,
+                # A proactive companion turn is a program-owned expression event,
+                # not player speech. Discard client-authored instructions and force
+                # both conversation and personalization storage off server-side.
+                "text": (
+                    "The companion has a quiet moment near its owner."
+                    if proactive_pet_turn
+                    else request.text
+                ),
+                "allow_conversation_storage": (
+                    False if proactive_pet_turn else request.allow_conversation_storage
+                ),
+                "allow_memory_personalization": (
+                    False if proactive_pet_turn else request.allow_memory_personalization
+                ),
                 "retrieved_memories": [],
                 "retrieved_graph": graph,
                 "recent_turns": [turn.to_dict() for turn in session.turns[-6:]],
@@ -171,7 +192,10 @@ class NpcCognitionService:
         )
         if self.budget_exhausted(request.player_profile_id):
             return self._fallback_response(
-                trusted_request, session, "daily_budget_exceeded", store=True
+                trusted_request,
+                session,
+                "daily_budget_exceeded",
+                store=not proactive_pet_turn,
             )
         degradation_reasons: list[str] = []
         try:
@@ -196,19 +220,24 @@ class NpcCognitionService:
                 type(error).__name__,
                 _safe_provider_error_code(error),
             )
-            return self._fallback_response(trusted_request, session, "provider_unavailable", store=True)
+            return self._fallback_response(
+                trusted_request,
+                session,
+                "provider_unavailable",
+                store=not proactive_pet_turn,
+            )
         _augment_told_world_learning(trusted_request, generated, profile.world_ontology)
         usage = {
             "input_tokens": _token_count(trusted_request.text)
             + sum(_token_count(str(item)) for item in trusted_request.retrieved_memories),
             "output_tokens": _token_count(generated.reply_text),
         }
-        if request.allow_conversation_storage:
+        if trusted_request.allow_conversation_storage:
             self._store_turn_pair(session, trusted_request, generated, usage)
         memory_ids: list[str] = []
         memory_writes: list[dict[str, Any]] = []
         evidence_aliases: dict[str, str] = {}
-        if request.allow_memory_personalization and generated.memory_candidates:
+        if trusted_request.allow_memory_personalization and generated.memory_candidates:
             try:
                 vectors = await self.embeddings.embed(
                     [candidate.content for candidate in generated.memory_candidates]
@@ -252,17 +281,25 @@ class NpcCognitionService:
             session_id=session.session_id,
             reply_text=generated.reply_text,
             emotion=generated.emotion,
-            animation_id=select_context_motion(
-                request.text,
-                trusted_request.retrieved_graph,
-                self.catalog.relation_action_catalog,
-                generated.animation_id,
+            animation_id=(
+                "talk"
+                if profile.entity_kind == "pet"
+                else select_context_motion(
+                    request.text,
+                    trusted_request.retrieved_graph,
+                    self.catalog.relation_action_catalog,
+                    generated.animation_id,
+                )
             ),
             memory_citations=[memory.memory_id for memory in memories],
             memory_write_ids=memory_ids,
             memory_writes=memory_writes,
             knowledge_updates=knowledge_updates,
-            proposed_intents=generated.proposed_intents,
+            # Pet output is expression-only: it cannot become gameplay authority.
+            # Preserve the established NPC response contract unchanged.
+            proposed_intents=(
+                [] if profile.entity_kind == "pet" else generated.proposed_intents
+            ),
             usage=usage,
             degraded=bool(degradation_reasons),
             degradation_reason=",".join(degradation_reasons),
@@ -323,7 +360,13 @@ class NpcCognitionService:
             request.player_profile_id, request.world_save_id, request.npc_persistent_id
         )
         visible = set(request.world_context.visible_entity_ids)
-        visible.add(f"npc_instance:{request.npc_persistent_id}")
+        try:
+            profile = self.catalog.get_profile(request.npc_definition_id)
+            visible.add(profile.instance_node_id(request.npc_persistent_id))
+        except ValueError:
+            # Keep direct retrieval callers compatible; handle_turn has already
+            # rejected unknown definitions before reaching this path.
+            visible.add(f"npc_instance:{request.npc_persistent_id}")
         if visible:
             traversed: list[GraphEdge] = []
             frontier = visible.copy()
@@ -525,11 +568,19 @@ class NpcCognitionService:
                 source="gameplay_event",
             )
         )
+        event_profile = self._profile_for_deployed_instance(
+            request.player_profile_id, request.world_save_id, npc
+        )
+        event_instance_node = (
+            event_profile.instance_node_id(npc)
+            if event_profile is not None
+            else f"npc_instance:{npc}"
+        )
         self.repository.add_graph_edge(
             GraphEdge(
                 id=str(uuid.uuid4()),
                 owner_npc_persistent_id=npc,
-                subject_node_id=f"npc_instance:{npc}",
+                subject_node_id=event_instance_node,
                 predicate="WITNESSED",
                 object_node_id=event_node,
                 confidence=1.0,
@@ -549,6 +600,17 @@ class NpcCognitionService:
                 entry_id,
                 memory.memory_id,
             )
+
+    def _profile_for_deployed_instance(
+        self, player: str, save: str, persistent_id: str
+    ) -> Any:
+        try:
+            definition_id = self.repository.resolve_npc_definition_id(
+                player, save, persistent_id
+            )
+            return self.catalog.get_profile(definition_id) if definition_id else None
+        except ValueError:
+            return None
 
     def _materialize_encounter_discovery(
         self,
@@ -670,6 +732,15 @@ class NpcCognitionService:
             }
             if not evidence or not evidence.issubset(memory_ids):
                 continue
+            if candidate.subject_node_id.startswith(
+                ("npc_definition:", "pet_definition:")
+            ):
+                # Authored identity, species, skills, equipment slots, and lifestyles
+                # are immutable catalog facts regardless of predicate choice.
+                self.metrics["graph_candidate_rejected"] = self.metrics.get(
+                    "graph_candidate_rejected", 0
+                ) + 1
+                continue
             edge = GraphEdge(
                     id=str(uuid.uuid4()),
                     owner_npc_persistent_id=request.npc_persistent_id,
@@ -685,7 +756,10 @@ class NpcCognitionService:
                     world_save_id=request.world_save_id,
                 )
             if candidate.predicate == "KNOWS_ABOUT":
-                if candidate.subject_node_id != f"npc_instance:{request.npc_persistent_id}":
+                profile = self.catalog.get_profile(request.npc_definition_id)
+                if candidate.subject_node_id != profile.instance_node_id(
+                    request.npc_persistent_id
+                ):
                     self.metrics["graph_candidate_rejected"] = self.metrics.get(
                         "graph_candidate_rejected", 0
                     ) + 1
@@ -869,6 +943,8 @@ def _augment_told_world_learning(
         (item.subject_node_id, item.predicate, item.object_node_id)
         for item in generated.graph_update_candidates
     }
+    entity_kind = str(request.npc_profile.get("entity_kind", request.entity_kind))
+    instance_node = f"{entity_kind}_instance:{request.npc_persistent_id}"
     for candidate in generated.memory_candidates:
         if candidate.visibility != "told":
             continue
@@ -878,7 +954,7 @@ def _augment_told_world_learning(
         evidence_id = candidate.source_id or request.request_id
         for node_id in mentions:
             signature = (
-                f"npc_instance:{request.npc_persistent_id}",
+                instance_node,
                 "KNOWS_ABOUT",
                 node_id,
             )

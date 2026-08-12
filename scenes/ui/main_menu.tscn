@@ -498,6 +498,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Allow Memory Personalization"
 
+[node name="PetProactiveDialogueCheck" type="CheckBox" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pet May Start Conversations"
+
 [node name="ColumnDivider" type="VSeparator" parent="SettingsPanel/Panel/SettingsColumns"]
 layout_mode = 2
 

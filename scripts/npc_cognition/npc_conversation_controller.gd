@@ -48,10 +48,20 @@ func ask(npc: NPCController, payload: Dictionary) -> bool:
 	return true
 
 func cancel() -> void:
-	if gateway != null: gateway.cancel()
+	var request_id := str(_pending_payload.get("request_id", ""))
+	if gateway != null and not request_id.is_empty():
+		gateway.cancel_request(request_id)
+	_pending_payload.clear()
 	_restore_npc_state()
 
 func _on_gateway_result(result: Dictionary) -> void:
+	# The gateway can be shared with other cognition adapters (for example pets).
+	# Only the adapter that owns this exact request may consume the signal.
+	if _pending_payload.is_empty():
+		return
+	var request_id := str(_pending_payload.get("request_id", ""))
+	if request_id.is_empty() or str(result.get("request_id", "")) != request_id:
+		return
 	_restore_npc_state()
 	if not bool(result.get("ok", false)):
 		_emit_fallback(str(result.get("error_code", "backend_unavailable")))

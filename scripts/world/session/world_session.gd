@@ -21,6 +21,7 @@ var _restore_failed_state: bool = false
 var _session_context: WorldSessionContext
 var _pending_player_transform: Dictionary = {}
 var _skip_saved_player_transform: bool = false
+var pet_conversation_service: Node
 
 @onready var persistent_root: Node3D = $PersistentRoot
 @onready var player_root: Node3D = $PersistentRoot/PlayerRoot
@@ -80,6 +81,8 @@ func _ready() -> void:
 		player.current_region_id = current_region_id
 		player.refresh_contextual_capabilities()
 	region_service.region_changed.connect(_on_region_changed)
+	if not WorldTimeService.hour_changed.is_connected(_on_world_hour_changed):
+		WorldTimeService.hour_changed.connect(_on_world_hour_changed)
 	if EventBus.has_signal("request_world_save"):
 		EventBus.request_world_save.connect(save_world_state)
 
@@ -352,6 +355,21 @@ func open_commerce(
 	return true
 
 
+func open_pet_companion(pet: Node = null) -> bool:
+	var target: Node = pet if pet != null else companion_root.get_node_or_null("Pet")
+	var menu := get_node_or_null("WorldUI/PetCompanionMenu")
+	if target == null or menu == null:
+		return false
+	menu.call("open_menu", target)
+	return bool(menu.call("is_open"))
+
+
+func ask_pet(pet: Node, text: String) -> bool:
+	return bool(pet_conversation_service.call(
+		"request_turn", pet, text, &"player_initiated"
+	)) if pet_conversation_service != null else false
+
+
 func resolve_restored_region_id(region_id: StringName) -> StringName:
 	if (
 		region_id == &"base:player_home"
@@ -411,6 +429,14 @@ func get_session_context() -> WorldSessionContext:
 
 
 func _setup_services() -> void:
+	if pet_conversation_service == null:
+		var script: GDScript = load(
+			"res://scripts/pet_cognition/pet_conversation_service.gd"
+		) as GDScript
+		pet_conversation_service = script.new() if script != null else null
+	if pet_conversation_service != null and pet_conversation_service.get_parent() == null:
+		pet_conversation_service.name = "PetConversationService"
+		world_services.add_child(pet_conversation_service)
 	actor_factory.setup(entity_repository)
 	region_service.setup(self, entity_repository, actor_factory, interaction_index)
 	dungeon_progression_service.setup(self, actor_factory)
@@ -427,6 +453,16 @@ func _setup_services() -> void:
 		QuestManager, world_flags,
 	)
 	cognition_service.setup(_session_context, event_bus, entity_repository)
+	if pet_conversation_service != null:
+		pet_conversation_service.call(
+			"setup",
+			cognition_service.gateway,
+			cognition_service.save_provider.cache,
+			cognition_service.save_provider.backend_player_profile_id,
+			cognition_service.save_provider.world_save_id,
+		)
+		if not pet_conversation_service.is_connected("reply_ready", _on_pet_reply_ready):
+			pet_conversation_service.connect("reply_ready", _on_pet_reply_ready)
 	if not save_coordinator.register_save_provider(cognition_service.save_provider):
 		push_error("WorldSession: failed to register the shared cognition save provider")
 	dialogue_coordinator.setup(_session_context, cognition_service)
@@ -476,9 +512,19 @@ func _spawn_companions() -> void:
 	var pet := companion_root.get_node_or_null("Pet") as PetController
 	if pet != null and player != null:
 		pet.setup(player)
+		if not pet.state_changed.is_connected(_on_pet_state_changed):
+			pet.state_changed.connect(_on_pet_state_changed)
+		if not pet.is_connected("autonomous_dialogue_requested", _on_pet_autonomous_dialogue_requested):
+			pet.connect("autonomous_dialogue_requested",
+				_on_pet_autonomous_dialogue_requested.bind(pet)
+			)
 		var pid := pet.get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
 		if pid != null:
 			entity_repository.register_entity(pet)
+		var interactable := pet.get_node_or_null("PetInteractable") as Interactable
+		if interactable != null:
+			interaction_index.register(interactable)
+		pet.update_region_presence(current_region_id if current_region_id != &"" else initial_region_id)
 	var mount := companion_root.get_node_or_null("Mount") as MountController
 	if mount != null:
 		var mid := mount.get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
@@ -500,6 +546,9 @@ func _grant_starter_inventory() -> void:
 		push_error("WorldSession: could not grant utility essentials")
 	if not StarterKitCalculator.grant_equipment_foundation(player.inventory):
 		push_error("WorldSession: could not grant equipment foundation")
+	for pet_item_id in [&"mossfox_collar", &"mossfox_harness", &"quiet_bell_charm"]:
+		if player.inventory.add_item(pet_item_id, 1) != 1:
+			push_error("WorldSession: could not grant starter pet equipment %s" % pet_item_id)
 
 
 func _on_player_progression_changed(_current: int, _to_next: int, _level: int) -> void:
@@ -508,10 +557,10 @@ func _on_player_progression_changed(_current: int, _to_next: int, _level: int) -
 
 
 func _serialize_pet() -> Dictionary:
-	var pet := companion_root.get_node_or_null("Pet") as PetController
+	var pet: Node = companion_root.get_node_or_null("Pet")
 	if pet == null:
 		return {}
-	return pet.to_dict()
+	return pet.call("to_dict") as Dictionary
 
 
 func _serialize_mount() -> Dictionary:
@@ -526,6 +575,7 @@ func _restore_pet(data: Dictionary) -> void:
 	if pet != null and not data.is_empty():
 		pet.from_dict(data)
 		pet.setup(player)
+		pet.update_region_presence(region_service.get_current_region_id())
 
 
 func _restore_mount(data: Dictionary) -> void:
@@ -543,7 +593,7 @@ func _on_region_changed(_previous: StringName, current: StringName) -> void:
 	EventBus.region_changed.emit(current)
 	var pet := companion_root.get_node_or_null("Pet") as PetController
 	if pet != null:
-		pet.teleport_to_owner()
+		pet.update_region_presence(current)
 	var ev := GameplayEvent.make(
 		GameplayEventTypes.REGION_ENTERED,
 		&"base:player/main",
@@ -552,6 +602,45 @@ func _on_region_changed(_previous: StringName, current: StringName) -> void:
 		current,
 	)
 	event_bus.emit_event(ev)
+
+
+func _on_world_hour_changed(_day: int, _hour: int) -> void:
+	var pet := companion_root.get_node_or_null("Pet") as PetController
+	if pet != null:
+		pet.sync_game_clock(not pet.is_present_in_current_region())
+
+
+func _on_pet_state_changed(_reason: StringName) -> void:
+	if save_coordinator != null:
+		save_coordinator.mark_dirty(&"companions")
+
+
+func _on_pet_reply_ready(reply: Dictionary) -> void:
+	var menu := get_node_or_null("WorldUI/PetCompanionMenu")
+	if menu != null and bool(menu.call("is_open")):
+		menu.call("show_reply", reply)
+		return
+	var pet: Node = companion_root.get_node_or_null("Pet")
+	if pet != null:
+		pet.call("set_dialogue_motion", false)
+	EventBus.ai_dialogue_reply.emit(
+		str(pet.call("get_display_name")) if pet != null else "Companion",
+		str(reply.get("reply_text", "Your companion stays near.")),
+	)
+
+
+func _on_pet_autonomous_dialogue_requested(
+	context: Dictionary,
+	pet: Node,
+) -> void:
+	if not bool(SaveService.settings.get("pet_proactive_dialogue_enabled", true)):
+		return
+	if pet_conversation_service == null or bool(pet_conversation_service.call("is_busy")):
+		return
+	# Only a neutral visible event crosses the client boundary. The server-owned
+	# profile and entity_proactive provenance define how the pet may express it.
+	var observation := "The companion is near its owner during a quiet moment."
+	pet_conversation_service.call("request_turn", pet, observation, &"entity_proactive")
 
 
 func _on_player_items_changed() -> void:

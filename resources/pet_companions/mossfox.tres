@@ -1,0 +1,161 @@
+[gd_resource type="Resource" script_class="PetCompanionDefinition" load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_companion_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_species_definition.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_personality_profile.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_attribute_profile.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_lifestyle_definition.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_skill_definition.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_equipment_slot_definition.gd" id="7"]
+
+[sub_resource type="Resource" id="Species"]
+script = ExtResource("2")
+id = &"mossfox"
+display_name = "Moss Fox"
+description = "A nimble fox-like companion native to Greywake's fields and hedgerows."
+species_tags = Array[StringName]([&"fox", &"small_companion", &"quadruped"])
+habitat_tags = Array[StringName]([&"farmland", &"wilderness", &"home"])
+preferred_food_tags = Array[StringName]([&"meat", &"grain", &"fresh_food"])
+base_max_health = 46.0
+base_max_stamina = 68.0
+natural_defense = 1.5
+health_gain_per_level = 4.0
+stamina_gain_per_level = 3.0
+hunger_per_game_hour = 0.8
+rest_stamina_per_game_hour = 9.0
+
+[sub_resource type="Resource" id="Personality"]
+script = ExtResource("3")
+id = &"curious_loyal"
+display_name = "Curious and Loyal"
+courage = 0.62
+curiosity = 0.9
+sociability = 0.76
+independence = 0.42
+loyalty = 0.9
+playfulness = 0.82
+aggression = 0.42
+patience = 0.58
+initial_mood = 76.0
+hunger_discomfort_threshold = 65.0
+
+[sub_resource type="Resource" id="Attributes"]
+script = ExtResource("4")
+vitality = 8
+endurance = 9
+strength = 6
+agility = 12
+perception = 12
+focus = 8
+social = 10
+
+[sub_resource type="Resource" id="HomeLifestyle"]
+script = ExtResource("5")
+id = &"home_companion"
+display_name = "Home Companion"
+description = "Rest, play, and keep watch near the player's home."
+preferred_location_tags = Array[StringName]([&"home", &"safe"])
+permitted_program_action_ids = Array[StringName]([&"rest", &"guard", &"socialize"])
+practiced_life_skill_ids = Array[StringName]([&"companion_bonding"])
+rest_multiplier = 1.2
+hunger_multiplier = 0.85
+
+[sub_resource type="Resource" id="ForagerLifestyle"]
+script = ExtResource("5")
+id = &"forager"
+display_name = "Trail Forager"
+description = "Search safe nearby ground and practice scent work."
+preferred_location_tags = Array[StringName]([&"farmland", &"wilderness"])
+permitted_program_action_ids = Array[StringName]([&"forage", &"explore", &"return_home"])
+practiced_life_skill_ids = Array[StringName]([&"scent_foraging"])
+activity_multiplier = 1.2
+hunger_multiplier = 1.1
+
+[sub_resource type="Resource" id="GuardianLifestyle"]
+script = ExtResource("5")
+id = &"guardian"
+display_name = "House Guardian"
+description = "Stay alert near an assigned safe place."
+preferred_location_tags = Array[StringName]([&"home", &"threshold"])
+permitted_program_action_ids = Array[StringName]([&"guard", &"train", &"rest"])
+practiced_life_skill_ids = Array[StringName]([&"watchful_guard"])
+permits_independent_combat = true
+
+[sub_resource type="Resource" id="ScentSkill"]
+script = ExtResource("6")
+id = &"scent_foraging"
+display_name = "Scent Foraging"
+description = "Recognize safe nearby forage by scent."
+program_action_id = &"pet_forage"
+governing_attribute = &"perception"
+stamina_cost = 3.0
+cooldown_seconds = 8.0
+proficiency_gain_per_use = 0.8
+tags = Array[StringName]([&"life", &"foraging", &"scent"])
+
+[sub_resource type="Resource" id="BondSkill"]
+script = ExtResource("6")
+id = &"companion_bonding"
+display_name = "Companion Bonding"
+description = "Read the owner's routine through calm shared time."
+program_action_id = &"pet_socialize"
+governing_attribute = &"social"
+proficiency_gain_per_use = 0.6
+tags = Array[StringName]([&"life", &"social"])
+
+[sub_resource type="Resource" id="PounceSkill"]
+script = ExtResource("6")
+id = &"moon_pounce"
+display_name = "Moon Pounce"
+description = "A quick protective pounce against a program-confirmed hostile."
+kind = 1
+program_action_id = &"pet_melee_pounce"
+governing_attribute = &"agility"
+stamina_cost = 8.0
+cooldown_seconds = 0.8
+base_power = 9.0
+range = 2.0
+proficiency_gain_per_use = 1.0
+tags = Array[StringName]([&"attack", &"melee", &"pounce"])
+
+[sub_resource type="Resource" id="CollarSlot"]
+script = ExtResource("7")
+id = &"collar"
+display_name = "Collar"
+accepted_item_tags = Array[StringName]([&"pet_collar"])
+allowed_species_tags = Array[StringName]([&"fox", &"small_companion"])
+maximum_weight = 2.0
+
+[sub_resource type="Resource" id="BodySlot"]
+script = ExtResource("7")
+id = &"body"
+display_name = "Body Gear"
+accepted_item_tags = Array[StringName]([&"pet_armor"])
+allowed_species_tags = Array[StringName]([&"small_companion"])
+maximum_weight = 4.0
+
+[sub_resource type="Resource" id="CharmSlot"]
+script = ExtResource("7")
+id = &"charm"
+display_name = "Charm"
+accepted_item_tags = Array[StringName]([&"pet_charm"])
+maximum_weight = 1.0
+
+[resource]
+script = ExtResource("1")
+id = &"mossfox"
+display_name = "Pip"
+biography = "A bright-eyed moss fox adopted near Stillpoint's farmland."
+species = SubResource("Species")
+personality = SubResource("Personality")
+base_attributes = SubResource("Attributes")
+lifestyles = Array[PetLifestyleDefinition]([SubResource("HomeLifestyle"), SubResource("ForagerLifestyle"), SubResource("GuardianLifestyle")])
+default_lifestyle_id = &"home_companion"
+life_skills = Array[PetSkillDefinition]([SubResource("ScentSkill"), SubResource("BondSkill")])
+attack_skills = Array[PetSkillDefinition]([SubResource("PounceSkill")])
+equipment_slots = Array[PetEquipmentSlotDefinition]([SubResource("CollarSlot"), SubResource("BodySlot"), SubResource("CharmSlot")])
+server_dialogue_profile_id = &"pet:mossfox"
+speech_style_tags = Array[StringName]([&"short", &"warm", &"sensory", &"playful"])
+llm_advisory_intent_ids = Array[StringName]([&"seek_affection", &"comment_on_world"])
+default_stay_region_id = &"base:player_home"
+default_stay_location_id = &"pet_rest_area"

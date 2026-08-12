@@ -95,6 +95,21 @@ class PlayerOntologySnapshot(BaseModel):
     )
 
 
+class PetRuntimeCondition(BaseModel):
+    """Program-observed condition exposed for expression, never mutation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    level: int = Field(default=1, ge=1, le=100)
+    health_ratio: float = Field(default=1.0, ge=0.0, le=1.0)
+    stamina_ratio: float = Field(default=1.0, ge=0.0, le=1.0)
+    mood: float = Field(default=70.0, ge=0.0, le=100.0)
+    hunger: float = Field(default=0.0, ge=0.0, le=100.0)
+    affection: float = Field(default=0.0, ge=0.0, le=100.0)
+    following: bool = True
+    lifestyle_id: OntologyId
+
+
 class WorldContext(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -103,6 +118,21 @@ class WorldContext(BaseModel):
     relationship: dict[str, Any] = Field(default_factory=dict)
     quest_states: list[dict[str, Any]] = Field(default_factory=list)
     visible_entity_ids: list[str] = Field(default_factory=list)
+    pet_runtime: PetRuntimeCondition | None = None
+
+
+class DialogueContext(BaseModel):
+    """Bounded conversational provenance supplied by the game runtime.
+
+    This describes why a line is being requested; it never grants the model gameplay
+    authority.  In particular, ``proactive_dialogue_enabled`` is an observed runtime
+    preference, not permission for the provider to schedule another turn.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    origin: Literal["player_initiated", "entity_proactive"] = "player_initiated"
+    proactive_dialogue_enabled: bool = False
 
 
 class MemoryCandidate(BaseModel):
@@ -152,6 +182,8 @@ class NpcGenerationRequest(BaseModel):
     session_id: str
     text: str = Field(min_length=1, max_length=4000)
     locale: str = "en"
+    entity_kind: Literal["npc", "pet"] = "npc"
+    dialogue_context: DialogueContext = Field(default_factory=DialogueContext)
     world_context: WorldContext = Field(default_factory=WorldContext)
     player_ontology: PlayerOntologySnapshot | None = None
     npc_profile: dict[str, Any] = Field(default_factory=dict)

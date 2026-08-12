@@ -61,7 +61,7 @@ jobs:
       - name: Run tests with log validation
         run: |
           GODOT=godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
-          python tools/python/run_godot_tests.py --godot "$GODOT" --expected-tests 326 --max-objectdb-leaks 0 --max-resource-leaks 0
+          python tools/python/run_godot_tests.py --godot "$GODOT" --expected-tests 337 --max-objectdb-leaks 0 --max-resource-leaks 0
       - name: Upload Godot test log
         if: always()
         uses: actions/upload-artifact@v4
@@ -351,8 +351,7 @@ jobs:
           chmod +x godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
       - name: Import project
         run: godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64 --headless --path . --editor --quit
-      - name: Export and validate NPC catalog
+      - name: Validate generated cognition catalogs are current
         run: |
           GODOT=godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64
-          "$GODOT" --headless --path . --script res://tools/godot/export_npc_cognition_catalog.gd
           "$GODOT" --headless --path . --script res://tools/godot/export_npc_cognition_catalog.gd -- --check

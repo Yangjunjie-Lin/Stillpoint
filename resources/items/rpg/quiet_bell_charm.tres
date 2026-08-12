@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"quiet_bell_charm"
+display_name = "Quiet Bell Charm"
+item_type = 7
+max_stack = 1
+description = "A companion charm whose muted tone settles nervous animals."
+buy_price = 80
+sell_price = 32
+rarity = &"uncommon"
+equipment_weight = 0.2
+energy_regen_bonus = 1.0
+pet_tags = Array[StringName]([&"pet_charm", &"small_companion"])
+visual_archetype = &"pet_charm"
+visual_primary_color = Color(0.83, 0.66, 0.3, 1)
+visual_secondary_color = Color(0.37, 0.71, 0.67, 1)

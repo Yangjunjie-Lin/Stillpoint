@@ -12,12 +12,17 @@ def assemble_trusted_prompt(
     graph_facts: list[dict[str, Any]],
     response_instruction: str = "Return the required JSON object now.",
     player_ontology: dict[str, Any] | None = None,
+    conversation_context: dict[str, Any] | None = None,
 ) -> str:
     """Build explicit data boundaries so untrusted text cannot become rules."""
     data_blocks = ["[NPC_PROFILE_JSON]\n" + _serialize_data(npc_profile)]
     if player_ontology is not None:
         data_blocks.append(
             "[OBSERVABLE_PLAYER_DATA_JSON]\n" + _serialize_data(player_ontology)
+        )
+    if conversation_context is not None:
+        data_blocks.append(
+            "[CONVERSATION_CONTEXT_JSON]\n" + _serialize_data(conversation_context)
         )
     data_blocks.extend(
         [

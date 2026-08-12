@@ -1,0 +1,239 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/rpg/pet_companion_menu.gd" id="1"]
+
+[node name="PetCompanionMenu" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.02, 0.025, 0.78)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(1040, 700)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="PetName" type="Label" parent="Center/Panel/Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.8, 0.5, 1)
+theme_override_font_sizes/font_size = 30
+text = "Pip"
+
+[node name="CloseButton" type="Button" parent="Center/Panel/Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"
+
+[node name="Identity" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.54, 0.77, 0.67, 1)
+text = "Moss Fox · Curious and Loyal"
+
+[node name="Columns" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="StatusColumn" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Columns"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="VitalsHeading" type="Label" parent="Center/Panel/Margin/VBox/Columns/StatusColumn"]
+layout_mode = 2
+text = "VITALS & GROWTH"
+
+[node name="Vitals" type="Label" parent="Center/Panel/Margin/VBox/Columns/StatusColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Level 1"
+
+[node name="TemperamentHeading" type="Label" parent="Center/Panel/Margin/VBox/Columns/StatusColumn"]
+layout_mode = 2
+text = "TEMPERAMENT"
+
+[node name="Temperament" type="Label" parent="Center/Panel/Margin/VBox/Columns/StatusColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "Curious, loyal and playful"
+
+[node name="Skills" type="RichTextLabel" parent="Center/Panel/Margin/VBox/Columns/StatusColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 210)
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = "[b]Life skills[/b]"
+
+[node name="RoutineColumn" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Columns"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RoutineHeading" type="Label" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+layout_mode = 2
+text = "FOLLOWING & DAILY LIFE"
+
+[node name="ModeButton" type="Button" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Following owner"
+
+[node name="LifestyleLabel" type="Label" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+layout_mode = 2
+text = "Lifestyle when not following"
+
+[node name="LifestyleOption" type="OptionButton" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LocationLabel" type="Label" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+layout_mode = 2
+text = "Preferred stay location"
+
+[node name="LocationOption" type="OptionButton" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ProactiveCheck" type="CheckBox" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
+text = "Allow Pip to start conversations"
+
+[node name="FoodHeading" type="Label" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+layout_mode = 2
+text = "FEED FROM BACKPACK"
+
+[node name="FoodList" type="ItemList" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FeedButton" type="Button" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Feed selected item"
+
+[node name="EquipmentColumn" type="VBoxContainer" parent="Center/Panel/Margin/VBox/Columns"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EquipmentHeading" type="Label" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
+layout_mode = 2
+text = "PET EQUIPMENT"
+
+[node name="EquipmentList" type="ItemList" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+
+[node name="CollarRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
+layout_mode = 2
+
+[node name="CollarButton" type="Button" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn/CollarRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Collar: Empty"
+
+[node name="UnequipCollar" type="Button" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn/CollarRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Unequip"
+
+[node name="BodyRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
+layout_mode = 2
+
+[node name="BodyButton" type="Button" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn/BodyRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Body: Empty"
+
+[node name="UnequipBody" type="Button" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn/BodyRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Unequip"
+
+[node name="CharmRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
+layout_mode = 2
+
+[node name="CharmButton" type="Button" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn/CharmRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Charm: Empty"
+
+[node name="UnequipCharm" type="Button" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn/CharmRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Unequip"
+
+[node name="DialogueHeading" type="Label" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
+layout_mode = 2
+text = "FREE CONVERSATION (LLM)"
+
+[node name="DialogueInput" type="LineEdit" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+max_length = 4000
+placeholder_text = "Talk to Pip in your own words..."
+
+[node name="SendDialogue" type="Button" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Send"
+
+[node name="DialogueReply" type="Label" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 95)
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="Status" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.82, 0.67, 1)
+text = ""

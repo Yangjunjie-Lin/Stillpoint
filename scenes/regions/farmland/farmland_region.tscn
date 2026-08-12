@@ -41,6 +41,9 @@ shape = SubResource("BoxShape3D_floor")
 [node name="spawn" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(0, 1.2, 0)
 
+[node name="farmyard" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(-4, 1.2, 3)
+
 [node name="from_town" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(-15, 1.2, 0)
 

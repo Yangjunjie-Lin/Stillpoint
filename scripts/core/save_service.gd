@@ -18,6 +18,7 @@ var settings: Dictionary = {
 	"ai_dialogue_enabled": false,
 	"allow_conversation_storage": false,
 	"allow_memory_personalization": false,
+	"pet_proactive_dialogue_enabled": true,
 	"client_install_id": "",
 	"player_profile_id": "",
 }

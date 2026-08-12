@@ -122,6 +122,9 @@ shape = SubResource("WallSideShape")
 [node name="spawn" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(0, 1.2, 3.8)
 
+[node name="pet_rest_area" type="Marker3D" parent="SpawnPoints"]
+position = Vector3(3.8, 1.2, -2.4)
+
 [node name="EntitySpawns" type="Node3D" parent="."]
 
 [node name="StaticEntities" type="Node3D" parent="."]
