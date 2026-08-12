@@ -8,7 +8,7 @@
 
 [sub_resource type="Resource" id="TalkAster"]
 script = ExtResource("2")
-event_type = &"npc_talked"
+event_type = &"npc_autonomous_dialogue_completed"
 target_definition_id = &"dungeon_warden"
 region_id = &"base:wilderness"
 

@@ -2,6 +2,7 @@ class_name GameplayEventTypes
 extends RefCounted
 
 const NPC_TALKED := &"npc_talked"
+const NPC_AUTONOMOUS_DIALOGUE_COMPLETED := &"npc_autonomous_dialogue_completed"
 const NPC_ATTACKED := &"npc_attacked"
 const ITEM_GIVEN := &"item_given"
 const ITEM_RECEIVED := &"item_received"
@@ -25,3 +26,6 @@ const PET_BOND_CHANGED := &"pet_bond_changed"
 const MOUNT_UNLOCKED := &"mount_unlocked"
 const LOCATION_EXPLORED := &"location_explored"
 const ENCOUNTER_DISCOVERED := &"encounter_discovered"
+
+const ORIGIN_AUTONOMOUS_DIALOGUE := &"autonomous_dialogue"
+const ORIGIN_PLAYER_WORLD_ACTION := &"player_world_action"

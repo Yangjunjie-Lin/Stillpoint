@@ -84,7 +84,7 @@
         "node_id": "encounter:aster_quiet_compass",
         "repeat_policy": "once_per_save",
         "reward_effect_count": 1,
-        "trigger_kind": "gameplay_event",
+        "trigger_kind": "autonomous_dialogue",
         "visibility_policy": "witnessed"
       },
       {
@@ -93,7 +93,7 @@
         "node_id": "encounter:fallen_star_lesson",
         "repeat_policy": "once_per_save",
         "reward_effect_count": 1,
-        "trigger_kind": "exploration_zone",
+        "trigger_kind": "player_world_action",
         "visibility_policy": "player_private"
       },
       {
@@ -102,7 +102,7 @@
         "node_id": "encounter:moonleaf_hush",
         "repeat_policy": "once_per_save",
         "reward_effect_count": 1,
-        "trigger_kind": "exploration_zone",
+        "trigger_kind": "player_world_action",
         "visibility_policy": "player_private"
       }
     ],

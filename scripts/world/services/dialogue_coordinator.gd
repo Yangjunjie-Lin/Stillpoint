@@ -208,11 +208,45 @@ func _on_free_form_reply(reply: Dictionary) -> void:
 	var speaker := _display_name(_free_form_npc)
 	var responding_npc := _free_form_npc
 	EventBus.ai_dialogue_reply.emit(speaker, str(reply.get("reply_text", "Let's speak later.")))
+	if (
+		bool(reply.get("ok", false))
+		and not bool(reply.get("degraded", false))
+		and responding_npc != null
+		and is_instance_valid(responding_npc)
+	):
+		_emit_autonomous_dialogue_completed(responding_npc, reply)
 	_restore_free_form_state()
 	if responding_npc != null and is_instance_valid(responding_npc):
 		responding_npc.play_knowledge_action(
 			StringName(str(reply.get("animation_id", "talk")))
 		)
+
+
+func _emit_autonomous_dialogue_completed(npc: NPCController, reply: Dictionary) -> void:
+	if _session_context == null or _session_context.world_session == null:
+		return
+	var session := _session_context.world_session as WorldSession
+	if session == null or session.event_bus == null:
+		return
+	var persistent_id := NPCIdentityResolver.resolve_persistent_id(npc)
+	if persistent_id == &"":
+		return
+	# This fact deliberately excludes the prompt and reply. The conversation store
+	# owns private text; encounter evaluation needs only committed provenance.
+	session.event_bus.emit_event(GameplayEvent.make(
+		GameplayEventTypes.NPC_AUTONOMOUS_DIALOGUE_COMPLETED,
+		&"base:player/main",
+		persistent_id,
+		npc.character_id,
+		npc.region_id,
+		1.0,
+		{
+			"player_initiated": true,
+			"action_committed": true,
+			"encounter_trigger_origin": String(GameplayEventTypes.ORIGIN_AUTONOMOUS_DIALOGUE),
+			"request_id": str(reply.get("request_id", "")).left(160),
+		},
+	))
 
 
 func _restore_free_form_state() -> void:

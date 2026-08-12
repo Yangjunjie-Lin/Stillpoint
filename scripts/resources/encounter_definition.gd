@@ -3,8 +3,8 @@ extends Resource
 ## Server-authored hidden encounter. Trigger rules remain outside the public ontology.
 
 enum TriggerKind {
-	GAMEPLAY_EVENT,
-	EXPLORATION_ZONE,
+	AUTONOMOUS_DIALOGUE,
+	PLAYER_WORLD_ACTION,
 }
 
 enum RepeatPolicy {
@@ -20,7 +20,7 @@ enum VisibilityPolicy {
 @export var id: StringName = &""
 @export var display_name: String = "Encounter"
 @export_multiline var discovery_text: String = "Something unusual has happened."
-@export var trigger_kind: TriggerKind = TriggerKind.GAMEPLAY_EVENT
+@export var trigger_kind: TriggerKind = TriggerKind.AUTONOMOUS_DIALOGUE
 @export var repeat_policy: RepeatPolicy = RepeatPolicy.ONCE_PER_SAVE
 @export var visibility_policy: VisibilityPolicy = VisibilityPolicy.WITNESSED
 @export var conditions: Array[WorldCondition] = []

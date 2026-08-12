@@ -4,12 +4,13 @@ const ASTER_ID := &"base:wilderness/npc/dungeon_warden_0001"
 
 
 func run() -> bool:
+	SaveService.settings["ai_dialogue_enabled"] = true
 	var tree := Engine.get_main_loop() as SceneTree
 	var world := WorldTestHelper.boot_world(tree)
 	await WorldTestHelper.await_frames(tree, 3)
 	var ok := ResourceRegistry.get_all_encounters().size() >= 3
-	# Aster's authored dialogue fact drives the encounter service. Test uses a
-	# guaranteed test clone so the production hidden roll stays genuinely hidden.
+	# A completed autonomous turn drives the encounter service. The guaranteed
+	# test clone keeps the production hidden roll genuinely hidden.
 	var authored := ResourceRegistry.get_encounter(&"aster_quiet_compass")
 	var clone := EncounterDefinition.new()
 	clone.id = &"test_aster_dialogue_encounter"
@@ -28,7 +29,7 @@ func run() -> bool:
 	world.transition_to(&"base:wilderness")
 	await WorldTestHelper.await_frames(tree, 4)
 	var aster := world.entity_repository.get_loaded_entity(ASTER_ID) as NPCController
-	var talk_event := GameplayEvent.make(
+	var authored_talk_event := GameplayEvent.make(
 		GameplayEventTypes.NPC_TALKED,
 		&"base:player/main",
 		ASTER_ID,
@@ -36,7 +37,39 @@ func run() -> bool:
 		&"base:wilderness",
 	)
 	var reward_before := world.player.inventory.count_item(&"mossjaw_manual")
-	world.event_bus.emit_event(talk_event)
+	# Opening/authored dialogue is not an autonomous trigger, even if forged with
+	# the committed markers reserved for runtime player actions.
+	authored_talk_event.payload = {
+		"player_initiated": true,
+		"action_committed": true,
+		"encounter_trigger_origin": String(GameplayEventTypes.ORIGIN_AUTONOMOUS_DIALOGUE),
+	}
+	world.event_bus.emit_event(authored_talk_event)
+	ok = ok and world.hidden_encounter_service.get_state(clone.id).is_empty()
+	var fake := FakeNPCDialogueGateway.new()
+	fake.degraded_reply = true
+	world.cognition_service.add_child(fake)
+	world.cognition_service.conversation_controller.setup(
+		fake, world.cognition_service.save_provider.cache
+	)
+	var autonomous_events: Array[GameplayEvent] = []
+	var capture_autonomous := func(event: GameplayEvent) -> void:
+		if event.event_type == GameplayEventTypes.NPC_AUTONOMOUS_DIALOGUE_COMPLETED:
+			autonomous_events.append(event)
+	world.event_bus.subscribe(capture_autonomous)
+	ok = ok and world.start_dialogue(aster)
+	ok = ok and world.ask_active_npc("What have you learned while guarding this road?")
+	await tree.process_frame
+	# A provider fallback/degraded result is not a completed autonomous exchange.
+	ok = ok and world.hidden_encounter_service.get_state(clone.id).is_empty()
+	fake.degraded_reply = false
+	ok = ok and world.start_dialogue(aster)
+	ok = ok and world.ask_active_npc("What changes when someone waits and listens?")
+	await tree.process_frame
+	ok = ok and autonomous_events.size() == 1
+	if autonomous_events.size() == 1:
+		var autonomous_payload := autonomous_events[0].payload
+		ok = ok and not autonomous_payload.has("text") and not autonomous_payload.has("reply_text")
 	var talk_state := world.hidden_encounter_service.get_state(clone.id)
 	ok = ok and aster != null and int(talk_state.get("completion_count", 0)) == 1
 	ok = ok and world.player.inventory.count_item(&"mossjaw_manual") == reward_before + 1
@@ -54,7 +87,7 @@ func run() -> bool:
 	exploration.id = &"test_private_exploration_encounter"
 	exploration.display_name = "Private Exploration"
 	exploration.discovery_text = "A private discovery."
-	exploration.trigger_kind = EncounterDefinition.TriggerKind.EXPLORATION_ZONE
+	exploration.trigger_kind = EncounterDefinition.TriggerKind.PLAYER_WORLD_ACTION
 	exploration.visibility_policy = EncounterDefinition.VisibilityPolicy.PLAYER_PRIVATE
 	exploration.trigger_chance = 1.0
 	var private_reward := AddItemEffect.new()
@@ -69,6 +102,12 @@ func run() -> bool:
 		&"encounter_zone:test_private_exploration_encounter",
 		exploration.id,
 		&"base:wilderness",
+		1.0,
+		{
+			"player_initiated": true,
+			"action_committed": true,
+			"encounter_trigger_origin": String(GameplayEventTypes.ORIGIN_PLAYER_WORLD_ACTION),
+		},
 	)
 	var before_events := world.cognition_service.save_provider.cache.pending_event_outbox.size()
 	var explored := world.hidden_encounter_service.attempt(exploration.id, event)
@@ -76,6 +115,7 @@ func run() -> bool:
 	ok = ok and world.player.inventory.count_item(&"greywake_moonleaf") == 1
 	ok = ok and world.cognition_service.save_provider.cache.pending_event_outbox.size() == before_events
 	ok = ok and world.save_world_state()
+	world.event_bus.unsubscribe(capture_autonomous)
 	world.free()
 
 	GameManager.resume_requested = true

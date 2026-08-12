@@ -3,6 +3,7 @@ extends NPCDialogueGateway
 
 var auto_reply: bool = true
 var request_count: int = 0
+var degraded_reply: bool = false
 
 func request_turn(payload: Dictionary) -> Error:
 	request_count += 1
@@ -20,6 +21,7 @@ func _reply(payload: Dictionary) -> void:
 		"reply_text": "I will remember.",
 		"emotion": "neutral",
 		"animation_id": "talk",
+		"degraded": degraded_reply,
 		"proposed_intents": [],
 		"usage": {"input_tokens": 1, "output_tokens": 1},
 		"memory_writes": [{

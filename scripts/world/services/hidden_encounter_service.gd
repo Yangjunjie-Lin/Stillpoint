@@ -36,6 +36,11 @@ func attempt(encounter_id: StringName, event: GameplayEvent = null) -> Dictionar
 		return _result(encounter_id, &"invalid")
 	if _evaluating:
 		return _result(encounter_id, &"busy")
+	# Eligibility is evaluated only after a committed player-authored dialogue turn
+	# or world action. Authored dialogue presentation and passive system facts must
+	# never become hidden-encounter reroll opportunities.
+	if not _matches_committed_player_trigger(definition, event):
+		return _result(encounter_id, &"invalid_trigger")
 	var state := _state_for(encounter_id)
 	if not _repeat_available(definition, state):
 		return _result(encounter_id, &"already_completed")
@@ -153,9 +158,40 @@ func restore_save_data(data: Dictionary) -> bool:
 func _on_gameplay_event(event: GameplayEvent) -> void:
 	if event == null or event.event_type == GameplayEventTypes.ENCOUNTER_DISCOVERED:
 		return
+	if not _is_committed_player_event(event):
+		return
 	for definition in ResourceRegistry.get_all_encounters():
-		if definition.trigger_kind == EncounterDefinition.TriggerKind.GAMEPLAY_EVENT:
-			attempt(definition.id, event)
+		attempt(definition.id, event)
+
+
+func _matches_committed_player_trigger(
+	definition: EncounterDefinition,
+	event: GameplayEvent,
+) -> bool:
+	if event == null or not _is_committed_player_event(event):
+		return false
+	var origin := StringName(str(event.payload.get("encounter_trigger_origin", "")))
+	match definition.trigger_kind:
+		EncounterDefinition.TriggerKind.AUTONOMOUS_DIALOGUE:
+			return (
+				event.event_type == GameplayEventTypes.NPC_AUTONOMOUS_DIALOGUE_COMPLETED
+				and origin == GameplayEventTypes.ORIGIN_AUTONOMOUS_DIALOGUE
+			)
+		EncounterDefinition.TriggerKind.PLAYER_WORLD_ACTION:
+			return (
+				event.event_type != GameplayEventTypes.NPC_AUTONOMOUS_DIALOGUE_COMPLETED
+				and origin == GameplayEventTypes.ORIGIN_PLAYER_WORLD_ACTION
+			)
+	return false
+
+
+func _is_committed_player_event(event: GameplayEvent) -> bool:
+	return (
+		event != null
+		and event.source_entity_id == &"base:player/main"
+		and bool(event.payload.get("player_initiated", false))
+		and bool(event.payload.get("action_committed", false))
+	)
 
 
 func _repeat_available(definition: EncounterDefinition, state: Dictionary) -> bool:
@@ -189,9 +225,7 @@ func _attempt_key(
 	eligible_attempt: int,
 ) -> String:
 	if event == null:
-		return "exploration|%s|day:%d|attempt:%d" % [
-			String(_session.current_region_id), WorldTimeService.day, eligible_attempt,
-		]
+		return "invalid|day:%d|attempt:%d" % [WorldTimeService.day, eligible_attempt]
 	return "%s|%s|%s|%s|day:%d|attempt:%d" % [
 		String(event.event_type),
 		String(event.target_entity_id),

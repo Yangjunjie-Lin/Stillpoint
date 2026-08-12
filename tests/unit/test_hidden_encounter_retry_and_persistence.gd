@@ -9,6 +9,7 @@ func run() -> bool:
 	definition.id = &"test_retry_encounter"
 	definition.display_name = "Retryable Discovery"
 	definition.discovery_text = "A test discovery."
+	definition.trigger_kind = EncounterDefinition.TriggerKind.PLAYER_WORLD_ACTION
 	definition.trigger_chance = 1.0
 	var first_reward := AddItemEffect.new()
 	first_reward.effect_id = &"first_reward"
@@ -30,14 +31,27 @@ func run() -> bool:
 		exact_slots.append({"item_id": "filler_%d" % index, "quantity": 99})
 	exact_slots.append({"item_id": "", "quantity": 0})
 	world.player.inventory.from_dict({"slots": exact_slots})
-	var first := world.hidden_encounter_service.attempt(definition.id)
+	var trigger := GameplayEvent.make(
+		GameplayEventTypes.LOCATION_EXPLORED,
+		&"base:player/main",
+		&"encounter_zone:test_retry_encounter",
+		definition.id,
+		&"base:town",
+		1.0,
+		{
+			"player_initiated": true,
+			"action_committed": true,
+			"encounter_trigger_origin": String(GameplayEventTypes.ORIGIN_PLAYER_WORLD_ACTION),
+		},
+	)
+	var first := world.hidden_encounter_service.attempt(definition.id, trigger)
 	var ok := str(first.get("outcome", "")) == "reward_blocked"
 	ok = ok and world.player.inventory.count_item(&"gift_box") == 1
 	ok = ok and world.player.inventory.count_item(&"starfall_guard_codex") == 0
 	ok = ok and int(world.hidden_encounter_service.get_state(definition.id).get("completion_count", 0)) == 0
 
 	world.player.inventory.remove_item(&"filler_0", 99)
-	var retry := world.hidden_encounter_service.attempt(definition.id)
+	var retry := world.hidden_encounter_service.attempt(definition.id, trigger)
 	ok = ok and str(retry.get("outcome", "")) == "completed"
 	ok = ok and world.player.inventory.count_item(&"gift_box") == 1
 	ok = ok and world.player.inventory.count_item(&"starfall_guard_codex") == 1

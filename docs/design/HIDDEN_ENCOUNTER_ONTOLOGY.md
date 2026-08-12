@@ -1,13 +1,16 @@
 # Hidden Encounter Ontology
 
 Stillpoint's hidden encounters are authored, deterministic opportunities that may
-become eligible during ordinary NPC dialogue or physical world exploration. They
+become eligible after a completed autonomous NPC dialogue turn or a committed,
+player-initiated physical world action. Authored dialogue presentation, passive
+system events, and failed/degraded AI replies never roll an encounter. They
 reward items, equipment, materials, or skill books without giving the player or
 NPCs advance access to the trigger rules.
 
 ## Runtime model
 
-Each `EncounterDefinition` chooses a trigger kind, repeat policy, visibility
+Each `EncounterDefinition` chooses either `autonomous_dialogue` or
+`player_world_action` as its trigger kind, plus a repeat policy, visibility
 policy, conditions, hidden probability, and an ordered reward-effect sequence.
 Conditions reuse the read-only `WorldCondition` system. Rewards reuse
 `WorldEffect.apply_sequence_once`, so a full backpack can block a later reward
@@ -30,6 +33,10 @@ concrete reward effects. Undiscovered encounter nodes and their `INVOLVES`,
 `DISCOVERED_IN`, and `MAY_REWARD` edges never enter the canonical world graph.
 
 An `encounter_discovered` gameplay fact is emitted only after reward completion.
+The autonomous-dialogue trigger fact contains request provenance but deliberately
+contains neither the player's prompt nor the NPC's reply. World-action facts must
+be emitted only after the action commits and must carry runtime-owned
+`player_initiated` and `action_committed` markers.
 For `WITNESSED` encounters, the normal region, distance, line-of-sight, and
 participant checks decide which NPC instance receives the fact. The backend then
 materializes the encounter node and public relationships only inside that NPC's

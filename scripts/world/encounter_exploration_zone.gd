@@ -35,7 +35,12 @@ func _on_body_entered(body: Node) -> void:
 		encounter_id,
 		region_id,
 		1.0,
-		{"position": {"x": global_position.x, "y": global_position.y, "z": global_position.z}},
+		{
+			"player_initiated": true,
+			"action_committed": true,
+			"encounter_trigger_origin": String(GameplayEventTypes.ORIGIN_PLAYER_WORLD_ACTION),
+			"position": {"x": global_position.x, "y": global_position.y, "z": global_position.z},
+		},
 	)
 	session.hidden_encounter_service.attempt(encounter_id, event)
 
