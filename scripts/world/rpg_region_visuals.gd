@@ -91,6 +91,7 @@ func _build_town() -> void:
 		&"building:wayfarer_inn",
 		&"building:town_storehouse",
 		&"building:stillpoint_bank",
+		&"building:stillpoint_blacksmith",
 	]:
 		var house := ResourceRegistry.get_house(house_id)
 		if house == null or not house.is_valid():

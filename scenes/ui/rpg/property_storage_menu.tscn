@@ -157,6 +157,66 @@ text = "Withdraw 100"
 layout_mode = 2
 text = "Withdraw all"
 
+[node name="HomeCashControls" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Center/Panel/Margin/VBox/HomeCashControls"]
+layout_mode = 2
+text = "HOME CASH"
+
+[node name="Deposit100" type="Button" parent="Center/Panel/Margin/VBox/HomeCashControls"]
+layout_mode = 2
+text = "Store 100"
+
+[node name="DepositAll" type="Button" parent="Center/Panel/Margin/VBox/HomeCashControls"]
+layout_mode = 2
+text = "Store all wallet cash"
+
+[node name="Withdraw100" type="Button" parent="Center/Panel/Margin/VBox/HomeCashControls"]
+layout_mode = 2
+text = "Take 100"
+
+[node name="WithdrawAll" type="Button" parent="Center/Panel/Margin/VBox/HomeCashControls"]
+layout_mode = 2
+text = "Take all home cash"
+
+[node name="InvestmentControls" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="InvestmentSummary" type="Label" parent="Center/Panel/Margin/VBox/InvestmentControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Managed funds earn 0.5% per game day."
+
+[node name="Buttons" type="HBoxContainer" parent="Center/Panel/Margin/VBox/InvestmentControls"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Invest100" type="Button" parent="Center/Panel/Margin/VBox/InvestmentControls/Buttons"]
+layout_mode = 2
+text = "Invest 100"
+
+[node name="InvestAll" type="Button" parent="Center/Panel/Margin/VBox/InvestmentControls/Buttons"]
+layout_mode = 2
+text = "Invest all bank funds"
+
+[node name="Redeem100" type="Button" parent="Center/Panel/Margin/VBox/InvestmentControls/Buttons"]
+layout_mode = 2
+text = "Redeem 100"
+
+[node name="RedeemAll" type="Button" parent="Center/Panel/Margin/VBox/InvestmentControls/Buttons"]
+layout_mode = 2
+text = "Redeem all"
+
+[node name="ClaimEarnings" type="Button" parent="Center/Panel/Margin/VBox/InvestmentControls/Buttons"]
+layout_mode = 2
+text = "Claim earnings"
+
 [node name="PropertyControls" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -187,4 +247,13 @@ text = ""
 [connection signal="pressed" from="Center/Panel/Margin/VBox/MoneyControls/DepositAll" to="." method="_on_deposit_all_pressed"]
 [connection signal="pressed" from="Center/Panel/Margin/VBox/MoneyControls/Withdraw100" to="." method="_on_withdraw_100_pressed"]
 [connection signal="pressed" from="Center/Panel/Margin/VBox/MoneyControls/WithdrawAll" to="." method="_on_withdraw_all_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/HomeCashControls/Deposit100" to="." method="_on_home_deposit_100_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/HomeCashControls/DepositAll" to="." method="_on_home_deposit_all_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/HomeCashControls/Withdraw100" to="." method="_on_home_withdraw_100_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/HomeCashControls/WithdrawAll" to="." method="_on_home_withdraw_all_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/InvestmentControls/Buttons/Invest100" to="." method="_on_invest_100_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/InvestmentControls/Buttons/InvestAll" to="." method="_on_invest_all_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/InvestmentControls/Buttons/Redeem100" to="." method="_on_redeem_100_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/InvestmentControls/Buttons/RedeemAll" to="." method="_on_redeem_all_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/InvestmentControls/Buttons/ClaimEarnings" to="." method="_on_claim_earnings_pressed"]
 [connection signal="pressed" from="Center/Panel/Margin/VBox/PropertyControls/BuybackButton" to="." method="_on_buyback_pressed"]

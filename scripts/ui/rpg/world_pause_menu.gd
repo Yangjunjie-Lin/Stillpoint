@@ -18,6 +18,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not visible and _property_menu_visible():
 		return
+	if not visible and _commerce_menu_visible():
+		return
 	if visible:
 		_resume()
 	else:
@@ -46,6 +48,14 @@ func _property_menu_visible() -> bool:
 	if world == null:
 		return false
 	var panel := world.get_node_or_null("WorldUI/PropertyStorageMenu") as Control
+	return panel != null and panel.visible
+
+
+func _commerce_menu_visible() -> bool:
+	var world := get_tree().get_first_node_in_group("world_manager")
+	if world == null:
+		return false
+	var panel := world.get_node_or_null("WorldUI/CommerceMenu") as Control
 	return panel != null and panel.visible
 
 

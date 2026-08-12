@@ -87,11 +87,26 @@ def main() -> int:
     ConversationResponse.model_validate(payload)
     catalog = Path("services/npc_mind/catalog/generated_npc_catalog.json")
     data = json.loads(catalog.read_text(encoding="utf-8"))
-    if data.get("catalog_version") != 4 or int(data.get("npc_count", 0)) < 1:
+    if data.get("catalog_version") != 5 or int(data.get("npc_count", 0)) != 9:
         raise AssertionError("invalid generated NPC catalog")
     ontology = data.get("world_ontology", {})
     if not ontology.get("nodes") or not ontology.get("edges"):
         raise AssertionError("generated world ontology is missing")
+    node_types = {node.get("node_type") for node in ontology["nodes"]}
+    predicates = {edge.get("predicate") for edge in ontology["edges"]}
+    if not {"shop", "shop_offer", "forge_recipe"} <= node_types:
+        raise AssertionError("generated commerce ontology nodes are missing")
+    if not {
+        "LOCATED_IN",
+        "OPERATED_BY",
+        "OFFERS",
+        "SELLS",
+        "AVAILABLE_AT",
+        "PERFORMED_BY",
+        "REQUIRES_MATERIAL",
+        "PRODUCES",
+    } <= predicates:
+        raise AssertionError("generated commerce ontology relations are missing")
     action_catalog = data.get("relation_action_catalog", {})
     if (
         action_catalog.get("schema_version") != 1

@@ -53,7 +53,7 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 	if not effect_result.success:
 		EventBus.notice_requested.emit("Portal effect failed: %s" % effect_result.message)
 		return
-	_session.transition_to(target_region_id, target_spawn_id)
+	_session.travel_via_portal(target_region_id, target_spawn_id)
 
 
 func _find_session() -> WorldSession:

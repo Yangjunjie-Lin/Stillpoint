@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="HouseDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/house_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"building:stillpoint_blacksmith"
+display_name = "Stillpoint Smithy"
+region_id = &"base:town"
+building_type = &"blacksmith_shop"
+primary_function = &"equipment_forging_repair_and_trade"
+public_description = "A stone-and-timber town smithy where Torren forges, repairs, appraises, and sells practical equipment."
+owner_npc_definition_ids = Array[StringName]([&"blacksmith"])
+worker_npc_definition_ids = Array[StringName]([&"blacksmith"])
+contains_node_ids = Array[StringName]([&"location:blacksmith_forge", &"location:blacksmith_counter", &"service:equipment_forging", &"service:equipment_repair", &"shop:stillpoint_blacksmith_equipment"])
+connected_location_ids = Array[StringName]([&"location:town_plaza"])
+linked_location_ids = Array[StringName]([&"service:equipment_forging", &"service:equipment_repair", &"shop:stillpoint_blacksmith_equipment"])
+material_tags = Array[StringName]([&"stone_hearth", &"heavy_timber", &"slate_roof", &"iron_chimney"])
+floor_count = 1
+entrance_tags = Array[StringName]([&"public_front_door", &"counter_access", &"restricted_forge"])
+landmark_tags = Array[StringName]([&"anvil_sign", &"forge_chimney", &"equipment_rack"])
+world_position = Vector3(5.5, 0, -12.5)
+footprint_size = Vector3(5.6, 3.0, 4.8)
+yaw_radians = 0.08
+wall_color = Color(0.48, 0.45, 0.4, 1)
+timber_color = Color(0.25, 0.17, 0.12, 1)
+roof_color = Color(0.22, 0.24, 0.25, 1)

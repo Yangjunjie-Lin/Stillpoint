@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="ShopDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/shop_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/shop_offer_definition.gd" id="2"]
+
+[sub_resource type="Resource" id="OfferFieldPick"]
+script = ExtResource("2")
+id = &"field_pick"
+item_id = &"field_pick"
+quantity_per_purchase = 1
+availability_tags = Array[StringName]([&"tool", &"smithy_counter"])
+
+[sub_resource type="Resource" id="OfferIronBracers"]
+script = ExtResource("2")
+id = &"iron_bracers"
+item_id = &"iron_bracers"
+quantity_per_purchase = 1
+availability_tags = Array[StringName]([&"armor", &"smithy_counter"])
+
+[sub_resource type="Resource" id="OfferIronOre"]
+script = ExtResource("2")
+id = &"iron_ore"
+item_id = &"iron_ore"
+quantity_per_purchase = 1
+availability_tags = Array[StringName]([&"material", &"smithy_counter", &"forging"])
+
+[resource]
+script = ExtResource("1")
+id = &"shop:stillpoint_blacksmith_equipment"
+display_name = "Stillpoint Smithy Counter"
+shop_type = &"blacksmith_equipment"
+building_id = &"building:stillpoint_blacksmith"
+shopkeeper_npc_definition_id = &"blacksmith"
+public_description = "Torren sells tools and forged protection from the smithy's public counter."
+offers = Array[ShopOfferDefinition]([SubResource("OfferFieldPick"), SubResource("OfferIronBracers"), SubResource("OfferIronOre")])
+service_tags = Array[StringName]([&"equipment_sale", &"material_purchase", &"forging"])

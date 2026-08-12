@@ -3,9 +3,10 @@ extends RefCounted
 const EXPECTED_INTERACTABLES := {
 	"res://scenes/regions/town/town_region.tscn": [
 		"Interactables/WildernessPortal",
-		"Interactables/DungeonPortal",
 		"Interactables/Chest",
 		"Interactables/BankCounter",
+		"Interactables/BankEquipmentCounter",
+		"Interactables/BlacksmithCounter",
 	],
 	"res://scenes/regions/wilderness/wilderness_region.tscn": [
 		"Interactables/HerbPickup",

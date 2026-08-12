@@ -1,0 +1,145 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/rpg/commerce_menu.gd" id="1"]
+
+[node name="CommerceMenu" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.025, 0.02, 0.015, 0.86)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(1080, 650)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="Header" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Center/Panel/Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Equipment Counter"
+
+[node name="Spacer" type="Control" parent="Center/Panel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CloseButton" type="Button" parent="Center/Panel/Margin/VBox/Header"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+text = "Close"
+
+[node name="Funds" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Wallet 500    Bank 0    Available 500 coin"
+
+[node name="ShopDescription" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "Public shop inventory."
+
+[node name="TradeRow" type="HBoxContainer" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="OffersBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox/TradeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Heading" type="Label" parent="Center/Panel/Margin/VBox/TradeRow/OffersBox"]
+layout_mode = 2
+text = "FOR SALE"
+
+[node name="OffersList" type="ItemList" parent="Center/Panel/Margin/VBox/TradeRow/OffersBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 175)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BuyButton" type="Button" parent="Center/Panel/Margin/VBox/TradeRow/OffersBox"]
+layout_mode = 2
+text = "Buy selected"
+
+[node name="InventoryBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox/TradeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Heading" type="Label" parent="Center/Panel/Margin/VBox/TradeRow/InventoryBox"]
+layout_mode = 2
+text = "YOUR BACKPACK"
+
+[node name="InventoryList" type="ItemList" parent="Center/Panel/Margin/VBox/TradeRow/InventoryBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 175)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SellButton" type="Button" parent="Center/Panel/Margin/VBox/TradeRow/InventoryBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sell one selected item"
+
+[node name="ForgeBox" type="VBoxContainer" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Heading" type="Label" parent="Center/Panel/Margin/VBox/ForgeBox"]
+layout_mode = 2
+text = "FORGE RECIPES"
+
+[node name="RecipesList" type="ItemList" parent="Center/Panel/Margin/VBox/ForgeBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 105)
+layout_mode = 2
+
+[node name="ForgeButton" type="Button" parent="Center/Panel/Margin/VBox/ForgeBox"]
+layout_mode = 2
+text = "Forge selected recipe"
+
+[node name="Status" type="Label" parent="Center/Panel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[connection signal="pressed" from="Center/Panel/Margin/VBox/Header/CloseButton" to="." method="close_menu"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/TradeRow/OffersBox/BuyButton" to="." method="_on_buy_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/TradeRow/InventoryBox/SellButton" to="." method="_on_sell_pressed"]
+[connection signal="pressed" from="Center/Panel/Margin/VBox/ForgeBox/ForgeButton" to="." method="_on_forge_pressed"]

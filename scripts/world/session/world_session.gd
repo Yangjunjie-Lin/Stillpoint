@@ -108,18 +108,62 @@ func transition_to(
 	region_id: StringName,
 	spawn_id: StringName = &"spawn",
 	via_portal: bool = true,
-) -> void:
+) -> bool:
 	var ctx := RegionTransitionContext.new()
 	ctx.source_region_id = current_region_id
 	ctx.target_spawn_id = spawn_id
 	ctx.via_portal = via_portal
 	if player != null:
 		player.set_input_enabled(false)
-	region_service.enter_region(region_id, spawn_id, ctx)
+	var transitioned := region_service.enter_region(region_id, spawn_id, ctx)
 	if player != null:
 		player.set_input_enabled(true)
+	if not transitioned:
+		return false
 	discover_region(region_id)
 	save_world_state()
+	return true
+
+
+func travel_via_road(region_id: StringName, spawn_id: StringName = &"spawn") -> bool:
+	if not _route_is_authored(region_id, false):
+		EventBus.notice_requested.emit("That road does not connect to this region.")
+		return false
+	return transition_to(region_id, spawn_id, false)
+
+
+func travel_via_portal(region_id: StringName, spawn_id: StringName = &"spawn") -> bool:
+	if not _route_is_authored(region_id, true):
+		EventBus.notice_requested.emit("That portal route is not available here.")
+		return false
+	return transition_to(region_id, spawn_id, true)
+
+
+func travel_via_door(region_id: StringName, spawn_id: StringName = &"spawn") -> bool:
+	# Doors use the connected-region graph, but may link an outdoor main-world
+	# region to a private interior. Dungeon travel is deliberately excluded and
+	# must pass through DungeonProgressionService's guarded level gate.
+	var target := ResourceRegistry.get_region(RegionIdUtil.normalize(region_id))
+	if target == null or target.region_type == &"dungeon" or not _route_is_authored(
+		region_id, false
+	):
+		EventBus.notice_requested.emit("That doorway is not connected from here.")
+		return false
+	return transition_to(region_id, spawn_id, false)
+
+
+func _route_is_authored(region_id: StringName, portal: bool) -> bool:
+	var source := ResourceRegistry.get_region(RegionIdUtil.normalize(current_region_id))
+	var target := ResourceRegistry.get_region(RegionIdUtil.normalize(region_id))
+	if source == null or target == null:
+		return false
+	if portal:
+		return source.portal_region_ids.has(target.id)
+	return (
+		source.connected_region_ids.has(target.id)
+		and target.connected_region_ids.has(source.id)
+		and source.parent_world_id == target.parent_world_id
+	)
 
 
 func discover_region(region_id: StringName) -> void:
@@ -289,6 +333,22 @@ func open_property_storage(mode: StringName) -> bool:
 	if menu == null or not menu.has_method("open_menu"):
 		return false
 	menu.call("open_menu", mode)
+	return true
+
+
+func open_commerce(
+	shop_id: StringName,
+	forge_recipe_ids: Array[StringName] = [],
+) -> bool:
+	if property_bank_service == null or player == null:
+		return false
+	var shop := ResourceRegistry.get_shop(shop_id)
+	if shop == null:
+		return false
+	var menu := get_node_or_null("WorldUI/CommerceMenu")
+	if menu == null or not menu.has_method("open_menu"):
+		return false
+	menu.call("open_menu", shop_id, forge_recipe_ids)
 	return true
 
 

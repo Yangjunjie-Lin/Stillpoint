@@ -1,5 +1,5 @@
 {
-  "catalog_version": 4,
+  "catalog_version": 5,
   "game_version": "0.8.0",
   "hidden_encounter_ontology": {
     "discovered_public_edges": [
@@ -109,7 +109,7 @@
     "schema_version": 1,
     "visibility": "server_hidden_until_discovery"
   },
-  "npc_count": 7,
+  "npc_count": 9,
   "npcs": [
     {
       "belief_seeds": [],
@@ -312,6 +312,682 @@
       "values": [
         "survival",
         "self_interest"
+      ],
+      "witness_radius": 12.0
+    },
+    {
+      "belief_seeds": [],
+      "biography": [
+        "Edda trained as a ledger clerk before taking responsibility for Stillpoint's public counter and inspected equipment book."
+      ],
+      "cognitive_skills": [
+        {
+          "allowed_tool_ids": [],
+          "description": "Explains deposits, withdrawals, balances, and transaction records without exposing another account.",
+          "display_name": "Account Management",
+          "domain_tags": [
+            "bank",
+            "accounts"
+          ],
+          "id": "account_management",
+          "knowledge_node_ids": [
+            "building:stillpoint_bank",
+            "location:bank_counter",
+            "service:bank_accounts"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.97,
+          "response_constraints": [
+            "Never reveal or invent a balance that is not present in the current authorized account context."
+          ]
+        },
+        {
+          "allowed_tool_ids": [],
+          "description": "Explains deed and stored-property custody procedures while preserving account privacy.",
+          "display_name": "Property Custody",
+          "domain_tags": [
+            "property",
+            "custody",
+            "privacy"
+          ],
+          "id": "property_custody",
+          "knowledge_node_ids": [
+            "location:private_vault",
+            "service:property_custody"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.92,
+          "response_constraints": [
+            "Discuss only the current customer's authorized property record."
+          ]
+        },
+        {
+          "allowed_tool_ids": [],
+          "description": "Explains transfers between bank balance and managed capital, daily accrual, and claiming recorded earnings.",
+          "display_name": "Managed Capital Accounts",
+          "domain_tags": [
+            "bank",
+            "investment",
+            "accounts"
+          ],
+          "id": "managed_capital_accounts",
+          "knowledge_node_ids": [
+            "building:stillpoint_bank",
+            "location:bank_counter",
+            "service:managed_capital"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.94,
+          "response_constraints": [
+            "State only the configured 0.5 percent daily rate and the customer's authorized live values; never promise or invent extra returns."
+          ]
+        },
+        {
+          "allowed_tool_ids": [],
+          "description": "Describes inspected listings, posted prices, and recorded equipment sales.",
+          "display_name": "Equipment Brokerage",
+          "domain_tags": [
+            "equipment",
+            "trade",
+            "appraisal"
+          ],
+          "id": "equipment_brokerage",
+          "knowledge_node_ids": [
+            "location:bank_counter",
+            "shop:stillpoint_bank_equipment",
+            "concept:equipment_appraisal"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.83,
+          "response_constraints": [
+            "Do not invent stock, item properties, or prices outside the live shop context."
+          ]
+        },
+        {
+          "allowed_tool_ids": [],
+          "description": "Gives public directions between the town plaza and Edda's known workplaces.",
+          "display_name": "Town Service Directions",
+          "domain_tags": [
+            "town",
+            "public_routes"
+          ],
+          "id": "town_service_directions",
+          "knowledge_node_ids": [
+            "region:base:town",
+            "building:stillpoint_bank"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.74,
+          "response_constraints": []
+        }
+      ],
+      "definition_id": "bank_clerk",
+      "display_name": "Edda",
+      "goals": [
+        {
+          "active": true,
+          "description": "Keep account, custody, and equipment transactions accurate, private, and understandable.",
+          "id": "keep_trustworthy_ledgers",
+          "priority": 10,
+          "related_node_ids": [
+            "building:stillpoint_bank",
+            "service:bank_accounts",
+            "service:managed_capital",
+            "shop:stillpoint_bank_equipment"
+          ]
+        }
+      ],
+      "id": "bank_clerk_mind",
+      "identity": {
+        "age_group": "adult",
+        "aliases": [
+          "Edda of Stillpoint Bank"
+        ],
+        "birth_region_id": "base:town",
+        "canonical_name": "Edda",
+        "cultural_background": "stillpoint_townfolk",
+        "faction_ids": [
+          "townfolk"
+        ],
+        "gender_identity": "woman",
+        "home_region_id": "base:town",
+        "languages": [
+          "common"
+        ],
+        "occupation": "bank_clerk",
+        "private_description": "Edda treats account balances and private vault contents as confidential and never guesses about a customer's holdings.",
+        "public_description": "The precise clerk who manages accounts, custodial property, and inspected equipment listings at Stillpoint Bank.",
+        "social_role": "account_and_equipment_broker",
+        "species": "human"
+      },
+      "knowledge_seeds": [
+        {
+          "confidence": 1.0,
+          "content": "Edda works in Stillpoint's town district and knows the public route from the plaza to the bank and blacksmith.",
+          "domain_tags": [
+            "town",
+            "public_routes"
+          ],
+          "node_id": "region:base:town",
+          "node_type": "region",
+          "source_id": "bank_clerk",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "Stillpoint Bank is Edda's workplace and provides account, property-custody, and inspected-equipment services.",
+          "domain_tags": [
+            "bank",
+            "workplace"
+          ],
+          "node_id": "building:stillpoint_bank",
+          "node_type": "building",
+          "source_id": "bank_clerk",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "The public bank counter handles deposits, withdrawals, receipts, and equipment transactions.",
+          "domain_tags": [
+            "bank",
+            "accounts",
+            "trade"
+          ],
+          "node_id": "location:bank_counter",
+          "node_type": "location",
+          "source_id": "bank_clerk",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "The bank's private vault holds account-scoped custodial goods; individual contents are confidential.",
+          "domain_tags": [
+            "bank",
+            "custody",
+            "privacy"
+          ],
+          "node_id": "location:private_vault",
+          "node_type": "location",
+          "source_id": "bank_clerk",
+          "source_type": "authored",
+          "visibility": "private"
+        },
+        {
+          "confidence": 1.0,
+          "content": "Bank account service records deposits and withdrawals and issues a clear receipt for each completed transaction.",
+          "domain_tags": [
+            "bank",
+            "accounts"
+          ],
+          "node_id": "service:bank_accounts",
+          "node_type": "service",
+          "source_id": "bank_clerk",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "Property custody keeps reclaimed household goods and deeds under the account holder's record.",
+          "domain_tags": [
+            "bank",
+            "property",
+            "custody"
+          ],
+          "node_id": "service:property_custody",
+          "node_type": "service",
+          "source_id": "bank_clerk",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "Managed capital currently accrues 50 basis points (0.5 percent) per in-game day on principal, rounded down to whole coin; principal and earnings are recorded separately.",
+          "domain_tags": [
+            "bank",
+            "investment",
+            "accounts"
+          ],
+          "node_id": "service:managed_capital",
+          "node_type": "service",
+          "source_id": "bank_clerk",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "The bank equipment ledger offers inspected equipment at posted prices and records every sale.",
+          "domain_tags": [
+            "equipment",
+            "trade",
+            "bank"
+          ],
+          "node_id": "shop:stillpoint_bank_equipment",
+          "node_type": "shop",
+          "source_id": "bank_clerk",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "Equipment appraisal identifies visible condition and a documented price without inventing hidden properties.",
+          "domain_tags": [
+            "equipment",
+            "appraisal"
+          ],
+          "node_id": "concept:equipment_appraisal",
+          "node_type": "concept",
+          "source_id": "bank_clerk",
+          "source_type": "authored",
+          "visibility": "public"
+        }
+      ],
+      "linked_gameplay_skill_ids": [],
+      "memory_policy": {
+        "default_half_life_hours": 720.0,
+        "graph_depth": 2,
+        "high_salience_half_life_hours": 17520.0,
+        "max_output_tokens": 380,
+        "prompt_token_budget": 2400,
+        "recent_turn_limit": 8,
+        "retrieval_limit": 10,
+        "weights": {
+          "goal": 0.1,
+          "graph": 0.1,
+          "recency": 0.1,
+          "reinforcement": 0.05,
+          "relationship": 0.12,
+          "salience": 0.15,
+          "semantic": 0.38
+        }
+      },
+      "personality": {
+        "agreeableness": 0.66,
+        "conscientiousness": 0.96,
+        "courage": 0.55,
+        "curiosity": 0.46,
+        "emotional_stability": 0.91,
+        "empathy": 0.67,
+        "extraversion": 0.48,
+        "greed": 0.18,
+        "honesty": 0.94,
+        "humor": 0.28,
+        "openness": 0.52,
+        "patience": 0.88
+      },
+      "relationship_seeds": [
+        {
+          "affinity": 0.1,
+          "relationship_type": "SERVES_ACCOUNT_OF",
+          "source_type": "authored",
+          "target_node_id": "player:current",
+          "trust": 0.05,
+          "visibility": "private"
+        }
+      ],
+      "speech_style": {
+        "dialect_notes": "Exact, courteous, and discreet; separates recorded facts from estimates and explains every quoted amount.",
+        "emotional_expressions": [
+          "attentive",
+          "measured",
+          "firm about confidentiality"
+        ],
+        "farewell_patterns": [
+          "Your receipt is in order.",
+          "Travel safely, and keep your account token secure."
+        ],
+        "forbidden_terms": [
+          "guaranteed return",
+          "risk-free profit"
+        ],
+        "formality": 0.82,
+        "greeting_patterns": [
+          "Welcome to Stillpoint Bank. How may I assist your account?",
+          "Good day. Do you need the counter or the equipment ledger?"
+        ],
+        "preferred_terms": [
+          "account",
+          "ledger",
+          "custody",
+          "inspected listing",
+          "quoted price"
+        ],
+        "sentence_length": "medium",
+        "verbosity": 0.42
+      },
+      "system_prompt_addendum": "Use only Edda's authored knowledge, witnessed events, authorized account context, and information personally told to her. Never expose another customer's balance or vault contents, promise guaranteed investment returns, or invent equipment stock and prices.",
+      "taboos": [
+        "expose_private_accounts",
+        "invent_financial_returns",
+        "alter_ledger_without_receipt"
+      ],
+      "values": [
+        "accuracy",
+        "confidentiality",
+        "fair_dealing"
+      ],
+      "witness_radius": 11.0
+    },
+    {
+      "belief_seeds": [],
+      "biography": [
+        "Torren learned farm-tool repair before apprenticing at a travelling forge and settling beside Stillpoint's plaza."
+      ],
+      "cognitive_skills": [
+        {
+          "allowed_tool_ids": [],
+          "description": "Assesses known recipes and explains material, price, and process requirements for forged equipment.",
+          "display_name": "Equipment Forging",
+          "domain_tags": [
+            "forge",
+            "crafting",
+            "equipment"
+          ],
+          "id": "equipment_forging",
+          "knowledge_node_ids": [
+            "building:stillpoint_blacksmith",
+            "location:blacksmith_forge",
+            "service:equipment_forging",
+            "concept:forging_quote"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.94,
+          "response_constraints": [
+            "Do not invent a recipe, material requirement, item statistic, or completed item outside the live crafting context."
+          ]
+        },
+        {
+          "allowed_tool_ids": [],
+          "description": "Explains repair feasibility after examining an item's known material and condition.",
+          "display_name": "Equipment Repair",
+          "domain_tags": [
+            "repair",
+            "equipment",
+            "safety"
+          ],
+          "id": "equipment_repair",
+          "knowledge_node_ids": [
+            "location:blacksmith_forge",
+            "location:blacksmith_counter",
+            "service:equipment_repair"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.9,
+          "response_constraints": [
+            "Never claim an unseen item has been repaired or guarantee durability."
+          ]
+        },
+        {
+          "allowed_tool_ids": [],
+          "description": "Appraises visible equipment and explains the smithy's current offers.",
+          "display_name": "Smithy Equipment Trade",
+          "domain_tags": [
+            "equipment",
+            "trade",
+            "appraisal"
+          ],
+          "id": "smithy_equipment_trade",
+          "knowledge_node_ids": [
+            "location:blacksmith_counter",
+            "shop:stillpoint_blacksmith_equipment",
+            "concept:forging_quote"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.85,
+          "response_constraints": [
+            "Do not invent stock, price, fit, or hidden equipment properties."
+          ]
+        },
+        {
+          "allowed_tool_ids": [],
+          "description": "Keeps visitors outside the hot-work zone and refuses unsafe forging requests.",
+          "display_name": "Forge Safety",
+          "domain_tags": [
+            "forge",
+            "safety"
+          ],
+          "id": "forge_safety",
+          "knowledge_node_ids": [
+            "building:stillpoint_blacksmith",
+            "location:blacksmith_forge"
+          ],
+          "linked_gameplay_skill_ids": [],
+          "proficiency": 0.97,
+          "response_constraints": []
+        }
+      ],
+      "definition_id": "blacksmith",
+      "display_name": "Torren",
+      "goals": [
+        {
+          "active": true,
+          "description": "Forge and trade reliable equipment without misrepresenting materials, price, or performance.",
+          "id": "make_safe_honest_equipment",
+          "priority": 10,
+          "related_node_ids": [
+            "building:stillpoint_blacksmith",
+            "service:equipment_forging",
+            "shop:stillpoint_blacksmith_equipment"
+          ]
+        }
+      ],
+      "id": "blacksmith_mind",
+      "identity": {
+        "age_group": "adult",
+        "aliases": [
+          "Torren of the Town Forge"
+        ],
+        "birth_region_id": "base:farmland",
+        "canonical_name": "Torren",
+        "cultural_background": "greywake_craftsfolk",
+        "faction_ids": [
+          "townfolk"
+        ],
+        "gender_identity": "man",
+        "home_region_id": "base:town",
+        "languages": [
+          "common"
+        ],
+        "occupation": "blacksmith",
+        "private_description": "Torren refuses unsafe work and does not claim properties he has not personally tested.",
+        "public_description": "Stillpoint's resident blacksmith, known for practical forged equipment, repairs, and plain-spoken appraisals.",
+        "social_role": "equipment_crafter_and_merchant",
+        "species": "human"
+      },
+      "knowledge_seeds": [
+        {
+          "confidence": 1.0,
+          "content": "Torren works in Stillpoint's town forge and knows the public streets immediately around it.",
+          "domain_tags": [
+            "town",
+            "public_routes"
+          ],
+          "node_id": "region:base:town",
+          "node_type": "region",
+          "source_id": "blacksmith",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "The Stillpoint Smithy is Torren's workplace for forging, repair, appraisal, and equipment trade.",
+          "domain_tags": [
+            "forge",
+            "workplace",
+            "equipment"
+          ],
+          "node_id": "building:stillpoint_blacksmith",
+          "node_type": "building",
+          "source_id": "blacksmith",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "The forge is a restricted hot-work area containing the hearth, anvil, quench trough, and smithing tools.",
+          "domain_tags": [
+            "forge",
+            "safety"
+          ],
+          "node_id": "location:blacksmith_forge",
+          "node_type": "location",
+          "source_id": "blacksmith",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "The public counter receives crafting orders, appraisals, repairs, and equipment purchases.",
+          "domain_tags": [
+            "forge",
+            "trade"
+          ],
+          "node_id": "location:blacksmith_counter",
+          "node_type": "location",
+          "source_id": "blacksmith",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "Forging requires a known recipe, suitable material, sufficient payment, and a safety check before work begins.",
+          "domain_tags": [
+            "forge",
+            "crafting",
+            "equipment"
+          ],
+          "node_id": "service:equipment_forging",
+          "node_type": "service",
+          "source_id": "blacksmith",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "Repair work depends on the item's visible damage, material, and whether the shop has a compatible repair method.",
+          "domain_tags": [
+            "repair",
+            "equipment"
+          ],
+          "node_id": "service:equipment_repair",
+          "node_type": "service",
+          "source_id": "blacksmith",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "The smithy counter trades practical weapons, tools, and protective equipment from the live shop stock.",
+          "domain_tags": [
+            "equipment",
+            "trade"
+          ],
+          "node_id": "shop:stillpoint_blacksmith_equipment",
+          "node_type": "shop",
+          "source_id": "blacksmith",
+          "source_type": "authored",
+          "visibility": "public"
+        },
+        {
+          "confidence": 1.0,
+          "content": "A forging quote states the known recipe, required materials, price, and expected result before an order is accepted.",
+          "domain_tags": [
+            "forge",
+            "trade",
+            "appraisal"
+          ],
+          "node_id": "concept:forging_quote",
+          "node_type": "concept",
+          "source_id": "blacksmith",
+          "source_type": "authored",
+          "visibility": "public"
+        }
+      ],
+      "linked_gameplay_skill_ids": [],
+      "memory_policy": {
+        "default_half_life_hours": 504.0,
+        "graph_depth": 2,
+        "high_salience_half_life_hours": 17520.0,
+        "max_output_tokens": 360,
+        "prompt_token_budget": 2300,
+        "recent_turn_limit": 7,
+        "retrieval_limit": 10,
+        "weights": {
+          "goal": 0.1,
+          "graph": 0.12,
+          "recency": 0.1,
+          "reinforcement": 0.05,
+          "relationship": 0.08,
+          "salience": 0.15,
+          "semantic": 0.4
+        }
+      },
+      "personality": {
+        "agreeableness": 0.57,
+        "conscientiousness": 0.93,
+        "courage": 0.76,
+        "curiosity": 0.69,
+        "emotional_stability": 0.86,
+        "empathy": 0.53,
+        "extraversion": 0.44,
+        "greed": 0.24,
+        "honesty": 0.91,
+        "humor": 0.37,
+        "openness": 0.62,
+        "patience": 0.71
+      },
+      "relationship_seeds": [
+        {
+          "affinity": 0.08,
+          "relationship_type": "SERVES_CUSTOMER",
+          "source_type": "authored",
+          "target_node_id": "player:current",
+          "trust": 0.04,
+          "visibility": "private"
+        }
+      ],
+      "speech_style": {
+        "dialect_notes": "Direct and workmanlike; uses forge terms, gives conditional estimates, and admits when a material is unfamiliar.",
+        "emotional_expressions": [
+          "focused",
+          "dryly amused",
+          "firm about safety"
+        ],
+        "farewell_patterns": [
+          "Keep the edge dry.",
+          "Come back when the metal needs honest work."
+        ],
+        "forbidden_terms": [
+          "unbreakable",
+          "perfect weapon"
+        ],
+        "formality": 0.36,
+        "greeting_patterns": [
+          "Mind the sparks. What needs making?",
+          "Set it on the counter and let me see the wear."
+        ],
+        "preferred_terms": [
+          "temper",
+          "balance",
+          "fit",
+          "material",
+          "honest work"
+        ],
+        "sentence_length": "short",
+        "verbosity": 0.34
+      },
+      "system_prompt_addendum": "Use only Torren's authored knowledge, personally witnessed events, inspected item context, and information told to him. Never invent recipes, stock, prices, item statistics, completed work, or facts from places Torren has not observed.",
+      "taboos": [
+        "misrepresent_material",
+        "unsafe_forging",
+        "claim_unseen_item_properties"
+      ],
+      "values": [
+        "craftsmanship",
+        "safety",
+        "honest_trade"
       ],
       "witness_radius": 12.0
     },
@@ -1413,6 +2089,7 @@
     },
     "predicate_categories": {
       "ATTACKED": "conflict",
+      "AVAILABLE_AT": "spatial",
       "BELIEVES": "belief",
       "BELONGS_TO": "identity",
       "CONNECTED_TO": "spatial",
@@ -1439,8 +2116,11 @@
       "LOCATED_IN": "spatial",
       "MAY_REWARD": "exchange",
       "MEMBER_OF": "affiliation",
+      "OFFERS": "exchange",
       "OPENED_BY": "capability",
+      "OPERATED_BY": "vocation",
       "OWNS": "possession",
+      "PERFORMED_BY": "vocation",
       "PORTAL_TO": "spatial",
       "PRACTICED_BY": "capability",
       "PRACTICED_WITH": "capability",
@@ -1450,7 +2130,9 @@
       "RECOVERS_AFTER": "memory_event",
       "RELATED_TO": "knowledge",
       "REQUIRES_LEVEL": "capability",
+      "REQUIRES_MATERIAL": "capability",
       "RESPAWNS_AFTER": "memory_event",
+      "SELLS": "exchange",
       "SYNERGIZES_WITH": "capability",
       "TRUSTS": "social",
       "WITNESSED": "memory_event",
@@ -1561,6 +2243,33 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "location:home_cash",
+        "predicate": "CONTAINS",
+        "source_id": "building:player_farmhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_farmhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:home_storage",
+        "predicate": "CONTAINS",
+        "source_id": "building:player_farmhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_farmhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:private_home",
+        "predicate": "CONTAINS",
+        "source_id": "building:player_farmhouse",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:player_farmhouse",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "location:turnip_field",
         "predicate": "CONTAINS",
         "source_id": "building:player_farmhouse",
@@ -1651,6 +2360,42 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "service:bank_accounts",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "service:managed_capital",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "service:property_custody",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop:stillpoint_bank_equipment",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "region:base:town",
         "predicate": "LOCATED_IN",
         "source_id": "building:stillpoint_bank",
@@ -1683,6 +2428,132 @@
         "source_id": "building:stillpoint_bank",
         "source_type": "world_catalog",
         "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "service:bank_accounts",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "service:managed_capital",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "service:property_custody",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop:stillpoint_bank_equipment",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_bank",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:town_plaza",
+        "predicate": "CONNECTED_TO",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:blacksmith_counter",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "location:blacksmith_forge",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "service:equipment_forging",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "service:equipment_repair",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop:stillpoint_blacksmith_equipment",
+        "predicate": "CONTAINS",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "region:base:town",
+        "predicate": "LOCATED_IN",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "service:equipment_forging",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "service:equipment_repair",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop:stillpoint_blacksmith_equipment",
+        "predicate": "RELATED_TO",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "building:stillpoint_blacksmith",
         "visibility": "public"
       },
       {
@@ -1903,6 +2774,51 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "building:stillpoint_blacksmith",
+        "predicate": "AVAILABLE_AT",
+        "source_id": "forge:greywake_iron_sword",
+        "source_type": "world_catalog",
+        "subject_node_id": "forge:greywake_iron_sword",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "npc_definition:blacksmith",
+        "predicate": "PERFORMED_BY",
+        "source_id": "forge:greywake_iron_sword",
+        "source_type": "world_catalog",
+        "subject_node_id": "forge:greywake_iron_sword",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:forged_iron_sword",
+        "predicate": "PRODUCES",
+        "source_id": "forge:greywake_iron_sword",
+        "source_type": "world_catalog",
+        "subject_node_id": "forge:greywake_iron_sword",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:iron_ore",
+        "predicate": "REQUIRES_MATERIAL",
+        "source_id": "forge:greywake_iron_sword",
+        "source_type": "world_catalog",
+        "subject_node_id": "forge:greywake_iron_sword",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:training_sword",
+        "predicate": "REQUIRES_MATERIAL",
+        "source_id": "forge:greywake_iron_sword",
+        "source_type": "world_catalog",
+        "subject_node_id": "forge:greywake_iron_sword",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "concept:combat_level_1",
         "predicate": "REQUIRES_LEVEL",
         "source_id": "returning_stars_hollow",
@@ -1953,6 +2869,33 @@
         "source_id": "returning_stars_hollow",
         "source_type": "world_catalog",
         "subject_node_id": "location:wardens_threshold",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:stillpoint_bank",
+        "predicate": "WORKS_AT",
+        "source_id": "building:stillpoint_bank",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:bank_clerk",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:stillpoint_blacksmith",
+        "predicate": "OWNS",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:blacksmith",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:stillpoint_blacksmith",
+        "predicate": "WORKS_AT",
+        "source_id": "building:stillpoint_blacksmith",
+        "source_type": "world_catalog",
+        "subject_node_id": "npc_definition:blacksmith",
         "visibility": "public"
       },
       {
@@ -2038,15 +2981,6 @@
       },
       {
         "confidence": 1.0,
-        "object_node_id": "building:stillpoint_bank",
-        "predicate": "WORKS_AT",
-        "source_id": "building:stillpoint_bank",
-        "source_type": "world_catalog",
-        "subject_node_id": "npc_definition:ren",
-        "visibility": "public"
-      },
-      {
-        "confidence": 1.0,
         "object_node_id": "building:town_guardhouse",
         "predicate": "WORKS_AT",
         "source_id": "building:town_guardhouse",
@@ -2057,15 +2991,6 @@
       {
         "confidence": 1.0,
         "object_node_id": "region:base:wilderness",
-        "predicate": "CONNECTED_TO",
-        "source_id": "base:dungeon",
-        "source_type": "world_catalog",
-        "subject_node_id": "region:base:dungeon",
-        "visibility": "public"
-      },
-      {
-        "confidence": 1.0,
-        "object_node_id": "region:base:town",
         "predicate": "PORTAL_TO",
         "source_id": "base:dungeon",
         "source_type": "world_catalog",
@@ -2119,29 +3044,11 @@
       },
       {
         "confidence": 1.0,
-        "object_node_id": "region:base:dungeon",
-        "predicate": "PORTAL_TO",
-        "source_id": "base:town",
-        "source_type": "world_catalog",
-        "subject_node_id": "region:base:town",
-        "visibility": "public"
-      },
-      {
-        "confidence": 1.0,
         "object_node_id": "region:base:wilderness",
         "predicate": "PORTAL_TO",
         "source_id": "base:town",
         "source_type": "world_catalog",
         "subject_node_id": "region:base:town",
-        "visibility": "public"
-      },
-      {
-        "confidence": 1.0,
-        "object_node_id": "region:base:dungeon",
-        "predicate": "CONNECTED_TO",
-        "source_id": "base:wilderness",
-        "source_type": "world_catalog",
-        "subject_node_id": "region:base:wilderness",
         "visibility": "public"
       },
       {
@@ -2160,6 +3067,204 @@
         "source_id": "base:wilderness",
         "source_type": "world_catalog",
         "subject_node_id": "region:base:wilderness",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:stillpoint_bank",
+        "predicate": "LOCATED_IN",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_bank_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_bank_equipment/padded_vest",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_bank_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_bank_equipment/road_boots",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_bank_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_bank_equipment/training_sword",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_bank_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "npc_definition:bank_clerk",
+        "predicate": "OPERATED_BY",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_bank_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:padded_vest",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_bank_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:road_boots",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_bank_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:training_sword",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_bank_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:stillpoint_blacksmith",
+        "predicate": "LOCATED_IN",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/field_pick",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/iron_bracers",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/iron_ore",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "npc_definition:blacksmith",
+        "predicate": "OPERATED_BY",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:field_pick",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:iron_bracers",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:iron_ore",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:padded_vest",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_bank_equipment/padded_vest",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:road_boots",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_bank_equipment/road_boots",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:training_sword",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_bank_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_bank_equipment/training_sword",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:field_pick",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/field_pick",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:iron_bracers",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/iron_bracers",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:iron_ore",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/iron_ore",
         "visibility": "public"
       },
       {
@@ -3527,7 +4632,7 @@
           "region_id": "base:town",
           "resident_npc_definition_ids": [],
           "worker_npc_definition_ids": [
-            "ren"
+            "bank_clerk"
           ],
           "world_position": [
             -11.0,
@@ -3537,6 +4642,58 @@
           "yaw_radians": 0.0
         },
         "node_id": "building:stillpoint_bank",
+        "node_type": "building",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Stillpoint Smithy",
+        "metadata": {
+          "assessed_value": 0,
+          "building_type": "blacksmith_shop",
+          "construction_cost": 0,
+          "entrance_tags": [
+            "public_front_door",
+            "counter_access",
+            "restricted_forge"
+          ],
+          "floor_count": 1,
+          "footprint_size": [
+            5.59999990463257,
+            3.0,
+            4.80000019073486
+          ],
+          "landmark_tags": [
+            "anvil_sign",
+            "forge_chimney",
+            "equipment_rack"
+          ],
+          "material_tags": [
+            "stone_hearth",
+            "heavy_timber",
+            "slate_roof",
+            "iron_chimney"
+          ],
+          "owner_npc_definition_ids": [
+            "blacksmith"
+          ],
+          "player_selectable": false,
+          "primary_function": "equipment_forging_repair_and_trade",
+          "private_storage_slots": 0,
+          "public_description": "A stone-and-timber town smithy where Torren forges, repairs, appraises, and sells practical equipment.",
+          "region_id": "base:town",
+          "resident_npc_definition_ids": [],
+          "worker_npc_definition_ids": [
+            "blacksmith"
+          ],
+          "world_position": [
+            5.5,
+            0.0,
+            -12.5
+          ],
+          "yaw_radians": 0.08
+        },
+        "node_id": "building:stillpoint_blacksmith",
         "node_type": "building",
         "source": "world_catalog",
         "visibility": "public"
@@ -4068,6 +5225,37 @@
         "visibility": "public"
       },
       {
+        "label": "Forge Greywake Iron Sword",
+        "metadata": {
+          "building_id": "building:stillpoint_blacksmith",
+          "craft_tags": [
+            "weapon_forging",
+            "ironwork",
+            "one_hand_sword"
+          ],
+          "definition_id": "forge:greywake_iron_sword",
+          "input_items": [
+            {
+              "item_node_id": "item:iron_ore",
+              "quantity": 3
+            },
+            {
+              "item_node_id": "item:training_sword",
+              "quantity": 1
+            }
+          ],
+          "output_item_node_id": "item:forged_iron_sword",
+          "output_quantity": 1,
+          "required_level": 2,
+          "service_fee": 85,
+          "smith_npc_definition_id": "blacksmith"
+        },
+        "node_id": "forge:greywake_iron_sword",
+        "node_type": "forge_recipe",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Bandit Cutlass",
         "metadata": {},
         "node_id": "item:bandit_cutlass",
@@ -4087,6 +5275,46 @@
         "label": "Field Pick",
         "metadata": {},
         "node_id": "item:field_pick",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Greywake Iron Sword",
+        "metadata": {},
+        "node_id": "item:forged_iron_sword",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Iron Bracers",
+        "metadata": {},
+        "node_id": "item:iron_bracers",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Iron Ore",
+        "metadata": {},
+        "node_id": "item:iron_ore",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Padded Vest",
+        "metadata": {},
+        "node_id": "item:padded_vest",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Road Boots",
+        "metadata": {},
+        "node_id": "item:road_boots",
         "node_type": "item",
         "source": "world_catalog",
         "visibility": "public"
@@ -4134,6 +5362,26 @@
         "visibility": "public"
       },
       {
+        "label": "Blacksmith Counter",
+        "metadata": {
+          "contained_by": "building:stillpoint_blacksmith"
+        },
+        "node_id": "location:blacksmith_counter",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Blacksmith Forge",
+        "metadata": {
+          "contained_by": "building:stillpoint_blacksmith"
+        },
+        "node_id": "location:blacksmith_forge",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Farm Rest Spot",
         "metadata": {
           "contained_by": "building:player_farmhouse"
@@ -4157,6 +5405,16 @@
           "contained_by": "building:town_guardhouse"
         },
         "node_id": "location:guardhouse_watch_desk",
+        "node_type": "location",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Home Cash",
+        "metadata": {
+          "contained_by": "building:player_farmhouse"
+        },
+        "node_id": "location:home_cash",
         "node_type": "location",
         "source": "world_catalog",
         "visibility": "public"
@@ -4314,6 +5572,26 @@
         "visibility": "public"
       },
       {
+        "label": "Edda",
+        "metadata": {
+          "definition_id": "bank_clerk"
+        },
+        "node_id": "npc_definition:bank_clerk",
+        "node_type": "npc_definition",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Torren",
+        "metadata": {
+          "definition_id": "blacksmith"
+        },
+        "node_id": "npc_definition:blacksmith",
+        "node_type": "npc_definition",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Dungeon Warden",
         "metadata": {},
         "node_id": "npc_definition:dungeon_warden",
@@ -4368,7 +5646,7 @@
         "metadata": {
           "dungeon_id": "returning_stars_hollow",
           "parent_region_id": "base:wilderness",
-          "parent_world_id": "base:world",
+          "parent_world_id": "base:dungeon_world",
           "region_id": "base:dungeon",
           "region_type": "dungeon"
         },
@@ -4430,6 +5708,207 @@
         },
         "node_id": "region:base:wilderness",
         "node_type": "region",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Bank Accounts",
+        "metadata": {
+          "contained_by": "building:stillpoint_bank"
+        },
+        "node_id": "service:bank_accounts",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Equipment Forging",
+        "metadata": {
+          "contained_by": "building:stillpoint_blacksmith"
+        },
+        "node_id": "service:equipment_forging",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Equipment Repair",
+        "metadata": {
+          "contained_by": "building:stillpoint_blacksmith"
+        },
+        "node_id": "service:equipment_repair",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Managed Capital",
+        "metadata": {
+          "contained_by": "building:stillpoint_bank"
+        },
+        "node_id": "service:managed_capital",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Property Custody",
+        "metadata": {
+          "contained_by": "building:stillpoint_bank"
+        },
+        "node_id": "service:property_custody",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Stillpoint Bank Equipment Counter",
+        "metadata": {
+          "building_id": "building:stillpoint_bank",
+          "buys_from_player": true,
+          "contained_by": "building:stillpoint_bank",
+          "definition_id": "shop:stillpoint_bank_equipment",
+          "public_description": "Edda brokers dependable equipment whose price and provenance are recorded by the bank.",
+          "service_tags": [
+            "equipment_sale",
+            "equipment_purchase",
+            "appraisal"
+          ],
+          "shop_type": "bank_equipment_broker",
+          "shopkeeper_npc_definition_id": "bank_clerk"
+        },
+        "node_id": "shop:stillpoint_bank_equipment",
+        "node_type": "shop",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Stillpoint Smithy Counter",
+        "metadata": {
+          "building_id": "building:stillpoint_blacksmith",
+          "buys_from_player": false,
+          "contained_by": "building:stillpoint_blacksmith",
+          "definition_id": "shop:stillpoint_blacksmith_equipment",
+          "public_description": "Torren sells tools and forged protection from the smithy's public counter.",
+          "service_tags": [
+            "equipment_sale",
+            "material_purchase",
+            "forging"
+          ],
+          "shop_type": "blacksmith_equipment",
+          "shopkeeper_npc_definition_id": "blacksmith"
+        },
+        "node_id": "shop:stillpoint_blacksmith_equipment",
+        "node_type": "shop",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Padded Vest",
+        "metadata": {
+          "availability_tags": [
+            "starter_equipment",
+            "bank_counter"
+          ],
+          "definition_id": "padded_vest",
+          "item_id": "padded_vest",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_bank_equipment",
+          "unit_price": 180
+        },
+        "node_id": "shop_offer:stillpoint_bank_equipment/padded_vest",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Road Boots",
+        "metadata": {
+          "availability_tags": [
+            "travel_equipment",
+            "bank_counter"
+          ],
+          "definition_id": "road_boots",
+          "item_id": "road_boots",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_bank_equipment",
+          "unit_price": 130
+        },
+        "node_id": "shop_offer:stillpoint_bank_equipment/road_boots",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Training Sword",
+        "metadata": {
+          "availability_tags": [
+            "starter_equipment",
+            "bank_counter"
+          ],
+          "definition_id": "training_sword",
+          "item_id": "training_sword",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_bank_equipment",
+          "unit_price": 140
+        },
+        "node_id": "shop_offer:stillpoint_bank_equipment/training_sword",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Field Pick",
+        "metadata": {
+          "availability_tags": [
+            "tool",
+            "smithy_counter"
+          ],
+          "definition_id": "field_pick",
+          "item_id": "field_pick",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 110
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/field_pick",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Iron Bracers",
+        "metadata": {
+          "availability_tags": [
+            "armor",
+            "smithy_counter"
+          ],
+          "definition_id": "iron_bracers",
+          "item_id": "iron_bracers",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 260
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/iron_bracers",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Iron Ore",
+        "metadata": {
+          "availability_tags": [
+            "material",
+            "smithy_counter",
+            "forging"
+          ],
+          "definition_id": "iron_ore",
+          "item_id": "iron_ore",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 18
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/iron_ore",
+        "node_type": "shop_offer",
         "source": "world_catalog",
         "visibility": "public"
       },

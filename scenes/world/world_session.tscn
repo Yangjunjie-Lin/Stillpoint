@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://worldsession001"]
+[gd_scene load_steps=32 format=3 uid="uid://worldsession001"]
 
 [ext_resource type="Script" path="res://scripts/world/session/world_session.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
@@ -29,6 +29,7 @@
 [ext_resource type="Script" path="res://scripts/economy/property_bank_service.gd" id="27"]
 [ext_resource type="PackedScene" path="res://scenes/ui/rpg/property_storage_menu.tscn" id="28"]
 [ext_resource type="Script" path="res://scripts/world/services/hidden_encounter_service.gd" id="29"]
+[ext_resource type="PackedScene" path="res://scenes/ui/rpg/commerce_menu.tscn" id="30"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_companion"]
 radius = 0.4
@@ -199,6 +200,8 @@ text = ""
 text = "Quest: --"
 
 [node name="PropertyStorageMenu" parent="WorldUI" instance=ExtResource("28")]
+
+[node name="CommerceMenu" parent="WorldUI" instance=ExtResource("30")]
 
 [node name="DialoguePanel" type="PanelContainer" parent="WorldUI"]
 visible = false

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/field_pick.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"iron_ore"
+display_name = "Iron Ore"
+item_type = 3
+max_stack = 40
+description = "Dense raw ore mined from Greywake stone and traded to the town smithy."
+icon = ExtResource("2")
+buy_price = 18
+sell_price = 7
+visual_archetype = &"score_token"
+visual_primary_color = Color(0.25, 0.29, 0.31, 1)
+visual_secondary_color = Color(0.58, 0.61, 0.63, 1)

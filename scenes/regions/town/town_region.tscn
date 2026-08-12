@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/characters/npc_controller.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/npcs/mira.tres" id="2"]
@@ -27,6 +27,10 @@
 [ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="25"]
 [ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="26"]
 [ext_resource type="Script" path="res://scripts/interaction/property_storage_interactable_3d.gd" id="27"]
+[ext_resource type="Script" path="res://scripts/world/spawning/entity_spawn_marker.gd" id="28"]
+[ext_resource type="Resource" path="res://content/base/spawns/bank_clerk.tres" id="29"]
+[ext_resource type="Resource" path="res://content/base/spawns/blacksmith.tres" id="30"]
+[ext_resource type="Script" path="res://scripts/interaction/commerce_interactable_3d.gd" id="31"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -104,6 +108,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.0, -3)
 position = Vector3(15, 1.2, 0)
 
 [node name="EntitySpawns" type="Node3D" parent="."]
+
+[node name="BankClerkSpawn" type="Marker3D" parent="EntitySpawns"]
+position = Vector3(-9.5, 1, -4.9)
+script = ExtResource("28")
+spawn_definition = ExtResource("29")
+
+[node name="BlacksmithSpawn" type="Marker3D" parent="EntitySpawns"]
+position = Vector3(6.5, 1, -9.3)
+rotation = Vector3(0, 3.1415927, 0)
+script = ExtResource("28")
+spawn_definition = ExtResource("30")
 
 [node name="StaticEntities" type="Node3D" parent="."]
 
@@ -282,19 +297,6 @@ rotation = Vector3(1.5708, 0, 0)
 mesh = SubResource("TorusMesh_portal")
 surface_material_override/0 = SubResource("Mat_portal_wilderness")
 
-[node name="DungeonPortal" type="Node3D" parent="Interactables"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
-script = ExtResource("19")
-region_id = &"base:town"
-target_region_id = &"base:dungeon"
-prompt_text = "Enter Mine"
-
-[node name="PortalVisual" type="MeshInstance3D" parent="Interactables/DungeonPortal"]
-position = Vector3(0, 1.1, 0)
-rotation = Vector3(1.5708, 0, 0)
-mesh = SubResource("TorusMesh_portal")
-surface_material_override/0 = SubResource("Mat_portal_dungeon")
-
 [node name="Chest" type="Node3D" parent="Interactables"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -3)
 script = ExtResource("20")
@@ -329,6 +331,25 @@ script = ExtResource("27")
 region_id = &"base:town"
 storage_mode = "bank"
 prompt_text = "Use bank, vault, and property services"
+
+[node name="BankEquipmentCounter" type="Node3D" parent="Interactables"]
+position = Vector3(-14.6, 0, -4.9)
+script = ExtResource("31")
+region_id = &"base:town"
+shop_id = &"shop:stillpoint_bank_equipment"
+prompt_text = "Trade appraised equipment with Edda"
+counter_style = &"bank"
+metadata/ontology_id = "shop:stillpoint_bank_equipment"
+
+[node name="BlacksmithCounter" type="Node3D" parent="Interactables"]
+position = Vector3(5.5, 0, -9.1)
+script = ExtResource("31")
+region_id = &"base:town"
+shop_id = &"shop:stillpoint_blacksmith_equipment"
+forge_recipe_ids = Array[StringName]([&"forge:greywake_iron_sword"])
+prompt_text = "Trade equipment or forge with Torren"
+counter_style = &"forge"
+metadata/ontology_id = "shop:stillpoint_blacksmith_equipment"
 
 [node name="PetInteract" type="Node3D" parent="Interactables"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, -1)

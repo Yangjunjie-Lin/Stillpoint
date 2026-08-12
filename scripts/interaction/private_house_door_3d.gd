@@ -39,7 +39,7 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 			"The residence was reclaimed after prolonged absence. Your compensation and belongings are held at Stillpoint Bank."
 		)
 		return
-	_session.transition_to(target_region_id, target_spawn_id)
+	_session.travel_via_door(target_region_id, target_spawn_id)
 
 
 func _find_session() -> WorldSession:

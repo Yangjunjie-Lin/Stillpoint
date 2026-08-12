@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="ShopDefinition" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/shop_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/shop_offer_definition.gd" id="2"]
+
+[sub_resource type="Resource" id="OfferTrainingSword"]
+script = ExtResource("2")
+id = &"training_sword"
+item_id = &"training_sword"
+quantity_per_purchase = 1
+availability_tags = Array[StringName]([&"starter_equipment", &"bank_counter"])
+
+[sub_resource type="Resource" id="OfferPaddedVest"]
+script = ExtResource("2")
+id = &"padded_vest"
+item_id = &"padded_vest"
+quantity_per_purchase = 1
+availability_tags = Array[StringName]([&"starter_equipment", &"bank_counter"])
+
+[sub_resource type="Resource" id="OfferRoadBoots"]
+script = ExtResource("2")
+id = &"road_boots"
+item_id = &"road_boots"
+quantity_per_purchase = 1
+availability_tags = Array[StringName]([&"travel_equipment", &"bank_counter"])
+
+[resource]
+script = ExtResource("1")
+id = &"shop:stillpoint_bank_equipment"
+display_name = "Stillpoint Bank Equipment Counter"
+shop_type = &"bank_equipment_broker"
+building_id = &"building:stillpoint_bank"
+shopkeeper_npc_definition_id = &"bank_clerk"
+public_description = "Edda brokers dependable equipment whose price and provenance are recorded by the bank."
+offers = Array[ShopOfferDefinition]([SubResource("OfferTrainingSword"), SubResource("OfferPaddedVest"), SubResource("OfferRoadBoots")])
+service_tags = Array[StringName]([&"equipment_sale", &"equipment_purchase", &"appraisal"])
+buys_from_player = true

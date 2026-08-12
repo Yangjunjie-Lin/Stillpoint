@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/dialogue_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_node.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_choice.gd" id="3"]
+
+[sub_resource type="Resource" id="ChoiceAccounts"]
+script = ExtResource("3")
+text = "What can I do with my account?"
+next_node_id = &"accounts"
+
+[sub_resource type="Resource" id="ChoiceEquipment"]
+script = ExtResource("3")
+text = "Do you sell equipment?"
+next_node_id = &"equipment"
+
+[sub_resource type="Resource" id="ChoiceInvestment"]
+script = ExtResource("3")
+text = "How does managed capital work?"
+next_node_id = &"investment"
+
+[sub_resource type="Resource" id="Start"]
+script = ExtResource("2")
+id = &"start"
+speaker = "Edda"
+lines = PackedStringArray("Welcome to Stillpoint Bank. I can help with accounts, managed capital, secure custody, property records, and our inspected equipment listings.")
+choices = Array[ExtResource("3")]([SubResource("ChoiceAccounts"), SubResource("ChoiceInvestment"), SubResource("ChoiceEquipment")])
+
+[sub_resource type="Resource" id="Accounts"]
+script = ExtResource("2")
+id = &"accounts"
+speaker = "Edda"
+lines = PackedStringArray("You may deposit or withdraw coin at the counter. The private vault also holds property goods placed in our custody.")
+
+[sub_resource type="Resource" id="Equipment"]
+script = ExtResource("2")
+id = &"equipment"
+speaker = "Edda"
+lines = PackedStringArray("We broker inspected equipment with clear prices. For custom work or repairs, speak with Torren at the town forge.")
+
+[sub_resource type="Resource" id="Investment"]
+script = ExtResource("2")
+id = &"investment"
+speaker = "Edda"
+lines = PackedStringArray("You may move banked coin into managed capital. It currently accrues half of one percent per in-game day, rounded down to whole coin; principal and earned coin remain separate until you withdraw or claim them.")
+
+[resource]
+script = ExtResource("1")
+id = &"bank_clerk_intro"
+nodes = Array[ExtResource("2")]([SubResource("Start"), SubResource("Accounts"), SubResource("Investment"), SubResource("Equipment")])
+start_node_id = &"start"

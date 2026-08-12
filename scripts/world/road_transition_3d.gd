@@ -52,7 +52,8 @@ func _cross_road(player: PlayerController3D) -> void:
 		_transitioning = false
 		return
 	EventBus.notice_requested.emit("Travelling via %s..." % route_label)
-	session.transition_to(target_region_id, target_spawn_id, false)
+	if not session.travel_via_road(target_region_id, target_spawn_id):
+		_transitioning = false
 
 
 func _find_session() -> WorldSession:

@@ -2,8 +2,19 @@ extends RefCounted
 
 func run() -> bool:
 	var npcs := ResourceRegistry.get_all_npcs()
-	if npcs.is_empty():
-		push_error("no NPC definitions registered")
+	var expected: Array[StringName] = [
+		&"bandit",
+		&"bank_clerk",
+		&"blacksmith",
+		&"dungeon_warden",
+		&"fallen_star_warden",
+		&"lantern_widow",
+		&"mira",
+		&"mossjaw",
+		&"ren",
+	]
+	if ResourceRegistry.get_all_npc_ids() != expected:
+		push_error("NPC definition catalog does not match the nine authored profiles")
 		return false
 	var seen := {}
 	for npc in npcs:

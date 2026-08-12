@@ -9,8 +9,6 @@ func run() -> bool:
 	var route := [
 		{"position": Vector3(19, 1.2, 0), "target": &"base:farmland"},
 		{"position": Vector3(19, 1.2, 0), "target": &"base:wilderness"},
-		{"position": Vector3(0, 1.2, 19), "target": &"base:dungeon"},
-		{"position": Vector3(0, 1.2, 19), "target": &"base:wilderness"},
 		{"position": Vector3(-19, 1.2, 0), "target": &"base:farmland"},
 		{"position": Vector3(-19, 1.2, 0), "target": &"base:town"},
 	]
@@ -29,6 +27,13 @@ func run() -> bool:
 				String(world.current_region_id),
 			]
 			break
+	# Crossing the former mine-road boundary must not bypass Warden Aster.
+	if ok:
+		world.transition_to(&"base:wilderness")
+		await WorldTestHelper.await_frames(tree, 3)
+		world.player.global_position = Vector3(0, 1.2, 19)
+		await WorldTestHelper.await_frames(tree, 5)
+		ok = world.current_region_id == &"base:wilderness"
 	world.free()
 	if not ok:
 		push_error("connected overworld roads failed: %s" % failure)

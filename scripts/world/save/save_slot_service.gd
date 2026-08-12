@@ -252,11 +252,20 @@ func _is_valid_global_world_section(value: Variant) -> bool:
 		if not _is_finite_number(property_version):
 			return false
 		var version_number := float(property_version)
-		if version_number < 0.0 or version_number > 1.0 or version_number != floorf(version_number):
+		if version_number < 0.0 or version_number > 2.0 or version_number != floorf(version_number):
 			return false
+		if int(version_number) >= 2:
+			for required_money_field in [
+				"home_cash_balance", "investment_principal",
+				"investment_earnings", "last_interest_day",
+			]:
+				if not property_data.has(required_money_field):
+					return false
 		for money_field in [
 			"wallet_balance", "bank_balance", "last_compensation",
 			"last_seen_unix", "repossession_count", "offline_reclaim_seconds",
+			"home_cash_balance", "investment_principal",
+			"investment_earnings", "last_interest_day",
 		]:
 			if property_data.has(money_field):
 				var amount: Variant = property_data.get(money_field)

@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="DialogueDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/dialogue_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_node.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/dialogue_choice.gd" id="3"]
+
+[sub_resource type="Resource" id="ChoiceForge"]
+script = ExtResource("3")
+text = "Can you forge equipment for me?"
+next_node_id = &"forge"
+
+[sub_resource type="Resource" id="ChoiceTrade"]
+script = ExtResource("3")
+text = "What equipment do you trade?"
+next_node_id = &"trade"
+
+[sub_resource type="Resource" id="Start"]
+script = ExtResource("2")
+id = &"start"
+speaker = "Torren"
+lines = PackedStringArray("Mind the sparks. I forge, repair, and appraise working equipment at this hearth.")
+choices = Array[ExtResource("3")]([SubResource("ChoiceForge"), SubResource("ChoiceTrade")])
+
+[sub_resource type="Resource" id="Forge"]
+script = ExtResource("2")
+id = &"forge"
+speaker = "Torren"
+lines = PackedStringArray("Bring the required material and coin. I will quote the work before steel touches the forge.")
+
+[sub_resource type="Resource" id="Trade"]
+script = ExtResource("2")
+id = &"trade"
+speaker = "Torren"
+lines = PackedStringArray("The counter carries practical arms, tools, and protective gear. I will not promise a fit until I have examined the piece.")
+
+[resource]
+script = ExtResource("1")
+id = &"blacksmith_intro"
+nodes = Array[ExtResource("2")]([SubResource("Start"), SubResource("Forge"), SubResource("Trade")])
+start_node_id = &"start"

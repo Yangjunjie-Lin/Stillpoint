@@ -134,8 +134,9 @@ spawn_definition = ExtResource("16")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("1")
 region_id = &"base:dungeon"
-target_region_id = &"base:town"
-prompt_text = "Return to Town"
+target_region_id = &"base:wilderness"
+target_spawn_id = &"from_dungeon"
+prompt_text = "Return to Warden's Threshold"
 
 [node name="PortalVisual" type="MeshInstance3D" parent="Interactables/TownPortal"]
 position = Vector3(0, 1.1, 0)
@@ -271,14 +272,6 @@ persistent_id = &"base:dungeon/loot/fallen_star_warden_0001"
 definition_id = &"dungeon_boss_drop"
 region_id = &"base:dungeon"
 persistence_policy = 2
-
-[node name="WildernessRoad" type="Area3D" parent="."]
-position = Vector3(0, 0, 19)
-script = ExtResource("6")
-region_id = &"base:dungeon"
-target_region_id = &"base:wilderness"
-target_spawn_id = &"from_dungeon"
-route_label = "Mine Road to the Wilderness"
 
 [node name="FallenStarLessonZone" type="Area3D" parent="."]
 position = Vector3(0, 0.5, -15)

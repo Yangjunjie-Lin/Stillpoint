@@ -8,6 +8,8 @@ var _origins: Dictionary = {}
 var _professions: Dictionary = {}
 var _skills: Dictionary = {}
 var _items: Dictionary = {}
+var _shops: Dictionary = {}
+var _forge_recipes: Dictionary = {}
 var _dialogues: Dictionary = {}
 var _quests: Dictionary = {}
 var _regions: Dictionary = {}
@@ -63,6 +65,14 @@ func register_encounter(def: EncounterDefinition) -> void:
 
 func register_item(def: ItemDefinition) -> void:
 	_put(_items, def.id if def else &"", def, "item")
+
+
+func register_shop(def: ShopDefinition) -> void:
+	_put(_shops, def.id if def else &"", def, "shop")
+
+
+func register_forge_recipe(def: ForgeRecipeDefinition) -> void:
+	_put(_forge_recipes, def.id if def else &"", def, "forge recipe")
 
 
 func register_dialogue(def: DialogueDefinition) -> void:
@@ -281,6 +291,32 @@ func get_all_dungeons() -> Array[DungeonDefinition]:
 	return result
 
 
+func get_shop(id: StringName) -> ShopDefinition:
+	return _shops.get(id) as ShopDefinition
+
+
+func get_all_shops() -> Array[ShopDefinition]:
+	var result: Array[ShopDefinition] = []
+	for id in _sorted_keys(_shops):
+		var definition := _shops[id] as ShopDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_forge_recipe(id: StringName) -> ForgeRecipeDefinition:
+	return _forge_recipes.get(id) as ForgeRecipeDefinition
+
+
+func get_all_forge_recipes() -> Array[ForgeRecipeDefinition]:
+	var result: Array[ForgeRecipeDefinition] = []
+	for id in _sorted_keys(_forge_recipes):
+		var definition := _forge_recipes[id] as ForgeRecipeDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
 func get_all_regions() -> Array[RegionDefinition]:
 	var result: Array[RegionDefinition] = []
 	var seen: Dictionary = {}
@@ -406,6 +442,8 @@ func load_defaults() -> void:
 	_register_dir("res://resources/professions/", register_profession)
 	_register_dir("res://resources/skills/", register_skill)
 	_register_dir("res://resources/items/", register_item, true)
+	_register_dir("res://resources/shops/", register_shop, true)
+	_register_dir("res://resources/forge_recipes/", register_forge_recipe, true)
 	_register_dir("res://resources/dialogues/", register_dialogue)
 	_register_dir("res://resources/quests/", register_quest)
 	_register_dir("res://resources/regions/", register_region)
@@ -433,6 +471,8 @@ func clear_all() -> void:
 	_professions.clear()
 	_skills.clear()
 	_items.clear()
+	_shops.clear()
+	_forge_recipes.clear()
 	_dialogues.clear()
 	_quests.clear()
 	_regions.clear()
@@ -461,6 +501,8 @@ func clear_test_registrations() -> void:
 		"professions": _professions,
 		"skills": _skills,
 		"items": _items,
+		"shops": _shops,
+		"forge_recipes": _forge_recipes,
 		"dialogues": _dialogues,
 		"quests": _quests,
 		"regions": _regions,
@@ -494,6 +536,8 @@ func _capture_default_keys() -> void:
 		"professions": _professions.duplicate(false),
 		"skills": _skills.duplicate(false),
 		"items": _items.duplicate(false),
+		"shops": _shops.duplicate(false),
+		"forge_recipes": _forge_recipes.duplicate(false),
 		"dialogues": _dialogues.duplicate(false),
 		"quests": _quests.duplicate(false),
 		"regions": _regions.duplicate(false),

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ForgeRecipeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/forge_recipe_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"forge:greywake_iron_sword"
+display_name = "Forge Greywake Iron Sword"
+building_id = &"building:stillpoint_blacksmith"
+smith_npc_definition_id = &"blacksmith"
+ingredients = {&"iron_ore": 3, &"training_sword": 1}
+output_item_id = &"forged_iron_sword"
+output_quantity = 1
+service_fee = 85
+required_level = 2
+craft_tags = Array[StringName]([&"weapon_forging", &"ironwork", &"one_hand_sword"])

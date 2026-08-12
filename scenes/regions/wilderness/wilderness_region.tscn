@@ -77,7 +77,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 position = Vector3(-15, 1.2, 0)
 
 [node name="from_dungeon" type="Marker3D" parent="SpawnPoints"]
-position = Vector3(0, 1.2, 15)
+position = Vector3(0, 1.2, 13.5)
 
 [node name="EntitySpawns" type="Node3D" parent="."]
 
@@ -151,14 +151,6 @@ region_id = &"base:wilderness"
 target_region_id = &"base:farmland"
 target_spawn_id = &"from_wilderness"
 route_label = "West Road to the Farmland"
-
-[node name="DungeonRoad" type="Area3D" parent="."]
-position = Vector3(0, 0, 19)
-script = ExtResource("5")
-region_id = &"base:wilderness"
-target_region_id = &"base:dungeon"
-target_spawn_id = &"from_wilderness"
-route_label = "South Mine Road"
 
 [node name="MoonleafHushZone" type="Area3D" parent="."]
 position = Vector3(12, 0.5, -13)

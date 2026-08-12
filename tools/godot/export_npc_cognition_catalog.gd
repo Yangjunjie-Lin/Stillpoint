@@ -51,7 +51,7 @@ func _export_catalog() -> void:
 		quit(1)
 		return
 	var payload := {
-		"catalog_version": 4,
+		"catalog_version": 5,
 		"game_version": "0.8.0",
 		"npc_count": profiles.size(),
 		"npcs": profiles,
@@ -266,6 +266,127 @@ func _build_world_ontology(registry: Node, errors: Array[String]) -> Dictionary:
 		for linked_id: String in data.get("linked_location_ids", []):
 			_add_world_node(nodes, linked_id, _node_type(linked_id), _label_for_node(linked_id), {})
 			_add_world_edge(edges, house_id, "RELATED_TO", linked_id, house_id)
+	for shop: Variant in registry.call("get_all_shops"):
+		if not bool(shop.call("is_valid")):
+			errors.append("Invalid shop definition '%s'" % String(shop.get("id")))
+			continue
+		var data := shop.call("to_catalog_dict") as Dictionary
+		var shop_node := String(data.get("node_id", ""))
+		var building_node := String(data.get("building_node_id", ""))
+		var shopkeeper_id := String(data.get("shopkeeper_npc_definition_id", ""))
+		var shopkeeper_node := "npc_definition:%s" % shopkeeper_id
+		var building: Variant = registry.call("get_house", StringName(building_node))
+		if building == null:
+			errors.append("Shop '%s' references unknown building '%s'" % [shop_node, building_node])
+			continue
+		_add_world_node(
+			nodes,
+			shop_node,
+			"shop",
+			String(data.get("label", shop_node)),
+			data.get("metadata", {}) as Dictionary,
+		)
+		_add_world_node(nodes, building_node, "building", String(building.get("display_name")), {})
+		_add_world_edge(edges, shop_node, "LOCATED_IN", building_node, shop_node)
+		if not shopkeeper_id.is_empty():
+			var shopkeeper: Variant = registry.call("get_npc", StringName(shopkeeper_id))
+			if shopkeeper == null:
+				errors.append("Shop '%s' references unknown shopkeeper '%s'" % [shop_node, shopkeeper_id])
+			else:
+				_add_world_node(
+					nodes,
+					shopkeeper_node,
+					"npc_definition",
+					String(shopkeeper.get("display_name")),
+					{"definition_id": shopkeeper_id},
+				)
+				_add_world_edge(edges, shop_node, "OPERATED_BY", shopkeeper_node, shop_node)
+		for offer_data: Dictionary in data.get("offers", []):
+			var offer_node := String(offer_data.get("node_id", ""))
+			var item_node := String(offer_data.get("item_node_id", ""))
+			var offer_metadata := offer_data.get("metadata", {}) as Dictionary
+			var item_id := String(offer_metadata.get("item_id", ""))
+			var item: Variant = registry.call("get_item", StringName(item_id))
+			if item == null:
+				errors.append("Shop '%s' offer '%s' references unknown item '%s'" % [
+					shop_node, offer_node, item_id,
+				])
+				continue
+			_add_world_node(
+				nodes,
+				offer_node,
+				"shop_offer",
+				String(item.get("display_name")),
+				offer_metadata,
+			)
+			_add_world_node(nodes, item_node, "item", String(item.get("display_name")), {})
+			_add_world_edge(edges, shop_node, "OFFERS", offer_node, shop_node)
+			_add_world_edge(edges, offer_node, "SELLS", item_node, shop_node)
+			_add_world_edge(edges, shop_node, "SELLS", item_node, shop_node)
+	for recipe: Variant in registry.call("get_all_forge_recipes"):
+		if not bool(recipe.call("is_valid")):
+			errors.append("Invalid forge recipe '%s'" % String(recipe.get("id")))
+			continue
+		var data := recipe.call("to_catalog_dict") as Dictionary
+		var recipe_node := String(data.get("node_id", ""))
+		var building_node := String(data.get("building_node_id", ""))
+		var smith_id := String(data.get("smith_npc_definition_id", ""))
+		var smith_node := "npc_definition:%s" % smith_id
+		var building: Variant = registry.call("get_house", StringName(building_node))
+		var smith: Variant = registry.call("get_npc", StringName(smith_id))
+		if building == null:
+			errors.append("Forge recipe '%s' references unknown building '%s'" % [recipe_node, building_node])
+			continue
+		if smith == null:
+			errors.append("Forge recipe '%s' references unknown smith '%s'" % [recipe_node, smith_id])
+			continue
+		var recipe_metadata := (data.get("metadata", {}) as Dictionary).duplicate(true)
+		recipe_metadata["input_items"] = data.get("input_items", [])
+		recipe_metadata["output_item_node_id"] = data.get("output_item_node_id", "")
+		_add_world_node(
+			nodes,
+			recipe_node,
+			"forge_recipe",
+			String(data.get("label", recipe_node)),
+			recipe_metadata,
+		)
+		_add_world_node(nodes, building_node, "building", String(building.get("display_name")), {})
+		_add_world_node(
+			nodes,
+			smith_node,
+			"npc_definition",
+			String(smith.get("display_name")),
+			{"definition_id": smith_id},
+		)
+		_add_world_edge(edges, recipe_node, "AVAILABLE_AT", building_node, recipe_node)
+		_add_world_edge(edges, recipe_node, "PERFORMED_BY", smith_node, recipe_node)
+		for input_data: Dictionary in data.get("input_items", []):
+			var item_node := String(input_data.get("item_node_id", ""))
+			var item_id := item_node.trim_prefix("item:")
+			var item: Variant = registry.call("get_item", StringName(item_id))
+			if item == null:
+				errors.append("Forge recipe '%s' references unknown material '%s'" % [
+					recipe_node, item_id,
+				])
+				continue
+			_add_world_node(nodes, item_node, "item", String(item.get("display_name")), {})
+			_add_world_edge(edges, recipe_node, "REQUIRES_MATERIAL", item_node, recipe_node)
+		var output_item_node := String(data.get("output_item_node_id", ""))
+		var output_item_id := output_item_node.trim_prefix("item:")
+		var output_item: Variant = registry.call("get_item", StringName(output_item_id))
+		if output_item == null:
+			errors.append("Forge recipe '%s' references unknown output '%s'" % [
+				recipe_node, output_item_id,
+			])
+		else:
+			_add_world_node(
+				nodes,
+				output_item_node,
+				"item",
+				String(output_item.get("display_name")),
+				{},
+			)
+			_add_world_edge(edges, recipe_node, "PRODUCES", output_item_node, recipe_node)
 	for container: Variant in registry.call("get_all_containers"):
 		if not bool(container.call("is_valid")):
 			errors.append("Invalid container definition '%s'" % String(container.get("id")))
@@ -431,7 +552,12 @@ func _edge_key(edge: Dictionary) -> String:
 
 func _node_type(node_id: String) -> String:
 	var prefix := node_id.get_slice(":", 0)
-	if prefix in ["region", "location", "item", "quest", "concept", "building", "container", "crop"]:
+	if prefix == "forge":
+		return "forge_recipe"
+	if prefix in [
+		"region", "location", "item", "quest", "concept", "building", "container",
+		"crop", "shop", "shop_offer",
+	]:
 		return prefix
 	return "concept"
 

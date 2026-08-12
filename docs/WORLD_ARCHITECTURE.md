@@ -1,6 +1,6 @@
-# World Architecture (Stillpoint 0.7.1)
+# World Architecture (Stillpoint 0.8.0)
 
-Stillpoint 0.7.1 retains the 0.7 **World Session** and dedicated **World Services** architecture. This release only hardens runtime persistence and test reliability.
+Stillpoint 0.8.0 retains the dedicated **World Session** and **World Services** architecture while adding connected overworld travel, guarded dungeon entry, private housing, banking, equipment commerce, and forging.
 
 ## WorldSession
 
@@ -33,6 +33,8 @@ WorldSession
 | `SaveSlotService` | Filesystem save-slot queries (no session required) |
 | `WorldSimulationService` | Virtual simulation hook for unloaded entities |
 | `WorldFlagService` | Namespaced world flags |
+| `DungeonProgressionService` | Guarded dungeon entry, depth levels, rewards, and timed boss returns |
+| `PropertyBankService` | Wallet, bank, home cash, managed capital, deeds, and custodial storage |
 
 `WorldSessionContext` does not cache the region selected at construction. `get_current_region_id()` resolves the live `RegionRuntimeService` value (or the session fallback) on every read. `RegionCondition` uses that world location; `EventMatchCondition` deliberately uses the immutable region recorded on its `GameplayEvent`.
 
@@ -71,6 +73,10 @@ An unloaded-region `SpawnEntityEffect` first validates its actor definition, the
 
 Regions are independent scenes under `scenes/regions/`. Only the active region is loaded in `ActiveRegionSlot`. Leaving a region captures its chunk and marks it dirty before the scene is freed.
 
+The main world is one connected topology streamed as three regions: Stillpoint Town ↔ Farmland ↔ Greywake Wilds. The private residence is reached through the authored farmhouse door. The Hollow of Returning Stars is a separate dungeon map: ordinary roads and portals cannot enter it, and Warden Aster's threshold dialogue applies the level gate before travel. Its exit returns only to that wilderness threshold.
+
+Stillpoint Bank and Stillpoint Smithy are authored building entities. Their clerks, counters, shops, offers, forge recipes, materials, and products are catalogued as ontology nodes and relations. Mutable player balances and holdings remain private runtime/save state and are never exported as public world facts.
+
 Known regions come from `ResourceRegistry.get_all_regions()`, discovered regions, and manifest chunk maps — not a hard-coded three-map list.
 
 ## Quests & Dialogue
@@ -97,8 +103,9 @@ See `docs/SAVE_V4_GUIDE.md`. Main Menu uses `SaveSlotService` to validate Advent
 - Seamless open-world streaming / adjacent region preload
 - Full offline ecosystem / virtual combat simulation
 - Cloud saves / multiplayer / threaded writers
-- Weather and a full market/trading economy (the implemented vertical slices
-  cover farming, private housing, household storage, and bank custody only)
+- Weather and a simulated supply/demand market (the implemented commerce slice
+  covers fixed-price equipment trade, forging, home cash, bank custody, and
+  managed capital)
 
 Do not claim these are complete in README marketing text.
 

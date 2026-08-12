@@ -10,6 +10,9 @@ extends Control
 @onready var storage_list: ItemList = %StorageList
 @onready var status_label: Label = %Status
 @onready var money_controls: Control = %MoneyControls
+@onready var home_cash_controls: Control = %HomeCashControls
+@onready var investment_controls: Control = %InvestmentControls
+@onready var investment_summary: Label = %InvestmentSummary
 @onready var property_controls: Control = %PropertyControls
 @onready var plans_container: VBoxContainer = %PlansContainer
 @onready var buyback_button: Button = %BuybackButton
@@ -87,13 +90,31 @@ func _refresh() -> void:
 	var at_home := _mode == PropertyBankService.HOME_STORAGE_MODE
 	title_label.text = "Private Home Storage" if at_home else "Stillpoint Bank & Property Office"
 	storage_label.text = "HOME STORE" if at_home else "PRIVATE BANK VAULT"
-	account_label.text = "Wallet: %d coin    Bank: %d coin    Total: %d" % [
-		_service.wallet_balance,
-		_service.bank_balance,
-		_service.get_total_funds(),
-	]
+	if at_home:
+		account_label.text = "Wallet: %d coin    Home cash: %d coin    Total assets: %d" % [
+			_service.wallet_balance,
+			_service.home_cash_balance,
+			_service.get_total_assets(),
+		]
+	else:
+		account_label.text = (
+			"Wallet: %d    Bank: %d    Invested: %d    Earnings: %d    Total assets: %d"
+			% [
+				_service.wallet_balance,
+				_service.bank_balance,
+				_service.investment_principal,
+				_service.investment_earnings,
+				_service.get_total_assets(),
+			]
+		)
+		investment_summary.text = (
+			"Managed funds earn 0.5%% per game day. Current daily yield: %d coin."
+			% _service.get_daily_investment_yield()
+		)
 	property_label.text = _service.get_status_summary()
 	money_controls.visible = not at_home
+	home_cash_controls.visible = at_home
+	investment_controls.visible = not at_home
 	property_controls.visible = not at_home
 	_populate_list(backpack_list, _player.inventory)
 	_populate_list(storage_list, _service.get_storage(_mode))
@@ -188,6 +209,60 @@ func _on_withdraw_100_pressed() -> void:
 func _on_withdraw_all_pressed() -> void:
 	var moved := _service.withdraw(_service.bank_balance)
 	status_label.text = "Withdrew %d coin." % moved
+	_refresh()
+
+
+func _on_home_deposit_100_pressed() -> void:
+	var moved := _service.transfer_wallet_to_home_cash(100)
+	status_label.text = "Stored %d coin at home." % moved
+	_refresh()
+
+
+func _on_home_deposit_all_pressed() -> void:
+	var moved := _service.transfer_wallet_to_home_cash(_service.wallet_balance)
+	status_label.text = "Stored %d coin at home." % moved
+	_refresh()
+
+
+func _on_home_withdraw_100_pressed() -> void:
+	var moved := _service.transfer_home_cash_to_wallet(100)
+	status_label.text = "Moved %d home coin to your wallet." % moved
+	_refresh()
+
+
+func _on_home_withdraw_all_pressed() -> void:
+	var moved := _service.transfer_home_cash_to_wallet(_service.home_cash_balance)
+	status_label.text = "Moved %d home coin to your wallet." % moved
+	_refresh()
+
+
+func _on_invest_100_pressed() -> void:
+	var moved := _service.transfer_bank_to_investment(100)
+	status_label.text = "Placed %d coin under management." % moved
+	_refresh()
+
+
+func _on_invest_all_pressed() -> void:
+	var moved := _service.transfer_bank_to_investment(_service.bank_balance)
+	status_label.text = "Placed %d coin under management." % moved
+	_refresh()
+
+
+func _on_redeem_100_pressed() -> void:
+	var moved := _service.transfer_investment_to_bank(100)
+	status_label.text = "Redeemed %d coin to your bank balance." % moved
+	_refresh()
+
+
+func _on_redeem_all_pressed() -> void:
+	var moved := _service.transfer_investment_to_bank(_service.investment_principal)
+	status_label.text = "Redeemed %d coin to your bank balance." % moved
+	_refresh()
+
+
+func _on_claim_earnings_pressed() -> void:
+	var moved := _service.claim_investment_earnings()
+	status_label.text = "Claimed %d coin of earnings to your bank balance." % moved
 	_refresh()
 
 

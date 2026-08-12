@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/training_sword.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"forged_iron_sword"
+display_name = "Greywake Iron Sword"
+item_type = 2
+max_stack = 1
+description = "A practical iron blade reforged by Torren from ore and a balanced training sword."
+icon = ExtResource("2")
+buy_price = 420
+sell_price = 165
+equip_slot = 1
+attack_bonus = 9.0
+equipment_weight = 6.5
+required_strength = 7
+required_vitality = 5
+rarity = &"uncommon"
+minimum_level = 2
+visual_archetype = &"one_hand_sword"
+hand_form = &"one_hand_sword"
+visual_primary_color = Color(0.25, 0.19, 0.13, 1)
+visual_secondary_color = Color(0.68, 0.72, 0.74, 1)

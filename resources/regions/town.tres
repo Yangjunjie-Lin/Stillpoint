@@ -10,6 +10,6 @@ display_name = "Stillpoint Town"
 region_type = &"town"
 parent_world_id = &"base:world"
 connected_region_ids = Array[StringName]([&"base:farmland"])
-portal_region_ids = Array[StringName]([&"base:wilderness", &"base:dungeon"])
+portal_region_ids = Array[StringName]([&"base:wilderness"])
 default_spawn_id = &"spawn"
 scene = ExtResource("2")

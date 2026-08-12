@@ -65,6 +65,9 @@ enum InventoryCategory {
 @export var max_stack: int = 99
 @export var description: String = ""
 @export var icon: Texture2D
+@export_group("Commerce")
+@export_range(0, 1000000, 1) var buy_price: int = 0
+@export_range(0, 1000000, 1) var sell_price: int = 0
 @export_group("RPG Inventory")
 @export var equip_slot: EquipSlot = EquipSlot.NONE
 @export var alternate_equip_slots: Array[EquipSlot] = []
@@ -173,6 +176,40 @@ func resolved_inventory_category() -> int:
 
 func matches_inventory_category(category: int) -> bool:
 	return category == InventoryCategory.ALL or category == resolved_inventory_category()
+
+
+func ontology_node_id() -> StringName:
+	var raw := String(id)
+	return id if raw.begins_with("item:") else StringName("item:%s" % raw)
+
+
+func catalog_metadata() -> Dictionary:
+	return {
+		"definition_id": String(id),
+		"description": description,
+		"item_type": item_type,
+		"inventory_category": resolved_inventory_category(),
+		"max_stack": max_stack,
+		"buy_price": buy_price,
+		"sell_price": sell_price,
+		"rarity": String(rarity),
+		"minimum_level": minimum_level,
+		"equip_slot": equip_slot,
+		"equipment_class": equipment_class,
+		"equipment_weight": equipment_weight,
+		"required_strength": required_strength,
+		"required_vitality": required_vitality,
+		"visual_archetype": String(resolved_visual_archetype()),
+	}
+
+
+func to_catalog_dict() -> Dictionary:
+	return {
+		"node_id": String(ontology_node_id()),
+		"node_type": "item",
+		"label": display_name,
+		"metadata": catalog_metadata(),
+	}
 
 
 func supports_utility_action(action_id: StringName) -> bool:

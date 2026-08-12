@@ -11,6 +11,8 @@ enum Style {
 	MIRA_MERCHANT,
 	REN_GUARD,
 	BANDIT_SCOUT,
+	BANK_CLERK,
+	BLACKSMITH,
 }
 
 @export var style: Style = Style.AUTO
@@ -66,6 +68,10 @@ func rebuild() -> void:
 			_build_mira()
 		Style.REN_GUARD:
 			_build_ren()
+		Style.BANK_CLERK:
+			_build_bank_clerk()
+		Style.BLACKSMITH:
+			_build_blacksmith()
 		_:
 			_build_bandit()
 	_attach_static_equipment(_resolve_style(ids[0]))
@@ -85,22 +91,42 @@ func get_visual_signature() -> Dictionary:
 
 func _attach_static_equipment(resolved_style: Style) -> void:
 	var right_hand := _body_root.find_child("RightHand", true, false) as Node3D
-	if right_hand == null:
-		return
-	var hand_relative := _transform_relative_to(right_hand, _model_root)
-	var names: Array[String] = []
+	var left_hand := _body_root.find_child("LeftHand", true, false) as Node3D
+	var right_arm := _body_root.find_child("RightArm", true, false) as Node3D
+	var left_arm := _body_root.find_child("LeftArm", true, false) as Node3D
+	var right_names: Array[String] = []
+	var left_names: Array[String] = []
 	match resolved_style:
 		Style.REN_GUARD:
-			names = ["SpearShaft", "SpearHead", "GuardBanner"]
+			right_names = ["SpearShaft", "SpearHead", "GuardBanner"]
 		Style.BANDIT_SCOUT:
-			names = ["DaggerBlade", "DaggerHilt"]
+			right_names = ["DaggerBlade", "DaggerHilt"]
+		Style.BANK_CLERK:
+			left_names = ["LedgerCover", "LedgerPages", "LedgerSpine", "LedgerClasp"]
+			right_names = ["QuillShaft", "QuillFeather", "QuillNib"]
+		Style.BLACKSMITH:
+			right_names = [
+				"SmithHammerHandle",
+				"SmithHammerHead",
+				"SmithHammerCollar",
+			]
+			_reparent_parts(["LeftSmithBracer"], left_arm)
+			_reparent_parts(["RightSmithBracer"], right_arm)
+	_reparent_parts(left_names, left_hand)
+	_reparent_parts(right_names, right_hand)
+
+
+func _reparent_parts(names: Array[String], target: Node3D) -> void:
+	if target == null:
+		return
+	var target_relative := _transform_relative_to(target, _model_root)
 	for part_name in names:
 		var part := _model_root.find_child(part_name, true, false) as Node3D
 		if part == null:
 			continue
 		var part_relative := _transform_relative_to(part, _model_root)
-		part.reparent(right_hand, false)
-		part.transform = hand_relative.affine_inverse() * part_relative
+		part.reparent(target, false)
+		part.transform = target_relative.affine_inverse() * part_relative
 
 
 func _transform_relative_to(node: Node3D, ancestor: Node3D) -> Transform3D:
@@ -142,6 +168,10 @@ func _resolve_style(definition_id: StringName) -> Style:
 			return Style.MIRA_MERCHANT
 		&"ren":
 			return Style.REN_GUARD
+		&"bank_clerk":
+			return Style.BANK_CLERK
+		&"blacksmith":
+			return Style.BLACKSMITH
 		_:
 			return Style.BANDIT_SCOUT
 
@@ -205,6 +235,93 @@ func _build_ren() -> void:
 	_cylinder("SpearShaft", 0.032, 1.9, Vector3(0.53, 1.0, -0.02), Color("6a4427"), Vector3(0, 0, 3))
 	_cone("SpearHead", 0.085, 0.0, 0.34, Vector3(0.58, 1.98, -0.02), Color("d1d9dc"), Vector3(0, 0, 3), 0.72)
 	_box("GuardBanner", Vector3(0.26, 0.4, 0.025), Vector3(0.47, 1.68, -0.01), Color("8b3f35"), Vector3(0, 0, 3))
+
+
+func _build_bank_clerk() -> void:
+	var coat_colors := [
+		Color("244f55"),
+		Color("2f4664"),
+		Color("5a3c4c"),
+		Color("3f4f3d"),
+	]
+	var skin_colors := [
+		Color("d6a47f"),
+		Color("bd8769"),
+		Color("e0b08b"),
+		Color("a97258"),
+	]
+	var coat: Color = coat_colors[_variant % coat_colors.size()]
+	var skin: Color = skin_colors[_variant % skin_colors.size()]
+	var ink := Color("252b33")
+	var leather := Color("65462f")
+	var brass := Color("c69a46")
+	_build_base(skin, coat.darkened(0.22), Color("302b2a"))
+	_box("ClerkTailoredCoat", Vector3(0.67, 0.76, 0.42), Vector3(0.0, 1.17, 0.0), coat)
+	_box("ClerkWaistcoat", Vector3(0.45, 0.57, 0.065), Vector3(0.0, 1.21, 0.235), coat.lightened(0.16))
+	_box("ClerkShirtFront", Vector3(0.22, 0.42, 0.055), Vector3(0.0, 1.33, 0.275), Color("e6ddc8"))
+	_box("LeftLapel", Vector3(0.13, 0.48, 0.035), Vector3(-0.12, 1.37, 0.31), coat.darkened(0.14), Vector3(0, 0, -18))
+	_box("RightLapel", Vector3(0.13, 0.48, 0.035), Vector3(0.12, 1.37, 0.31), coat.darkened(0.14), Vector3(0, 0, 18))
+	_box("ClerkCravat", Vector3(0.16, 0.18, 0.055), Vector3(0.0, 1.5, 0.3), Color("b7aa91"), Vector3(0, 0, 45))
+	_box("ClerkBelt", Vector3(0.69, 0.1, 0.44), Vector3(0.0, 0.91, 0.0), leather.darkened(0.08))
+	_box("ClerkBeltBuckle", Vector3(0.13, 0.1, 0.055), Vector3(0.0, 0.91, 0.245), brass, Vector3.ZERO, 0.7)
+	_torus("BankBadgeRing", 0.022, 0.065, Vector3(0.2, 1.38, 0.305), brass, Vector3(90, 0, 0), 0.7)
+	_cylinder("BankBadgeSeal", 0.036, 0.018, Vector3(0.2, 1.38, 0.305), coat.darkened(0.25), Vector3(90, 0, 0), 0.25)
+	_sphere("ClerkHair", 0.226, Vector3(0.0, 1.82, -0.05), ink)
+	_box("ClerkHairPart", Vector3(0.055, 0.26, 0.19), Vector3(-0.04, 1.9, 0.07), ink.darkened(0.08), Vector3(0, 0, -9))
+	_box("LedgerCover", Vector3(0.3, 0.43, 0.055), Vector3(-0.47, 0.93, 0.12), leather, Vector3(0, 0, -8))
+	_box("LedgerPages", Vector3(0.275, 0.39, 0.045), Vector3(-0.465, 0.93, 0.155), Color("d8caa8"), Vector3(0, 0, -8))
+	_box("LedgerSpine", Vector3(0.045, 0.43, 0.075), Vector3(-0.61, 0.91, 0.135), leather.darkened(0.2), Vector3(0, 0, -8))
+	_box("LedgerClasp", Vector3(0.1, 0.05, 0.08), Vector3(-0.34, 0.93, 0.16), brass, Vector3(0, 0, -8), 0.65)
+	_cylinder("QuillShaft", 0.012, 0.47, Vector3(0.46, 1.05, 0.12), Color("d3c9ad"), Vector3(0, 0, -18))
+	_cone("QuillFeather", 0.065, 0.015, 0.28, Vector3(0.39, 1.33, 0.12), Color("eee5cf"), Vector3(0, 0, -18))
+	_cone("QuillNib", 0.025, 0.0, 0.1, Vector3(0.51, 0.79, 0.12), brass, Vector3(0, 0, -18), 0.65)
+	if _variant % 2 == 0:
+		_torus("ClerkPocketWatch", 0.015, 0.052, Vector3(-0.2, 1.05, 0.29), brass, Vector3(90, 0, 0), 0.6)
+	else:
+		_box("ClerkSealPouch", Vector3(0.19, 0.24, 0.13), Vector3(0.29, 0.8, -0.15), leather.darkened(0.08))
+
+
+func _build_blacksmith() -> void:
+	var shirt_colors := [
+		Color("5c4a3d"),
+		Color("4b5153"),
+		Color("58433b"),
+		Color("46514a"),
+	]
+	var skin_colors := [
+		Color("b97d5b"),
+		Color("9d694f"),
+		Color("c68f68"),
+		Color("875943"),
+	]
+	var shirt: Color = shirt_colors[_variant % shirt_colors.size()]
+	var skin: Color = skin_colors[_variant % skin_colors.size()]
+	var leather := Color("64462f")
+	var dark_leather := Color("352923")
+	var steel := Color("8b9496")
+	var soot := Color("252729")
+	_build_base(skin, Color("373638"), Color("282425"))
+	_box("SmithWorkShirt", Vector3(0.7, 0.75, 0.43), Vector3(0.0, 1.17, 0.0), shirt)
+	_box("SmithLeatherApron", Vector3(0.52, 0.92, 0.055), Vector3(0.0, 1.0, 0.25), leather)
+	_box("SmithApronBib", Vector3(0.43, 0.48, 0.06), Vector3(0.0, 1.34, 0.27), leather.lightened(0.04))
+	_box("SmithApronPocket", Vector3(0.29, 0.22, 0.075), Vector3(0.1, 0.83, 0.29), dark_leather)
+	_box("SmithShoulderStrap", Vector3(0.09, 0.78, 0.04), Vector3(-0.12, 1.34, 0.31), dark_leather, Vector3(0, 0, -19))
+	_box("SmithBelt", Vector3(0.71, 0.13, 0.44), Vector3(0.0, 0.91, 0.0), dark_leather)
+	_box("SmithBeltBuckle", Vector3(0.15, 0.12, 0.06), Vector3(0.0, 0.91, 0.25), steel, Vector3.ZERO, 0.75)
+	_cylinder("LeftSmithBracer", 0.115, 0.24, Vector3(-0.405, 0.99, 0.0), dark_leather, Vector3(0, 0, -8))
+	_cylinder("RightSmithBracer", 0.115, 0.24, Vector3(0.405, 0.99, 0.0), dark_leather, Vector3(0, 0, 8))
+	_sphere("SmithHair", 0.228, Vector3(0.0, 1.82, -0.05), soot)
+	for index in 3:
+		_sphere("SmithBeard%d" % index, 0.095 - index * 0.012, Vector3(0.0, 1.66 - index * 0.08, 0.16), soot)
+	_box("SmithHeadband", Vector3(0.47, 0.075, 0.14), Vector3(0.0, 1.88, 0.13), shirt.lightened(0.08))
+	_box("SmithHammerHandle", Vector3(0.07, 0.75, 0.07), Vector3(0.47, 1.05, 0.08), Color("704927"), Vector3(0, 0, -8))
+	_box("SmithHammerHead", Vector3(0.43, 0.18, 0.18), Vector3(0.39, 1.43, 0.08), steel, Vector3(0, 0, -8), 0.82)
+	_cylinder("SmithHammerCollar", 0.075, 0.16, Vector3(0.42, 1.33, 0.08), steel.darkened(0.2), Vector3(0, 0, -8), 0.78)
+	_box("SmithTongs", Vector3(0.055, 0.58, 0.055), Vector3(-0.31, 0.86, -0.17), steel.darkened(0.12), Vector3(0, 0, 12), 0.7)
+	if _variant % 2 == 0:
+		_sphere("SmithLeftShoulderPad", 0.17, Vector3(-0.39, 1.41, -0.01), leather.darkened(0.1), Vector3.ZERO, 0.1)
+	else:
+		_box("SmithToolLoop", Vector3(0.17, 0.26, 0.08), Vector3(-0.31, 0.79, -0.18), dark_leather)
 
 
 func _build_bandit() -> void:
@@ -303,6 +420,10 @@ func _part(name_: String, mesh: PrimitiveMesh, position_: Vector3, color: Color,
 		or name_.contains("Herb")
 		or name_.contains("Pendant")
 		or name_.contains("Banner")
+		or name_.contains("Ledger")
+		or name_.contains("Quill")
+		or name_.contains("Hammer")
+		or name_.contains("Bracer")
 	)
 	(_equipment_root if equipment_part else _body_root).add_child(part)
 	return part

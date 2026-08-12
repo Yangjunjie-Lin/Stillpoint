@@ -3,7 +3,7 @@ extends RefCounted
 
 func run() -> bool:
 	var items := ResourceRegistry.get_all_items()
-	var ok := items.size() == 33
+	var ok := items.size() == 35
 	var archetypes: Dictionary = {}
 	for definition in items:
 		var archetype := definition.resolved_visual_archetype()

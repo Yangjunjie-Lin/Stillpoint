@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/npc_definition.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/dialogues/blacksmith_intro.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/npcs/blacksmith_mind.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = &"blacksmith"
+display_name = "Torren"
+faction_id = &"townfolk"
+default_disposition = &"friendly"
+max_health = 135.0
+max_energy = 105.0
+walk_speed = 3.1
+run_speed = 5.6
+default_dialogue = ExtResource("2")
+can_be_attacked = true
+can_be_killed = false
+npc_role = &"blacksmith"
+home_region_id = &"base:town"
+home_marker_id = &"blacksmith"
+shop_id = &"shop:stillpoint_blacksmith_equipment"
+witness_radius = 12.0
+mind_profile = ExtResource("3")

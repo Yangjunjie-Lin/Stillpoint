@@ -8,6 +8,7 @@ func run() -> bool:
 		&"building:player_farmhouse",
 		&"building:player_townhouse",
 		&"building:stillpoint_bank",
+		&"building:stillpoint_blacksmith",
 		&"building:town_guardhouse",
 		&"building:town_storehouse",
 		&"building:wayfarer_inn",
@@ -30,6 +31,7 @@ func run() -> bool:
 	var courtyard := ResourceRegistry.get_house(&"building:player_courtyard_house")
 	var townhouse := ResourceRegistry.get_house(&"building:player_townhouse")
 	var bank := ResourceRegistry.get_house(&"building:stillpoint_bank")
+	var blacksmith := ResourceRegistry.get_house(&"building:stillpoint_blacksmith")
 	ok = ok and mira != null and &"mira" in mira.owner_npc_definition_ids
 	ok = ok and mira != null and &"mira" in mira.worker_npc_definition_ids
 	ok = ok and guardhouse != null and &"ren" in guardhouse.worker_npc_definition_ids
@@ -37,6 +39,9 @@ func run() -> bool:
 	ok = ok and courtyard != null and courtyard.player_selectable and courtyard.private_storage_slots == 60
 	ok = ok and townhouse != null and townhouse.player_selectable and townhouse.floor_count == 2
 	ok = ok and bank != null and bank.primary_function == &"currency_and_property_custody"
+	ok = ok and bank != null and &"bank_clerk" in bank.worker_npc_definition_ids
+	ok = ok and blacksmith != null and &"blacksmith" in blacksmith.owner_npc_definition_ids
+	ok = ok and blacksmith != null and &"blacksmith" in blacksmith.worker_npc_definition_ids
 	if not ok:
 		push_error("house definition catalog or ontology identity contract failed")
 	return ok

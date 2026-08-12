@@ -49,8 +49,13 @@ func travel_to_depth(depth: int) -> bool:
 			% [required_level_for_depth(depth), depth]
 		)
 		return false
-	_session.transition_to(dungeon_region_id, StringName("depth_%d" % depth))
-	return true
+	# The Warden's authored dialogue is the only public entry path. This service
+	# owns the exceptional cross-map transition after enforcing the depth gate.
+	return _session.transition_to(
+		dungeon_region_id,
+		StringName("depth_%d" % depth),
+		true,
+	)
 
 
 func get_boss_state(persistent_id: StringName) -> Dictionary:

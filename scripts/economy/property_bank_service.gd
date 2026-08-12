@@ -6,7 +6,7 @@ extends Node
 
 signal property_state_changed
 
-const SECTION_VERSION := 1
+const SECTION_VERSION := 2
 const OWNER_PRINCIPAL_ID := &"base:player/main"
 const DEFAULT_HOUSE_ID := &"building:player_farmhouse"
 const STATUS_OWNED := &"owned"
@@ -17,12 +17,18 @@ const DEFAULT_WALLET_BALANCE := 500
 const DEFAULT_BANK_SLOTS := 120
 const DEFAULT_HOME_SLOTS := 48
 const DEFAULT_ASSESSED_VALUE := 2500
+const INVESTMENT_DAILY_RATE_BASIS_POINTS := 50
+const BASIS_POINTS_SCALE := 10_000
 
 @export_range(86400, 31536000, 86400) var offline_reclaim_seconds: int = 30 * 86400
 
 var owner_principal_id: StringName = OWNER_PRINCIPAL_ID
 var wallet_balance: int = DEFAULT_WALLET_BALANCE
 var bank_balance: int = 0
+var home_cash_balance: int = 0
+var investment_principal: int = 0
+var investment_earnings: int = 0
+var last_interest_day: int = 0
 var house_status: StringName = STATUS_OWNED
 var current_house_id: StringName = DEFAULT_HOUSE_ID
 var repossessed_house_id: StringName = &""
@@ -41,6 +47,8 @@ func _ready() -> void:
 func setup(session: WorldSession) -> void:
 	_session = session
 	_ensure_stores()
+	if not WorldTimeService.day_changed.is_connected(_on_day_changed):
+		WorldTimeService.day_changed.connect(_on_day_changed)
 
 
 func reset_defaults() -> void:
@@ -48,6 +56,10 @@ func reset_defaults() -> void:
 	owner_principal_id = OWNER_PRINCIPAL_ID
 	wallet_balance = DEFAULT_WALLET_BALANCE
 	bank_balance = 0
+	home_cash_balance = 0
+	investment_principal = 0
+	investment_earnings = 0
+	last_interest_day = 0
 	house_status = STATUS_OWNED
 	current_house_id = DEFAULT_HOUSE_ID
 	repossessed_house_id = &""
@@ -129,6 +141,125 @@ func withdraw(amount: int) -> int:
 	return moved
 
 
+func spend_funds(amount: int) -> bool:
+	var cost := maxi(0, amount)
+	if cost <= 0:
+		return true
+	if not _charge(cost):
+		return false
+	_emit_changed()
+	return true
+
+
+func credit_wallet(amount: int) -> int:
+	var credited := maxi(0, amount)
+	if credited <= 0:
+		return 0
+	wallet_balance += credited
+	_emit_changed()
+	return credited
+
+
+func transfer_wallet_to_home_cash(amount: int) -> int:
+	if not has_active_house():
+		return 0
+	var moved := clampi(amount, 0, wallet_balance)
+	if moved <= 0:
+		return 0
+	wallet_balance -= moved
+	home_cash_balance += moved
+	_emit_changed()
+	return moved
+
+
+func transfer_home_cash_to_wallet(amount: int) -> int:
+	if not has_active_house():
+		return 0
+	var moved := clampi(amount, 0, home_cash_balance)
+	if moved <= 0:
+		return 0
+	home_cash_balance -= moved
+	wallet_balance += moved
+	_emit_changed()
+	return moved
+
+
+func deposit_home_cash(amount: int) -> int:
+	return transfer_wallet_to_home_cash(amount)
+
+
+func withdraw_home_cash(amount: int) -> int:
+	return transfer_home_cash_to_wallet(amount)
+
+
+func transfer_bank_to_investment(amount: int) -> int:
+	settle_investment_interest(WorldTimeService.day)
+	var moved := clampi(amount, 0, bank_balance)
+	if moved <= 0:
+		return 0
+	bank_balance -= moved
+	investment_principal += moved
+	_emit_changed()
+	return moved
+
+
+func transfer_investment_to_bank(amount: int) -> int:
+	settle_investment_interest(WorldTimeService.day)
+	var moved := clampi(amount, 0, investment_principal)
+	if moved <= 0:
+		return 0
+	investment_principal -= moved
+	bank_balance += moved
+	_emit_changed()
+	return moved
+
+
+func invest_from_bank(amount: int) -> int:
+	return transfer_bank_to_investment(amount)
+
+
+func withdraw_investment(amount: int) -> int:
+	return transfer_investment_to_bank(amount)
+
+
+func claim_investment_earnings(amount: int = -1) -> int:
+	settle_investment_interest(WorldTimeService.day)
+	var requested := investment_earnings if amount < 0 else amount
+	var moved := clampi(requested, 0, investment_earnings)
+	if moved <= 0:
+		return 0
+	investment_earnings -= moved
+	bank_balance += moved
+	_emit_changed()
+	return moved
+
+
+func get_daily_investment_yield() -> int:
+	return int(
+		(investment_principal * INVESTMENT_DAILY_RATE_BASIS_POINTS)
+		/ BASIS_POINTS_SCALE
+	)
+
+
+func settle_investment_interest(current_day: int) -> int:
+	var day := maxi(1, current_day)
+	if last_interest_day > 0 and day <= last_interest_day:
+		return 0
+	# A legacy/uninitialized account starts accruing at most one day before the
+	# first observed day boundary. This avoids retroactive windfalls on v1 saves.
+	var settled_through := last_interest_day
+	if settled_through <= 0:
+		settled_through = maxi(1, day - 1)
+	var elapsed_days := maxi(0, day - settled_through)
+	var earned := get_daily_investment_yield() * elapsed_days
+	last_interest_day = day
+	if earned > 0:
+		investment_earnings += earned
+	# Persist the settlement marker even when rounding produces no earnings.
+	_emit_changed()
+	return earned
+
+
 func construct_house(plan_id: StringName) -> bool:
 	if has_active_house():
 		return false
@@ -178,6 +309,10 @@ func capture_save_data(now_unix: int = -1) -> Dictionary:
 		"owner_principal_id": String(owner_principal_id),
 		"wallet_balance": wallet_balance,
 		"bank_balance": bank_balance,
+		"home_cash_balance": home_cash_balance,
+		"investment_principal": investment_principal,
+		"investment_earnings": investment_earnings,
+		"last_interest_day": last_interest_day,
 		"house_status": String(house_status),
 		"current_house_id": String(current_house_id),
 		"repossessed_house_id": String(repossessed_house_id),
@@ -196,13 +331,17 @@ func restore_save_data(data: Dictionary, now_unix: int = -1) -> bool:
 		reset_defaults()
 		last_seen_unix = _now_unix() if now_unix < 0 else maxi(0, now_unix)
 		return true
-	var version := int(data.get("section_version", SECTION_VERSION))
+	var version := int(data.get("section_version", 1))
 	if version < 0 or version > SECTION_VERSION:
 		return false
 	# Save data cannot redirect this single-player account to another principal.
 	owner_principal_id = OWNER_PRINCIPAL_ID
 	wallet_balance = maxi(0, int(data.get("wallet_balance", DEFAULT_WALLET_BALANCE)))
 	bank_balance = maxi(0, int(data.get("bank_balance", 0)))
+	home_cash_balance = maxi(0, int(data.get("home_cash_balance", 0))) if version >= 2 else 0
+	investment_principal = maxi(0, int(data.get("investment_principal", 0))) if version >= 2 else 0
+	investment_earnings = maxi(0, int(data.get("investment_earnings", 0))) if version >= 2 else 0
+	last_interest_day = maxi(0, int(data.get("last_interest_day", 0))) if version >= 2 else 0
 	var restored_status := StringName(str(data.get("house_status", String(STATUS_OWNED))))
 	house_status = restored_status if restored_status in [STATUS_OWNED, STATUS_REPOSSESSED] else STATUS_OWNED
 	current_house_id = StringName(str(data.get("current_house_id", String(DEFAULT_HOUSE_ID))))
@@ -242,6 +381,16 @@ func get_total_funds() -> int:
 	return wallet_balance + bank_balance
 
 
+func get_total_assets() -> int:
+	return (
+		wallet_balance
+		+ bank_balance
+		+ home_cash_balance
+		+ investment_principal
+		+ investment_earnings
+	)
+
+
 func get_buyback_price() -> int:
 	return _assessed_value(repossessed_house_id) if repossessed_house_id != &"" else 0
 
@@ -253,6 +402,8 @@ func _repossess_active_house() -> bool:
 		return false
 	var previous_id := current_house_id
 	var compensation := _assessed_value(previous_id)
+	bank_balance += home_cash_balance
+	home_cash_balance = 0
 	bank_balance += compensation
 	house_status = STATUS_REPOSSESSED
 	repossessed_house_id = previous_id
@@ -319,6 +470,10 @@ func _ensure_stores() -> void:
 
 func _emit_changed() -> void:
 	property_state_changed.emit()
+
+
+func _on_day_changed(new_day: int) -> void:
+	settle_investment_interest(new_day)
 
 
 func _now_unix() -> int:
