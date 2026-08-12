@@ -1,0 +1,174 @@
+[gd_resource type="Resource" script_class="PetCompanionDefinition" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_companion_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_species_definition.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_personality_profile.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_attribute_profile.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_lifestyle_definition.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_skill_definition.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_equipment_slot_definition.gd" id="7"]
+
+[sub_resource type="Resource" id="Species"]
+script = ExtResource("2")
+id = &"cloudowl"
+display_name = "Cloud Owl"
+description = "A light-boned owl companion adapted to high winds, dusk travel, and watching from quiet perches."
+species_tags = Array[StringName]([&"owl", &"small_companion", &"avian", &"flying"])
+habitat_tags = Array[StringName]([&"highland", &"wilderness", &"town", &"home"])
+preferred_food_tags = Array[StringName]([&"meat", &"seed", &"fresh_food"])
+visual_archetype = &"cloudowl"
+coat_color = Color(0.68, 0.73, 0.79, 1)
+coat_light_color = Color(0.9, 0.91, 0.84, 1)
+accent_color = Color(0.39, 0.62, 0.76, 1)
+visual_scale = 0.92
+base_max_health = 32.0
+base_max_stamina = 82.0
+natural_defense = 0.8
+health_gain_per_level = 3.0
+stamina_gain_per_level = 4.5
+hunger_per_game_hour = 1.05
+rest_stamina_per_game_hour = 10.0
+
+[sub_resource type="Resource" id="Personality"]
+script = ExtResource("3")
+id = &"observant_independent"
+display_name = "Observant and Independent"
+courage = 0.52
+curiosity = 0.94
+sociability = 0.48
+independence = 0.9
+loyalty = 0.72
+playfulness = 0.54
+aggression = 0.28
+patience = 0.86
+initial_mood = 74.0
+hunger_discomfort_threshold = 58.0
+
+[sub_resource type="Resource" id="RestLifestyle"]
+script = ExtResource("5")
+id = &"rest"
+display_name = "Quiet Roost"
+description = "Rest on a familiar perch, observe nearby movement, and socialize without roaming."
+preferred_location_tags = Array[StringName]([&"home", &"perch", &"safe"])
+permitted_program_action_ids = Array[StringName]([&"rest", &"guard", &"socialize"])
+practiced_life_skill_ids = Array[StringName]([&"roost_awareness"])
+activity_multiplier = 0.7
+rest_multiplier = 1.35
+hunger_multiplier = 0.82
+
+[sub_resource type="Resource" id="ExploreLifestyle"]
+script = ExtResource("5")
+id = &"explore"
+display_name = "Sky Scout"
+description = "Survey safe paths, forage from above, and return to the assigned roost."
+preferred_location_tags = Array[StringName]([&"highland", &"wilderness", &"open_sky"])
+permitted_program_action_ids = Array[StringName]([&"explore", &"forage", &"return_home"])
+practiced_life_skill_ids = Array[StringName]([&"sky_scouting"])
+activity_multiplier = 1.3
+rest_multiplier = 0.9
+hunger_multiplier = 1.12
+
+[sub_resource type="Resource" id="GuardianLifestyle"]
+script = ExtResource("5")
+id = &"guardian"
+display_name = "Dusk Lookout"
+description = "Keep watch from above and intervene only against program-confirmed danger."
+preferred_location_tags = Array[StringName]([&"town", &"threshold", &"high_ground"])
+permitted_program_action_ids = Array[StringName]([&"guard", &"train", &"rest"])
+practiced_life_skill_ids = Array[StringName]([&"roost_awareness"])
+activity_multiplier = 1.0
+rest_multiplier = 1.0
+hunger_multiplier = 1.0
+permits_independent_combat = true
+
+[sub_resource type="Resource" id="Attributes"]
+script = ExtResource("4")
+strength = 4
+vitality = 6
+agility = 16
+endurance = 9
+focus = 15
+perception = 18
+sociability = 8
+
+[sub_resource type="Resource" id="ScoutSkill"]
+script = ExtResource("6")
+id = &"sky_scouting"
+display_name = "Sky Scouting"
+description = "Notice safe routes and nearby movement from a high, mobile viewpoint."
+program_action_id = &"pet_explore"
+governing_attribute = &"perception"
+stamina_cost = 4.0
+cooldown_seconds = 6.0
+proficiency_gain_per_use = 0.8
+tags = Array[StringName]([&"life", &"exploration", &"scouting", &"air"])
+
+[sub_resource type="Resource" id="RoostSkill"]
+script = ExtResource("6")
+id = &"roost_awareness"
+display_name = "Roost Awareness"
+description = "Remember familiar rhythms and watch a chosen place without assuming knowledge beyond sight and hearing."
+program_action_id = &"pet_guard"
+governing_attribute = &"focus"
+stamina_cost = 1.0
+cooldown_seconds = 9.0
+proficiency_gain_per_use = 0.6
+tags = Array[StringName]([&"life", &"observation", &"home", &"air"])
+
+[sub_resource type="Resource" id="TalonSkill"]
+script = ExtResource("6")
+id = &"gale_talon"
+display_name = "Gale Talon"
+description = "A swift diving strike against a program-confirmed hostile within reach."
+kind = 1
+program_action_id = &"pet_aerial_talon"
+governing_attribute = &"agility"
+stamina_cost = 7.0
+cooldown_seconds = 0.7
+base_power = 8.0
+range = 2.6
+proficiency_gain_per_use = 1.1
+tags = Array[StringName]([&"attack", &"melee", &"dive", &"air"])
+
+[sub_resource type="Resource" id="CollarSlot"]
+script = ExtResource("7")
+id = &"collar"
+display_name = "Flight Band"
+accepted_item_tags = Array[StringName]([&"pet_collar"])
+allowed_species_tags = Array[StringName]([&"owl", &"avian", &"small_companion"])
+maximum_weight = 1.0
+
+[sub_resource type="Resource" id="BodySlot"]
+script = ExtResource("7")
+id = &"body"
+display_name = "Wing Harness"
+accepted_item_tags = Array[StringName]([&"pet_armor"])
+allowed_species_tags = Array[StringName]([&"avian", &"small_companion"])
+maximum_weight = 2.0
+
+[sub_resource type="Resource" id="CharmSlot"]
+script = ExtResource("7")
+id = &"charm"
+display_name = "Talon Charm"
+accepted_item_tags = Array[StringName]([&"pet_charm"])
+allowed_species_tags = Array[StringName]([&"owl", &"avian"])
+maximum_weight = 0.6
+
+[resource]
+script = ExtResource("1")
+id = &"cloudowl"
+display_name = "Nimbus"
+biography = "A cloud owl that chose the player's company after observing their travels from Greywake's rooftops."
+species = SubResource("Species")
+personality = SubResource("Personality")
+base_attributes = SubResource("Attributes")
+lifestyles = Array[PetLifestyleDefinition]([SubResource("RestLifestyle"), SubResource("ExploreLifestyle"), SubResource("GuardianLifestyle")])
+default_lifestyle_id = &"rest"
+life_skills = Array[PetSkillDefinition]([SubResource("ScoutSkill"), SubResource("RoostSkill")])
+attack_skills = Array[PetSkillDefinition]([SubResource("TalonSkill")])
+equipment_slots = Array[PetEquipmentSlotDefinition]([SubResource("CollarSlot"), SubResource("BodySlot"), SubResource("CharmSlot")])
+server_dialogue_profile_id = &"pet:cloudowl"
+speech_style_tags = Array[StringName]([&"concise", &"observant", &"airy", &"measured"])
+llm_advisory_intent_ids = Array[StringName]([&"seek_affection", &"comment_on_world", &"express_need"])
+default_stay_region_id = &"base:player_home"
+default_stay_location_id = &"pet_rest_area"

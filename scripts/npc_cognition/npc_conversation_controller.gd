@@ -29,6 +29,11 @@ func ask(npc: NPCController, payload: Dictionary) -> bool:
 	if gateway == null or cache == null:
 		_emit_fallback("backend_unavailable")
 		return false
+	# The transport is shared with pet cognition. Refuse before mutating NPC
+	# state or adding a turn to the durable outbox when another entity owns it.
+	if gateway.is_busy():
+		_emit_fallback("backend_busy")
+		return false
 	var resolved_id := NPCIdentityResolver.resolve_persistent_id(npc)
 	if resolved_id == &"" or String(resolved_id) != str(payload.get("npc_persistent_id", "")):
 		_emit_fallback("missing_persistent_identity")
@@ -41,6 +46,8 @@ func ask(npc: NPCController, payload: Dictionary) -> bool:
 		cache.enqueue_turn(payload)
 	var error := gateway.request_turn(payload)
 	if error != OK:
+		if bool(payload.get("allow_conversation_storage", true)):
+			cache.acknowledge_turn(str(payload.get("request_id", "")))
 		_restore_npc_state()
 		_emit_fallback("backend_unavailable")
 		_pending_payload.clear()

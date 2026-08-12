@@ -61,9 +61,29 @@ func run() -> bool:
 	var owner_cancelled := not gateway.is_busy() and pet_service._pending_payload.is_empty() \
 		and pet_replies.size() == 2 \
 		and str((pet_replies.back() as Dictionary).get("error_code", "")) == "cancelled"
-	var ok := mismatches_ignored and pet_routed and npc_routed \
-		and foreign_cancel_ignored and owner_cancelled
 
+	# A pet request that owns the shared gateway must make a concurrent NPC ask
+	# fail before the NPC changes state or leaves a never-sent durable turn.
+	var npc := NPCController.new()
+	npc.npc_definition = ResourceRegistry.get_npc(&"mira")
+	var identity := WorldEntityIdentity.new()
+	identity.name = "WorldEntityIdentity"
+	identity.persistent_id = &"base:town/npc/mira"
+	npc.add_child(identity)
+	var original_state := npc.npc_state
+	pet_service._pending_payload = _payload("pet-active", "pet:mossfox/pip")
+	gateway._active_kind = "turn"
+	gateway._active_request_id = "pet-active"
+	var blocked_payload := _payload("npc-blocked", "base:town/npc/mira")
+	blocked_payload["allow_conversation_storage"] = true
+	var npc_blocked_cleanly := not controller.ask(npc, blocked_payload) \
+		and npc.npc_state == original_state \
+		and cache.pending_turn_outbox.is_empty()
+	pet_service.cancel()
+	var ok := mismatches_ignored and pet_routed and npc_routed \
+		and foreign_cancel_ignored and owner_cancelled and npc_blocked_cleanly
+
+	npc.free()
 	controller.free()
 	pet_service.free()
 	gateway.free()

@@ -8,6 +8,8 @@ extends Node3D
 @export var coat_color: Color = Color("8d6747")
 @export var coat_light_color: Color = Color("d5b47f")
 @export var accent_color: Color = Color("5f8b68")
+@export var visual_archetype: StringName = &"mossfox"
+@export_range(0.5, 2.0, 0.05) var visual_scale: float = 1.0
 
 var _model_root: Node3D
 var _body_rig: Node3D
@@ -42,6 +44,17 @@ func get_motion_state() -> StringName:
 	return _motion_state
 
 
+func configure_species(species: PetSpeciesDefinition) -> void:
+	if species == null:
+		return
+	visual_archetype = species.visual_archetype
+	coat_color = species.coat_color
+	coat_light_color = species.coat_light_color
+	accent_color = species.accent_color
+	visual_scale = species.visual_scale
+	rebuild()
+
+
 func set_equipment(collar_id: StringName, armor_id: StringName, charm_id: StringName) -> void:
 	if _collar_root != null:
 		_collar_root.visible = collar_id != &""
@@ -58,12 +71,27 @@ func rebuild() -> void:
 	if _model_root != null:
 		_model_root.free()
 	_model_root = Node3D.new()
-	_model_root.name = "MossfoxModel"
+	_model_root.name = "%sModel" % String(visual_archetype).capitalize().replace(" ", "")
+	_model_root.scale = Vector3.ONE * visual_scale
 	add_child(_model_root)
 	_body_rig = Node3D.new()
 	_body_rig.name = "BodyRig"
 	_model_root.add_child(_body_rig)
+	match visual_archetype:
+		&"stonehound":
+			_build_stonehound()
+		&"cloudowl":
+			_build_cloudowl()
+		&"quadruped", &"mossfox":
+			_build_mossfox()
+		_:
+			push_error("StylizedPetModel: unsupported visual archetype %s" % String(visual_archetype))
+			return
+	_build_equipment_visuals()
+	set_equipment(&"", &"", &"")
 
+
+func _build_mossfox() -> void:
 	# A compact fox-like silhouette with individually articulated paws.
 	_capsule("Torso", 0.27, 0.92, Vector3(0.0, 0.62, 0.0), coat_color, Vector3(90, 0, 0), _body_rig)
 	_capsule("ChestRuff", 0.29, 0.52, Vector3(0.0, 0.73, -0.31), coat_light_color, Vector3(74, 0, 0), _body_rig)
@@ -93,13 +121,79 @@ func rebuild() -> void:
 	_capsule("TailBrush", 0.18, 0.55, Vector3(0.0, 0.0, 0.57), coat_color.lightened(0.03), Vector3(90, 0, 0), _tail_rig)
 	_cone("TailTip", 0.17, 0.045, 0.34, Vector3(0.0, 0.0, 0.91), coat_light_color, Vector3(90, 0, 0), _tail_rig)
 
-	_build_equipment_visuals()
-	set_equipment(&"", &"", &"")
+
+func _build_stonehound() -> void:
+	# A broad, low guardian silhouette. The stone plates remain presentation-only.
+	_capsule("Torso", 0.36, 1.05, Vector3(0.0, 0.66, 0.02), coat_color, Vector3(90, 0, 0), _body_rig)
+	_box("BackPlate", Vector3(0.68, 0.16, 0.72), Vector3(0.0, 0.93, 0.08), coat_light_color.darkened(0.18), Vector3.ZERO, _body_rig)
+	_head_rig = _pivot("HeadRig", Vector3(0.0, 0.82, -0.58), _body_rig)
+	_sphere("Head", 0.38, Vector3.ZERO, coat_color, _head_rig)
+	_box("BrowPlate", Vector3(0.58, 0.16, 0.29), Vector3(0.0, 0.16, -0.17), coat_light_color.darkened(0.12), Vector3(-8, 0, 0), _head_rig)
+	_box("Muzzle", Vector3(0.34, 0.24, 0.37), Vector3(0.0, -0.08, -0.34), coat_light_color, Vector3.ZERO, _head_rig)
+	_sphere("Nose", 0.08, Vector3(0.0, -0.05, -0.56), Color("202326"), _head_rig)
+	_cone("LeftEar", 0.14, 0.035, 0.27, Vector3(-0.23, 0.3, -0.01), coat_color.darkened(0.08), Vector3(0, 0, -26), _head_rig)
+	_cone("RightEar", 0.14, 0.035, 0.27, Vector3(0.23, 0.3, -0.01), coat_color.darkened(0.08), Vector3(0, 0, 26), _head_rig)
+	_sphere("LeftEye", 0.052, Vector3(-0.14, 0.08, -0.34), accent_color.lightened(0.28), _head_rig, 0.25)
+	_sphere("RightEye", 0.052, Vector3(0.14, 0.08, -0.34), accent_color.lightened(0.28), _head_rig, 0.25)
+	_mouth = _pivot("MouthRig", Vector3(0.0, -0.18, -0.48), _head_rig)
+	_box("Mouth", Vector3(0.2, 0.035, 0.1), Vector3.ZERO, Color("4e3432"), Vector3.ZERO, _mouth)
+	_front_left_leg = _build_stone_leg("FrontLeft", Vector3(-0.27, 0.58, -0.3))
+	_front_right_leg = _build_stone_leg("FrontRight", Vector3(0.27, 0.58, -0.3))
+	_back_left_leg = _build_stone_leg("BackLeft", Vector3(-0.27, 0.58, 0.32))
+	_back_right_leg = _build_stone_leg("BackRight", Vector3(0.27, 0.58, 0.32))
+	_tail_rig = _pivot("TailRig", Vector3(0.0, 0.73, 0.55), _body_rig)
+	_tail_rig.rotation_degrees.x = -20.0
+	_capsule("StoneTail", 0.13, 0.62, Vector3(0.0, 0.0, 0.3), coat_color.darkened(0.04), Vector3(90, 0, 0), _tail_rig)
+	_cone("TailCap", 0.15, 0.035, 0.28, Vector3(0.0, 0.0, 0.7), coat_light_color.darkened(0.12), Vector3(90, 0, 0), _tail_rig)
+
+
+func _build_cloudowl() -> void:
+	# An upright avian silhouette with articulated wings and talons.
+	_capsule("Torso", 0.34, 0.72, Vector3(0.0, 0.68, 0.0), coat_color, Vector3.ZERO, _body_rig)
+	_capsule("Breast", 0.27, 0.58, Vector3(0.0, 0.65, -0.18), coat_light_color, Vector3(8, 0, 0), _body_rig)
+	_head_rig = _pivot("HeadRig", Vector3(0.0, 1.04, -0.18), _body_rig)
+	_sphere("Head", 0.36, Vector3.ZERO, coat_color.lightened(0.04), _head_rig)
+	_sphere("LeftFaceDisk", 0.2, Vector3(-0.14, 0.0, -0.25), coat_light_color, _head_rig)
+	_sphere("RightFaceDisk", 0.2, Vector3(0.14, 0.0, -0.25), coat_light_color, _head_rig)
+	_sphere("LeftEye", 0.078, Vector3(-0.14, 0.02, -0.39), Color("d8ad45"), _head_rig, 0.2)
+	_sphere("RightEye", 0.078, Vector3(0.14, 0.02, -0.39), Color("d8ad45"), _head_rig, 0.2)
+	_sphere("LeftPupil", 0.036, Vector3(-0.14, 0.02, -0.455), Color("171b20"), _head_rig)
+	_sphere("RightPupil", 0.036, Vector3(0.14, 0.02, -0.455), Color("171b20"), _head_rig)
+	_mouth = _pivot("MouthRig", Vector3(0.0, -0.11, -0.4), _head_rig)
+	_cone("Beak", 0.09, 0.015, 0.23, Vector3.ZERO, Color("c99b40"), Vector3(90, 0, 0), _mouth)
+	_front_left_leg = _build_wing("Left", Vector3(-0.3, 0.82, 0.0), -1.0)
+	_front_right_leg = _build_wing("Right", Vector3(0.3, 0.82, 0.0), 1.0)
+	_back_left_leg = _build_talon("Left", Vector3(-0.13, 0.42, -0.02))
+	_back_right_leg = _build_talon("Right", Vector3(0.13, 0.42, -0.02))
+	_tail_rig = _pivot("TailRig", Vector3(0.0, 0.55, 0.28), _body_rig)
+	_box("TailFan", Vector3(0.48, 0.08, 0.48), Vector3(0.0, 0.0, 0.2), coat_color.darkened(0.08), Vector3(12, 0, 0), _tail_rig)
+
+
+func _build_stone_leg(prefix: String, position_: Vector3) -> Node3D:
+	var pivot := _pivot("%sLegRig" % prefix, position_, _body_rig)
+	_box("%sUpperLeg" % prefix, Vector3(0.2, 0.38, 0.2), Vector3(0.0, -0.17, 0.0), coat_color.darkened(0.08), Vector3.ZERO, pivot)
+	var paw_rig := _pivot("%sPawRig" % prefix, Vector3(0.0, -0.39, -0.05), pivot)
+	_box("%sPaw" % prefix, Vector3(0.27, 0.14, 0.34), Vector3(0.0, 0.0, -0.07), coat_light_color.darkened(0.12), Vector3.ZERO, paw_rig)
+	return pivot
+
+
+func _build_wing(prefix: String, position_: Vector3, side: float) -> Node3D:
+	var pivot := _pivot("%sWingRig" % prefix, position_, _body_rig)
+	_box("%sWing" % prefix, Vector3(0.15, 0.58, 0.56), Vector3(side * 0.17, -0.15, 0.02), coat_color.darkened(0.05), Vector3(0, 0, side * 18), pivot)
+	_box("%sWingTip" % prefix, Vector3(0.11, 0.42, 0.4), Vector3(side * 0.29, -0.45, 0.08), coat_light_color.darkened(0.1), Vector3(0, 0, side * 25), pivot)
+	return pivot
+
+
+func _build_talon(prefix: String, position_: Vector3) -> Node3D:
+	var pivot := _pivot("%sTalonRig" % prefix, position_, _body_rig)
+	_capsule("%sLeg" % prefix, 0.045, 0.25, Vector3(0.0, -0.12, 0.0), Color("bc984f"), Vector3.ZERO, pivot)
+	_box("%sTalon" % prefix, Vector3(0.17, 0.06, 0.22), Vector3(0.0, -0.26, -0.06), Color("bc984f"), Vector3.ZERO, pivot)
+	return pivot
 
 
 func get_visual_signature() -> Dictionary:
 	return {
-		"archetype": "mossfox",
+		"archetype": String(visual_archetype),
 		"articulated_legs": 4,
 		"has_independent_paws": true,
 		"motion_state": String(_motion_state),
@@ -170,13 +264,20 @@ func _update_motion() -> void:
 	if _motion_state not in [&"hurt", &"rest", &"sleep", &"downed"]:
 		_body_rig.rotation_degrees.z = lerpf(_body_rig.rotation_degrees.z, 0.0, 0.18)
 		_body_rig.position.y = lerpf(_body_rig.position.y, bounce, 0.22)
-	_front_left_leg.rotation_degrees.x = gait
-	_back_right_leg.rotation_degrees.x = gait
-	_front_right_leg.rotation_degrees.x = -gait
-	_back_left_leg.rotation_degrees.x = -gait
-	_head_rig.rotation_degrees.x = head_pitch
-	_mouth.rotation_degrees.x = mouth_open
-	_tail_rig.rotation_degrees.y = sin(_elapsed * tail_speed) * (18.0 if _motion_state != &"downed" else 3.0)
+	if _front_left_leg != null:
+		_front_left_leg.rotation_degrees.x = gait
+	if _back_right_leg != null:
+		_back_right_leg.rotation_degrees.x = gait
+	if _front_right_leg != null:
+		_front_right_leg.rotation_degrees.x = -gait
+	if _back_left_leg != null:
+		_back_left_leg.rotation_degrees.x = -gait
+	if _head_rig != null:
+		_head_rig.rotation_degrees.x = head_pitch
+	if _mouth != null:
+		_mouth.rotation_degrees.x = mouth_open
+	if _tail_rig != null:
+		_tail_rig.rotation_degrees.y = sin(_elapsed * tail_speed) * (18.0 if _motion_state != &"downed" else 3.0)
 
 
 func _apply_equipment_tint(root: Node3D, item_id: StringName, fallback: Color) -> void:

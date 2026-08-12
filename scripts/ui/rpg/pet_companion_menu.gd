@@ -75,7 +75,12 @@ func open_menu(pet: PetController) -> void:
 	_player.set_input_enabled(false)
 	get_tree().paused = true
 	visible = true
-	status_label.text = ""
+	var cognition_busy := _world.pet_conversation_service != null \
+		and bool(_world.pet_conversation_service.call("is_busy"))
+	%SendDialogue.disabled = cognition_busy
+	dialogue_input.editable = not cognition_busy
+	status_label.text = "Another companion is answering; please wait." \
+		if cognition_busy else ""
 	dialogue_reply.text = ""
 	_refresh()
 
@@ -94,14 +99,26 @@ func is_open() -> bool:
 	return visible
 
 
-func show_reply(reply: Dictionary) -> void:
+func show_reply(reply: Dictionary) -> bool:
 	if _pet == null:
-		return
+		return false
+	var routed_instance := str(reply.get("pet_instance_id", ""))
+	if not routed_instance.is_empty() \
+			and routed_instance != String(_pet.runtime_state.get_pet_instance_id()):
+		# The shared transport is idle again even when this menu belongs to a
+		# different companion than the completed request.
+		%SendDialogue.disabled = false
+		dialogue_input.editable = true
+		status_label.text = "Conversation channel is ready."
+		return false
 	_pet.set_dialogue_motion(false)
-	dialogue_reply.text = str(reply.get("reply_text", "Pip watches you quietly."))
+	dialogue_reply.text = str(reply.get(
+		"reply_text", "%s watches you quietly." % _pet.get_display_name()
+	))
 	status_label.text = "Safe fallback used." if bool(reply.get("fallback", false)) else "Conversation complete."
 	%SendDialogue.disabled = false
 	dialogue_input.editable = true
+	return true
 
 
 func _refresh() -> void:
@@ -138,6 +155,8 @@ func _refresh() -> void:
 	_rebuild_lifestyles()
 	_rebuild_locations()
 	proactive_check.set_pressed_no_signal(state.is_auto_dialogue_enabled())
+	proactive_check.text = "Allow %s to start conversations" % _pet.get_display_name()
+	dialogue_input.placeholder_text = "Talk to %s in your own words..." % _pet.get_display_name()
 	_populate_food()
 	_populate_equipment()
 	collar_button.text = _slot_text(&"collar")
@@ -193,7 +212,7 @@ func _populate_equipment() -> void:
 
 func _toggle_mode() -> void:
 	_pet.toggle_mode()
-	status_label.text = "Pip will follow you." if _pet.runtime_state.is_following() else "Pip will follow the selected routine here."
+	status_label.text = "%s will follow you." % _pet.get_display_name() if _pet.runtime_state.is_following() else "%s will follow the selected routine here." % _pet.get_display_name()
 	_refresh()
 
 
@@ -214,7 +233,7 @@ func _choose_location(index: int) -> void:
 
 func _toggle_proactive(enabled: bool) -> void:
 	_pet.runtime_state.set_auto_dialogue_enabled(enabled)
-	status_label.text = "Pip may start a conversation." if enabled else "Pip will only answer when spoken to."
+	status_label.text = "%s may start a conversation." % _pet.get_display_name() if enabled else "%s will only answer when spoken to." % _pet.get_display_name()
 
 
 func _feed_selected() -> void:
@@ -222,7 +241,7 @@ func _feed_selected() -> void:
 	var ok := not selected.is_empty() and _pet.feed_from_inventory(
 		_player.inventory, int(food_list.get_item_metadata(selected[0]))
 	)
-	status_label.text = "Pip enjoyed the food." if ok else "Select a suitable food from the backpack."
+	status_label.text = "%s enjoyed the food." % _pet.get_display_name() if ok else "Select a suitable food from the backpack."
 	_refresh()
 
 
@@ -244,7 +263,7 @@ func _unequip(slot_id: StringName) -> void:
 func _send_dialogue() -> void:
 	var text := dialogue_input.text.strip_edges()
 	if text.is_empty():
-		status_label.text = "Enter something to say to Pip."
+		status_label.text = "Enter something to say to %s." % _pet.get_display_name()
 		return
 	if _world == null or not _world.ask_pet(_pet, text):
 		status_label.text = "Pet cognition is unavailable; no gameplay state changed."
@@ -252,7 +271,7 @@ func _send_dialogue() -> void:
 	dialogue_input.clear()
 	dialogue_input.editable = false
 	%SendDialogue.disabled = true
-	status_label.text = "Pip is listening..."
+	status_label.text = "%s is listening..." % _pet.get_display_name()
 
 
 func _slot_text(slot_id: StringName) -> String:

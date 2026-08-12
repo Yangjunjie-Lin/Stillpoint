@@ -1,0 +1,174 @@
+[gd_resource type="Resource" script_class="PetCompanionDefinition" load_steps=20 format=3]
+
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_companion_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_species_definition.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_personality_profile.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_attribute_profile.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_lifestyle_definition.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_skill_definition.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/pets/domain/pet_equipment_slot_definition.gd" id="7"]
+
+[sub_resource type="Resource" id="Species"]
+script = ExtResource("2")
+id = &"stonehound"
+display_name = "Stone Hound"
+description = "A broad-pawed guardian whose mineral hide senses footsteps through earth and masonry."
+species_tags = Array[StringName]([&"hound", &"medium_companion", &"quadruped", &"stonehide"])
+habitat_tags = Array[StringName]([&"home", &"highland", &"dungeon", &"wilderness"])
+preferred_food_tags = Array[StringName]([&"meat", &"bone_broth", &"fresh_food"])
+visual_archetype = &"stonehound"
+coat_color = Color(0.31, 0.34, 0.36, 1)
+coat_light_color = Color(0.55, 0.52, 0.45, 1)
+accent_color = Color(0.4, 0.55, 0.62, 1)
+visual_scale = 1.18
+base_max_health = 72.0
+base_max_stamina = 54.0
+natural_defense = 5.0
+health_gain_per_level = 6.0
+stamina_gain_per_level = 2.5
+hunger_per_game_hour = 0.65
+rest_stamina_per_game_hour = 7.0
+
+[sub_resource type="Resource" id="Personality"]
+script = ExtResource("3")
+id = &"steadfast_guardian"
+display_name = "Steadfast Guardian"
+courage = 0.92
+curiosity = 0.42
+sociability = 0.58
+independence = 0.48
+loyalty = 0.96
+playfulness = 0.36
+aggression = 0.56
+patience = 0.88
+initial_mood = 72.0
+hunger_discomfort_threshold = 72.0
+
+[sub_resource type="Resource" id="Attributes"]
+script = ExtResource("4")
+strength = 15
+vitality = 16
+agility = 6
+endurance = 15
+focus = 9
+perception = 11
+sociability = 7
+
+[sub_resource type="Resource" id="GuardianLifestyle"]
+script = ExtResource("5")
+id = &"guardian"
+display_name = "Threshold Guardian"
+description = "Patrol a chosen threshold, rest nearby, and train without leaving the assigned place."
+preferred_location_tags = Array[StringName]([&"home", &"threshold", &"dungeon_entrance"])
+permitted_program_action_ids = Array[StringName]([&"guard", &"train", &"rest"])
+practiced_life_skill_ids = Array[StringName]([&"seismic_awareness"])
+activity_multiplier = 0.95
+rest_multiplier = 1.05
+hunger_multiplier = 0.9
+permits_independent_combat = true
+
+[sub_resource type="Resource" id="HomeLifestyle"]
+script = ExtResource("5")
+id = &"home_companion"
+display_name = "Hearth Sentinel"
+description = "Remain close to the household, socialize calmly, and watch over stored belongings."
+preferred_location_tags = Array[StringName]([&"home", &"safe", &"storage"])
+permitted_program_action_ids = Array[StringName]([&"rest", &"guard", &"socialize"])
+practiced_life_skill_ids = Array[StringName]([&"hearth_watch"])
+activity_multiplier = 0.75
+rest_multiplier = 1.25
+hunger_multiplier = 0.8
+
+[sub_resource type="Resource" id="ExploreLifestyle"]
+script = ExtResource("5")
+id = &"explore"
+display_name = "Ridge Pathfinder"
+description = "Explore firm ground, notice unstable passages, and return to the assigned post."
+preferred_location_tags = Array[StringName]([&"highland", &"wilderness", &"dungeon"])
+permitted_program_action_ids = Array[StringName]([&"explore", &"guard", &"return_home"])
+practiced_life_skill_ids = Array[StringName]([&"seismic_awareness"])
+activity_multiplier = 1.1
+rest_multiplier = 0.9
+hunger_multiplier = 1.05
+
+[sub_resource type="Resource" id="SeismicSkill"]
+script = ExtResource("6")
+id = &"seismic_awareness"
+display_name = "Seismic Awareness"
+description = "Read nearby movement and hollow ground through vibrations under the paws."
+program_action_id = &"pet_guard"
+governing_attribute = &"perception"
+stamina_cost = 2.0
+cooldown_seconds = 7.0
+proficiency_gain_per_use = 0.65
+tags = Array[StringName]([&"life", &"guarding", &"tracking", &"earth"])
+
+[sub_resource type="Resource" id="HearthSkill"]
+script = ExtResource("6")
+id = &"hearth_watch"
+display_name = "Hearth Watch"
+description = "Recognize familiar household routines and remain calmly alert near stored goods."
+program_action_id = &"pet_socialize"
+governing_attribute = &"focus"
+stamina_cost = 1.0
+cooldown_seconds = 10.0
+proficiency_gain_per_use = 0.55
+tags = Array[StringName]([&"life", &"home", &"social", &"guarding"])
+
+[sub_resource type="Resource" id="RamSkill"]
+script = ExtResource("6")
+id = &"granite_ram"
+display_name = "Granite Ram"
+description = "A short, heavy charge against a program-confirmed hostile within reach."
+kind = 1
+program_action_id = &"pet_melee_ram"
+governing_attribute = &"strength"
+stamina_cost = 11.0
+cooldown_seconds = 1.25
+base_power = 14.0
+range = 2.2
+proficiency_gain_per_use = 0.85
+tags = Array[StringName]([&"attack", &"melee", &"charge", &"earth"])
+
+[sub_resource type="Resource" id="CollarSlot"]
+script = ExtResource("7")
+id = &"collar"
+display_name = "Guardian Collar"
+accepted_item_tags = Array[StringName]([&"pet_collar"])
+allowed_species_tags = Array[StringName]([&"hound", &"medium_companion", &"stonehide"])
+maximum_weight = 3.5
+
+[sub_resource type="Resource" id="BodySlot"]
+script = ExtResource("7")
+id = &"body"
+display_name = "Back Guard"
+accepted_item_tags = Array[StringName]([&"pet_armor"])
+allowed_species_tags = Array[StringName]([&"medium_companion", &"stonehide"])
+maximum_weight = 8.0
+
+[sub_resource type="Resource" id="CharmSlot"]
+script = ExtResource("7")
+id = &"charm"
+display_name = "Oath Charm"
+accepted_item_tags = Array[StringName]([&"pet_charm"])
+allowed_species_tags = Array[StringName]([&"hound", &"medium_companion"])
+maximum_weight = 1.5
+
+[resource]
+script = ExtResource("1")
+id = &"stonehound"
+display_name = "Bastion"
+biography = "A patient stone hound raised beside Greywake's old walls, attentive to footsteps and familiar voices."
+species = SubResource("Species")
+personality = SubResource("Personality")
+base_attributes = SubResource("Attributes")
+lifestyles = Array[PetLifestyleDefinition]([SubResource("GuardianLifestyle"), SubResource("HomeLifestyle"), SubResource("ExploreLifestyle")])
+default_lifestyle_id = &"guardian"
+life_skills = Array[PetSkillDefinition]([SubResource("SeismicSkill"), SubResource("HearthSkill")])
+attack_skills = Array[PetSkillDefinition]([SubResource("RamSkill")])
+equipment_slots = Array[PetEquipmentSlotDefinition]([SubResource("CollarSlot"), SubResource("BodySlot"), SubResource("CharmSlot")])
+server_dialogue_profile_id = &"pet:stonehound"
+speech_style_tags = Array[StringName]([&"brief", &"steady", &"protective", &"grounded"])
+llm_advisory_intent_ids = Array[StringName]([&"seek_affection", &"comment_on_world", &"express_need"])
+default_stay_region_id = &"base:player_home"
+default_stay_location_id = &"pet_rest_area"

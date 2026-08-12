@@ -104,12 +104,17 @@ func request_turn(
 		if not player_ontology.is_empty():
 			payload["player_ontology"] = player_ontology
 	_pending_payload = payload.duplicate(true)
+	_pending_payload["pet_display_name"] = pet.get_display_name()
 	if bool(payload.allow_conversation_storage):
 		_cache.enqueue_turn(payload)
 	var error := _gateway.request_turn(payload)
 	if error != OK:
+		if bool(payload.allow_conversation_storage):
+			_cache.acknowledge_turn(str(payload.get("request_id", "")))
 		_pending_payload.clear()
-		_emit_fallback(cleaned, "backend_unavailable")
+		_emit_fallback(
+			cleaned, "backend_unavailable", pet.get_display_name(), persistent_id
+		)
 		return false
 	pet.set_dialogue_motion(true)
 	return true
@@ -131,7 +136,12 @@ func _on_gateway_result(result: Dictionary) -> void:
 	var scope := _pending_payload
 	_pending_payload = {}
 	if not bool(result.get("ok", false)):
-		_emit_fallback(str(scope.get("text", "")), str(result.get("error_code", "backend_unavailable")))
+		_emit_fallback(
+			str(scope.get("text", "")),
+			str(result.get("error_code", "backend_unavailable")),
+			str(scope.get("pet_display_name", "Companion")),
+			str(scope.get("npc_persistent_id", "")),
+		)
 		return
 	_cache.acknowledge_turn(str(result.get("request_id", "")))
 	_cache.set_session(
@@ -150,13 +160,23 @@ func _on_gateway_result(result: Dictionary) -> void:
 					memory,
 				)
 	# proposed_intents and animation_id never reach gameplay authority here.
-	reply_ready.emit(result.duplicate(true))
+	var routed := result.duplicate(true)
+	routed["pet_instance_id"] = str(scope.get("npc_persistent_id", ""))
+	reply_ready.emit(routed)
 
 
-func _emit_fallback(player_text: String, reason: String) -> void:
-	var text := "Pip stays close and gives a reassuring little chirp."
+func _emit_fallback(
+	player_text: String,
+	reason: String,
+	pet_name: String = "Companion",
+	pet_instance_id: String = "",
+) -> void:
+	var safe_name := pet_name.strip_edges().left(64)
+	if safe_name.is_empty():
+		safe_name = "Companion"
+	var text := "%s stays close and gives a reassuring little sound." % safe_name
 	if NPCConversationController._contains_cjk(player_text):
-		text = "皮普靠近你，轻轻叫了一声；它现在还没法把想法说清楚。"
+		text = "%s靠近你，轻轻叫了一声；它现在还没法把想法说清楚。" % safe_name
 	reply_ready.emit({
 		"ok": false,
 		"fallback": true,
@@ -165,4 +185,5 @@ func _emit_fallback(player_text: String, reason: String) -> void:
 		"emotion": "calm",
 		"animation_id": "talk",
 		"proposed_intents": [],
+		"pet_instance_id": pet_instance_id,
 	})

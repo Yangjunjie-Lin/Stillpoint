@@ -2,12 +2,16 @@
 
 Stillpoint companions are persistent world actors with their own authored ontology,
 mutable runtime state, equipment, progression, daily routine, memory scope, and
-first-person dialogue. The initial playable companion is Pip, a Moss Fox.
+first-person dialogue. The playable roster is catalog-driven rather than fixed to
+one animal: Pip the Moss Fox, Bastion the Stone Hound, and Nimbus the Cloud Owl are
+the initial authored types. Adding another valid resource under
+`resources/pet_companions/` gives it an independent world instance and cognition
+profile without changing the controller.
 
 ## Player controls
 
-1. Start or continue an Adventure and approach Pip in the town.
-2. Press `F` when `Care for Pip` is shown.
+1. Start or continue an Adventure and approach any companion in the town.
+2. Press `F` when `Care for <name>` is shown.
 3. The companion sheet lets the player:
    - inspect level, experience, health, stamina, hunger, mood, bond, personality,
      life skills, and attack skills;
@@ -17,7 +21,7 @@ first-person dialogue. The initial playable companion is Pip, a Moss Fox.
    - equip or remove collar, body gear, and charm items through an atomic backpack
      exchange;
    - enable or disable proactive dialogue for this companion;
-   - speak freely to Pip through the cognition backend.
+   - speak freely to the selected companion through its own cognition profile.
 
 New Adventures grant the three initial Pip equipment items. `Trail Snack` and
 `Turnip` are suitable foods. Companion equipment and food remain ordinary backpack
@@ -37,8 +41,9 @@ may produce structured dialogue, bounded memory candidates, graph candidates, an
 auditable suggestions. It cannot execute a suggested action or patch companion
 state.
 
-Pet cognition uses `entity_kind = pet`, a server-owned `pet:mossfox` profile, and a
-persistent instance ID. Memories and learned graph facts are isolated per pet
+Pet cognition uses `entity_kind = pet`, a server-owned profile such as
+`pet:mossfox`, `pet:stonehound`, or `pet:cloudowl`, and a persistent instance ID.
+Memories and learned graph facts are isolated per pet
 instance. A client-supplied identity or personality cannot replace the catalog
 profile. Proactive dialogue is requested by the deterministic behavior controller,
 uses a trusted `entity_proactive` context, and is never stored as if it were a
@@ -58,7 +63,7 @@ for proactive lines.
 
 ## Program-owned daily behavior
 
-While following, Pip stays near the owner and may defend against program-confirmed
+While following, each companion stays near the owner and may defend against program-confirmed
 hostiles according to authored temperament, health, stamina, and mood. While not
 following, the selected lifestyle constrains permitted activities such as resting,
 foraging, guarding, exploring, and training. Game time advances needs and life-skill
@@ -74,8 +79,8 @@ discarding follow mode or bond.
 
 Use a real Debug Build and the normal backend; do not substitute a fake gateway.
 
-1. Start a new Adventure, approach Pip, press `F`, and confirm the sheet identifies
-   `Pip / Moss Fox / Curious and Loyal`.
+1. Start a new Adventure and confirm Pip, Bastion, and Nimbus are visibly distinct,
+   face their direction of travel, and each opens its own companion sheet with `F`.
 2. Feed Pip and verify exactly one backpack item is consumed and hunger/mood/bond
    change only by the authored values.
 3. Equip each starter item, confirm collar/body/charm appear on Pip, then unequip and

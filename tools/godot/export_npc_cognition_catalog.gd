@@ -63,7 +63,7 @@ func _export_catalog() -> void:
 		"relation_action_catalog": KnowledgeActionLibrary.catalog(),
 	}
 	var pet_payload := {
-		"catalog_version": 1,
+		"catalog_version": 2,
 		"game_version": GAME_VERSION,
 		"pet_count": pet_profiles.size(),
 		"pets": pet_profiles,

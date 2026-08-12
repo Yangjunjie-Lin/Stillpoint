@@ -137,7 +137,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 button_pressed = true
-text = "Allow Pip to start conversations"
+text = "Allow this companion to start conversations"
 
 [node name="FoodHeading" type="Label" parent="Center/Panel/Margin/VBox/Columns/RoutineColumn"]
 layout_mode = 2
@@ -218,7 +218,7 @@ text = "FREE CONVERSATION (LLM)"
 unique_name_in_owner = true
 layout_mode = 2
 max_length = 4000
-placeholder_text = "Talk to Pip in your own words..."
+placeholder_text = "Talk to this companion in your own words..."
 
 [node name="SendDialogue" type="Button" parent="Center/Panel/Margin/VBox/Columns/EquipmentColumn"]
 unique_name_in_owner = true

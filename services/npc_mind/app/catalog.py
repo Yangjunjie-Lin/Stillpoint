@@ -39,21 +39,22 @@ class NpcCatalogRepository:
         companion_document = self._load_companion_catalog(companion_path, path is None)
         revision = f"{document.get('game_version', 'unknown')}:{document.get('catalog_version', 0)}"
         companion_revision = (
+            f"{companion_document.get('game_version', 'unknown')}"
             f":companions:{companion_document.get('catalog_version', 0)}"
             if companion_document
-            else ""
+            else revision
         )
-        self.catalog_revision = revision + companion_revision
+        self.catalog_revision = revision
         self.world_ontology = dict(document.get("world_ontology", {}))
         self.hidden_encounter_ontology = dict(document.get("hidden_encounter_ontology", {}))
         self.relation_action_catalog = dict(document.get("relation_action_catalog", {}))
         self._profiles: dict[str, NpcProfile] = {}
         raw_profiles = [
-            (raw, "npc") for raw in document.get("npcs", [])
+            (raw, "npc", revision) for raw in document.get("npcs", [])
         ] + [
-            (raw, "pet") for raw in companion_document.get("pets", [])
+            (raw, "pet", companion_revision) for raw in companion_document.get("pets", [])
         ]
-        for raw, entity_kind in raw_profiles:
+        for raw, entity_kind, profile_revision in raw_profiles:
             definition_id = str(raw.get("definition_id", "")).strip()
             if definition_id:
                 payload = dict(raw)
@@ -68,7 +69,7 @@ class NpcCatalogRepository:
                 )
                 self._profiles[definition_id] = NpcProfile(
                     definition_id,
-                    self.catalog_revision,
+                    profile_revision,
                     payload,
                     self.world_ontology,
                     self.hidden_encounter_ontology,

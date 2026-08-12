@@ -249,11 +249,19 @@ func _on_http_completed(
 		_retry_count = 0
 		_send_active()
 		return
-	_finish(
+	var parsed_result := (
 		parse_response(body, maximum_response_bytes)
 		if _active_kind == "turn"
 		else parse_sync_response(body, maximum_response_bytes)
 	)
+	# Parser-level failures (invalid JSON, oversized responses, or schema
+	# mismatches) cannot carry the backend request ID. Preserve the active turn
+	# scope so the owning NPC/pet adapter consumes the failure and clears its
+	# pending UI state. Never replace a non-empty ID supplied by the backend.
+	if _active_kind == "turn" \
+		and str(parsed_result.get("request_id", "")).strip_edges().is_empty():
+		parsed_result["request_id"] = _active_request_id
+	_finish(parsed_result)
 
 func _finish(result: Dictionary) -> void:
 	var kind := _active_kind

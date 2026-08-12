@@ -14,6 +14,7 @@ var player: PlayerController3D
 var current_region_id: StringName = &""
 var discovered_regions: Array = ["base:town"]
 var unlocked_pet_ids: Array = []
+var active_pet_instance_id: StringName = &""
 var unlocked_mount_ids: Array = []
 var _autosave_timer: float = 0.0
 var _autosave_enabled: bool = true
@@ -356,10 +357,12 @@ func open_commerce(
 
 
 func open_pet_companion(pet: Node = null) -> bool:
-	var target: Node = pet if pet != null else companion_root.get_node_or_null("Pet")
+	var target: Node = pet if pet != null else get_active_pet()
 	var menu := get_node_or_null("WorldUI/PetCompanionMenu")
 	if target == null or menu == null:
 		return false
+	if target is PetController:
+		set_active_pet((target as PetController).runtime_state.get_pet_instance_id())
 	menu.call("open_menu", target)
 	return bool(menu.call("is_open"))
 
@@ -390,7 +393,8 @@ func _notify_repossessed_return() -> void:
 
 func capture_companions() -> Dictionary:
 	return {
-		"pets": _serialize_pet(),
+		"pets": _serialize_pets(),
+		"active_pet_instance_id": String(active_pet_instance_id),
 		"mounts": _serialize_mount(),
 		"unlocked_pet_ids": unlocked_pet_ids.duplicate(),
 		"unlocked_mount_ids": unlocked_mount_ids.duplicate(),
@@ -398,20 +402,83 @@ func capture_companions() -> Dictionary:
 
 
 func restore_companions(data: Dictionary) -> void:
-	_restore_pet(data.get("pets", {}))
+	var unlocked_value: Variant = data.get("unlocked_pet_ids", [])
+	unlocked_pet_ids = unlocked_value.duplicate() if unlocked_value is Array else []
+	_restore_pets(data.get("pets", {}))
+	var requested_active := StringName(str(data.get("active_pet_instance_id", "")))
+	if get_pet_by_instance_id(requested_active) != null:
+		active_pet_instance_id = requested_active
+	elif get_pet_by_instance_id(active_pet_instance_id) != null:
+		# Legacy one-pet saves did not persist an active instance. Preserve the
+		# already-authored Pip selection instead of changing it due to ID sorting.
+		pass
+	else:
+		var pets := get_owned_pets()
+		active_pet_instance_id = pets[0].runtime_state.get_pet_instance_id() \
+			if not pets.is_empty() else &""
 	_restore_mount(data.get("mounts", {}))
-	unlocked_pet_ids = data.get("unlocked_pet_ids", []).duplicate()
 	unlocked_mount_ids = data.get("unlocked_mount_ids", []).duplicate()
 
 
 func unlock_pet(pet_id: StringName) -> bool:
 	var key := String(pet_id)
+	var definition := ResourceRegistry.get_pet_companion(pet_id)
 	if key.is_empty():
 		return false
 	if not unlocked_pet_ids.has(key):
 		unlocked_pet_ids.append(key)
+		var instance_id := _default_pet_instance_id(pet_id)
+		if definition != null and definition.is_valid() \
+				and get_pet_by_instance_id(instance_id) == null:
+			var pet := _create_pet_actor(definition, instance_id)
+			if pet == null:
+				unlocked_pet_ids.erase(key)
+				return false
+			if not _register_pet_actor(pet):
+				pet.queue_free()
+				unlocked_pet_ids.erase(key)
+				return false
 		save_coordinator.mark_dirty(&"companions")
 	return true
+
+
+func set_active_pet(instance_id: StringName) -> bool:
+	var pet := get_pet_by_instance_id(instance_id)
+	if pet == null:
+		return false
+	if active_pet_instance_id == instance_id:
+		return true
+	active_pet_instance_id = instance_id
+	save_coordinator.mark_dirty(&"companions")
+	return true
+
+
+func get_active_pet() -> PetController:
+	var selected := get_pet_by_instance_id(active_pet_instance_id)
+	if selected != null:
+		return selected
+	var pets := get_owned_pets()
+	return pets[0] if not pets.is_empty() else null
+
+
+func get_pet_by_instance_id(instance_id: StringName) -> PetController:
+	if instance_id == &"":
+		return null
+	for pet in get_owned_pets():
+		if pet.runtime_state.get_pet_instance_id() == instance_id:
+			return pet
+	return null
+
+
+func get_owned_pets() -> Array[PetController]:
+	var result: Array[PetController] = []
+	for child in companion_root.get_children():
+		if child is PetController:
+			result.append(child as PetController)
+	result.sort_custom(func(a: PetController, b: PetController) -> bool:
+		return String(a.runtime_state.get_pet_instance_id()) \
+			< String(b.runtime_state.get_pet_instance_id()))
+	return result
 
 
 func unlock_mount(mount_id: StringName) -> bool:
@@ -509,22 +576,25 @@ func _on_property_state_changed() -> void:
 
 
 func _spawn_companions() -> void:
-	var pet := companion_root.get_node_or_null("Pet") as PetController
-	if pet != null and player != null:
-		pet.setup(player)
-		if not pet.state_changed.is_connected(_on_pet_state_changed):
-			pet.state_changed.connect(_on_pet_state_changed)
-		if not pet.is_connected("autonomous_dialogue_requested", _on_pet_autonomous_dialogue_requested):
-			pet.connect("autonomous_dialogue_requested",
-				_on_pet_autonomous_dialogue_requested.bind(pet)
-			)
-		var pid := pet.get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
-		if pid != null:
-			entity_repository.register_entity(pet)
-		var interactable := pet.get_node_or_null("PetInteractable") as Interactable
-		if interactable != null:
-			interaction_index.register(interactable)
-		pet.update_region_presence(current_region_id if current_region_id != &"" else initial_region_id)
+	var legacy_pet := companion_root.get_node_or_null("Pet") as PetController
+	if legacy_pet != null:
+		unlocked_pet_ids = [String(legacy_pet.pet_id)]
+		if _register_pet_actor(legacy_pet):
+			active_pet_instance_id = legacy_pet.runtime_state.get_pet_instance_id()
+	for definition in ResourceRegistry.get_all_pet_companions():
+		if definition == null or not definition.is_valid() \
+				or definition.id == &"mossfox":
+			continue
+		var key := String(definition.id)
+		if not unlocked_pet_ids.has(key):
+			unlocked_pet_ids.append(key)
+		var instance_id := _default_pet_instance_id(definition.id)
+		if get_pet_by_instance_id(instance_id) != null:
+			continue
+		var pet := _create_pet_actor(definition, instance_id)
+		if pet != null:
+			if not _register_pet_actor(pet):
+				pet.queue_free()
 	var mount := companion_root.get_node_or_null("Mount") as MountController
 	if mount != null:
 		var mid := mount.get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
@@ -556,11 +626,11 @@ func _on_player_progression_changed(_current: int, _to_next: int, _level: int) -
 		save_coordinator.mark_dirty(&"player")
 
 
-func _serialize_pet() -> Dictionary:
-	var pet: Node = companion_root.get_node_or_null("Pet")
-	if pet == null:
-		return {}
-	return pet.call("to_dict") as Dictionary
+func _serialize_pets() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for pet in get_owned_pets():
+		result.append(pet.to_dict())
+	return result
 
 
 func _serialize_mount() -> Dictionary:
@@ -570,12 +640,157 @@ func _serialize_mount() -> Dictionary:
 	return mount.to_dict()
 
 
-func _restore_pet(data: Dictionary) -> void:
-	var pet := companion_root.get_node_or_null("Pet") as PetController
-	if pet != null and not data.is_empty():
-		pet.from_dict(data)
+func _restore_pets(data: Variant) -> void:
+	var entries: Array = []
+	if data is Array:
+		entries = data as Array
+	elif data is Dictionary and not (data as Dictionary).is_empty():
+		# Save v4/0.8 compatibility: the previous schema stored one pet dictionary.
+		entries = [data]
+	var restored_ids: Dictionary = {}
+	for value in entries:
+		if not value is Dictionary:
+			continue
+		var pet_data := value as Dictionary
+		var definition_id := StringName(str(
+			pet_data.get("definition_id", pet_data.get("pet_id", "mossfox"))
+		))
+		# The original one-pet save used placeholder aliases. Resolve them before
+		# looking in the new catalog; PetController will then migrate the remaining
+		# v0 fields (bond/mode/region) against the canonical mossfox definition.
+		if int(pet_data.get("section_version", 0)) == 0 \
+				and String(definition_id) in ["placeholder_pet", "pet"]:
+			definition_id = &"mossfox"
+		var definition := ResourceRegistry.get_pet_companion(definition_id)
+		if definition == null or not definition.is_valid():
+			continue
+		var instance_id := StringName(str(pet_data.get(
+			"instance_id", _default_pet_instance_id(definition_id)
+		)))
+		var pet := get_pet_by_instance_id(instance_id)
+		if pet == null:
+			# Save data cannot claim the player's, an NPC's, or another world
+			# entity's persistent identity as a pet cognition/memory scope.
+			if entity_repository.get_loaded_entity(instance_id) != null:
+				continue
+			pet = _create_pet_actor(definition, instance_id)
+			if pet == null:
+				continue
+			if not _register_pet_actor(pet):
+				pet.queue_free()
+				continue
+		pet.from_dict(pet_data)
 		pet.setup(player)
 		pet.update_region_presence(region_service.get_current_region_id())
+		restored_ids[String(pet.runtime_state.get_pet_instance_id())] = true
+		var key := String(definition_id)
+		if not unlocked_pet_ids.has(key):
+			unlocked_pet_ids.append(key)
+	# Newly authored companion types become independently owned instances without
+	# replacing or resetting any restored pet. Their future unlock conditions can
+	# remove them from this starter roster without changing the save schema.
+	for definition in ResourceRegistry.get_all_pet_companions():
+		if definition == null or not definition.is_valid():
+			continue
+		if not unlocked_pet_ids.has(String(definition.id)):
+			unlocked_pet_ids.append(String(definition.id))
+		var instance_id := _default_pet_instance_id(definition.id)
+		if restored_ids.has(String(instance_id)) or get_pet_by_instance_id(instance_id) != null:
+			continue
+		var pet := _create_pet_actor(definition, instance_id)
+		if pet != null:
+			if not _register_pet_actor(pet):
+				pet.queue_free()
+
+
+func _create_pet_actor(
+	definition: PetCompanionDefinition,
+	instance_id: StringName,
+) -> PetController:
+	if definition == null or not definition.is_valid() or instance_id == &"":
+		return null
+	var pet := PetController.new()
+	pet.name = "Pet_%s" % String(definition.id)
+	pet.pet_id = definition.id
+	pet.pet_definition = definition
+	pet.region_id = RegionIdUtil.normalize(initial_region_id)
+	var identity := WorldEntityIdentity.new()
+	identity.name = "WorldEntityIdentity"
+	identity.persistent_id = instance_id
+	identity.definition_id = definition.id
+	identity.region_id = pet.region_id
+	identity.persistence_policy = WorldEntityIdentity.PersistencePolicy.GLOBAL
+	pet.add_child(identity)
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := CapsuleShape3D.new()
+	shape.radius = 0.4 * definition.species.visual_scale
+	shape.height = 1.25 * definition.species.visual_scale
+	collision.position = Vector3(0.0, shape.height * 0.32, 0.0)
+	collision.shape = shape
+	pet.add_child(collision)
+	var hurtbox := PetHurtbox3D.new()
+	hurtbox.name = "PetHurtbox3D"
+	hurtbox.team = &"player"
+	pet.add_child(hurtbox)
+	var hurt_shape := CollisionShape3D.new()
+	hurt_shape.name = "CollisionShape3D"
+	hurt_shape.position = collision.position
+	hurt_shape.shape = shape.duplicate()
+	hurtbox.add_child(hurt_shape)
+	var visual_root := Node3D.new()
+	visual_root.name = "VisualRoot"
+	pet.add_child(visual_root)
+	var model := StylizedPetModel.new()
+	model.name = "PetModel"
+	visual_root.add_child(model)
+	var interactable := PetInteractable.new()
+	interactable.name = "PetInteractable"
+	interactable.pet_path = NodePath("..")
+	interactable.region_id = pet.region_id
+	pet.add_child(interactable)
+	var spawn_offset := float(get_owned_pets().size()) * 1.8
+	pet.position = Vector3(-1.0 + spawn_offset, 1.0, -1.0)
+	companion_root.add_child(pet)
+	return pet
+
+
+func _register_pet_actor(pet: PetController) -> bool:
+	if pet == null or player == null:
+		return false
+	var identity := pet.get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
+	if identity != null:
+		var loaded := entity_repository.get_loaded_entity(identity.persistent_id)
+		if loaded == null:
+			if not entity_repository.register_entity(pet):
+				return false
+		elif loaded != pet:
+			return false
+	else:
+		return false
+	pet.setup(player)
+	if not pet.state_changed.is_connected(_on_pet_state_changed):
+		pet.state_changed.connect(_on_pet_state_changed)
+	if not pet.autonomous_dialogue_requested.is_connected(
+		_on_pet_autonomous_dialogue_requested
+	):
+		pet.autonomous_dialogue_requested.connect(
+			_on_pet_autonomous_dialogue_requested.bind(pet)
+		)
+	var interactable := pet.get_node_or_null("PetInteractable") as Interactable
+	if interactable != null:
+		interaction_index.register(interactable)
+	pet.update_region_presence(
+		current_region_id if current_region_id != &"" else initial_region_id
+	)
+	if active_pet_instance_id == &"":
+		active_pet_instance_id = pet.runtime_state.get_pet_instance_id()
+	return true
+
+
+func _default_pet_instance_id(definition_id: StringName) -> StringName:
+	return &"base:town/companion/pet" if definition_id == &"mossfox" \
+		else StringName("base:player/pet/%s_0001" % String(definition_id))
 
 
 func _restore_mount(data: Dictionary) -> void:
@@ -591,9 +806,15 @@ func _on_region_changed(_previous: StringName, current: StringName) -> void:
 		player.refresh_contextual_capabilities()
 	region_changed.emit(current)
 	EventBus.region_changed.emit(current)
-	var pet := companion_root.get_node_or_null("Pet") as PetController
-	if pet != null:
-		pet.update_region_presence(current)
+	for pet in get_owned_pets():
+		var present := pet.update_region_presence(current)
+		if present:
+			var interactable := pet.get_node_or_null("PetInteractable") as Interactable
+			if interactable != null:
+				# RegionRuntimeService clears the spatial index while unloading a
+				# region. Companions live under PersistentRoot, so register their
+				# persistent interaction entry again after the new region is active.
+				interaction_index.register(interactable)
 	var ev := GameplayEvent.make(
 		GameplayEventTypes.REGION_ENTERED,
 		&"base:player/main",
@@ -605,8 +826,7 @@ func _on_region_changed(_previous: StringName, current: StringName) -> void:
 
 
 func _on_world_hour_changed(_day: int, _hour: int) -> void:
-	var pet := companion_root.get_node_or_null("Pet") as PetController
-	if pet != null:
+	for pet in get_owned_pets():
 		pet.sync_game_clock(not pet.is_present_in_current_region())
 
 
@@ -616,15 +836,18 @@ func _on_pet_state_changed(_reason: StringName) -> void:
 
 
 func _on_pet_reply_ready(reply: Dictionary) -> void:
+	var pet_instance_id := StringName(str(reply.get("pet_instance_id", "")))
+	var pet := get_pet_by_instance_id(pet_instance_id)
+	if pet == null:
+		pet = get_active_pet()
 	var menu := get_node_or_null("WorldUI/PetCompanionMenu")
 	if menu != null and bool(menu.call("is_open")):
-		menu.call("show_reply", reply)
-		return
-	var pet: Node = companion_root.get_node_or_null("Pet")
+		if bool(menu.call("show_reply", reply)):
+			return
 	if pet != null:
-		pet.call("set_dialogue_motion", false)
+		pet.set_dialogue_motion(false)
 	EventBus.ai_dialogue_reply.emit(
-		str(pet.call("get_display_name")) if pet != null else "Companion",
+		pet.get_display_name() if pet != null else "Companion",
 		str(reply.get("reply_text", "Your companion stays near.")),
 	)
 

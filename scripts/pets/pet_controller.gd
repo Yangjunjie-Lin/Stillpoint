@@ -63,7 +63,23 @@ func _ready() -> void:
 	behavior_runtime.autonomous_dialogue_suggested.connect(_on_autonomous_dialogue)
 	runtime_state.state_changed.connect(_on_runtime_state_changed)
 	_last_world_time_minutes = WorldTimeService.get_total_minutes()
+	_sync_species_visual()
 	_sync_equipment_visuals()
+
+
+func configure_definition(
+	definition: PetCompanionDefinition,
+	instance_id: StringName,
+	owner_id: StringName = &"base:player/main",
+) -> bool:
+	if is_node_ready() or definition == null or not definition.is_valid() \
+			or instance_id == &"" or owner_id == &"":
+		return false
+	pet_definition = definition
+	pet_id = definition.id
+	return runtime_state.initialize(
+		definition, instance_id, owner_id, definition.display_name
+	)
 
 
 func setup(owner: PlayerController3D) -> void:
@@ -228,7 +244,12 @@ func set_following(following: bool) -> bool:
 func teleport_to_owner() -> void:
 	if _owner == null or not runtime_state.is_following():
 		return
-	global_position = _owner.global_position + Vector3(-1.5, 0.0, -1.5)
+	var stable_hash := absi(String(runtime_state.get_pet_instance_id()).hash())
+	var angle := float(stable_hash % 6283) / 1000.0
+	var radius := 1.8 + float((stable_hash / 6283) % 4) * 0.25
+	global_position = _owner.global_position + Vector3(
+		cos(angle) * radius, 0.0, sin(angle) * radius
+	)
 	region_id = _owner.current_region_id
 	_sync_identity_region(region_id)
 	reset_physics_interpolation()
@@ -369,6 +390,7 @@ func from_dict(data: Dictionary) -> void:
 		behavior_runtime.restore_runtime_state(data.get("behavior_runtime", {}))
 	_last_world_time_minutes = WorldTimeService.get_total_minutes()
 	_sync_legacy_fields()
+	_sync_species_visual()
 	_sync_equipment_visuals()
 
 
@@ -413,7 +435,8 @@ func _build_world_context() -> Dictionary:
 			"rest": global_position,
 			"forage": global_position + global_transform.basis.x * 2.0,
 			"guard": _owner.global_position if _owner != null else global_position,
-			"explore": global_position + global_transform.basis.z * 3.0,
+			# -Z is the authored/model forward direction throughout Godot gameplay.
+			"explore": global_position - global_transform.basis.z * 3.0,
 			"train": global_position + global_transform.basis.x * -2.0,
 		},
 	}
@@ -541,6 +564,12 @@ func _sync_equipment_visuals() -> void:
 		)
 
 
+func _sync_species_visual() -> void:
+	var model := get_node_or_null("VisualRoot/PetModel") as StylizedPetModel
+	if model != null and pet_definition != null:
+		model.configure_species(pet_definition.species)
+
+
 func _update_presentation() -> void:
 	var model := get_node_or_null("VisualRoot/PetModel") as StylizedPetModel
 	if model == null:
@@ -548,8 +577,12 @@ func _update_presentation() -> void:
 	if _motion_override != &"":
 		model.set_motion_state(_motion_override)
 	elif behavior_runtime != null:
-		var activity := behavior_runtime.current_activity
-		model.set_motion_state(&"walk" if activity == PetBehaviorRuntime.ACTIVITY_FOLLOW and Vector2(velocity.x, velocity.z).length() > 0.1 else activity)
+		var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+		model.set_motion_state(
+			(&"run" if horizontal_speed > move_speed * 1.05 else &"walk")
+			if horizontal_speed > 0.1
+			else behavior_runtime.current_activity
+		)
 	else:
 		model.set_motion_state(&"idle")
 

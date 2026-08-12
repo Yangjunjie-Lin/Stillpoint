@@ -77,7 +77,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
 shape = SubResource("Capsule_companion")
 
 [node name="VisualRoot" type="Node3D" parent="PersistentRoot/CompanionRoot/Pet"]
-rotation = Vector3(0, 3.1415927, 0)
 
 [node name="PetModel" type="Node3D" parent="PersistentRoot/CompanionRoot/Pet/VisualRoot"]
 script = ExtResource("31")

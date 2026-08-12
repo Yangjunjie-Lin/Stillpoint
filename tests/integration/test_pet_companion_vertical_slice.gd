@@ -16,6 +16,14 @@ func run() -> bool:
 		ok = ok and world.interaction_index.get_registered_count() > 0
 		ok = ok and world.player.inventory.count_item(&"mossfox_collar") == 1
 		ok = ok and world.open_pet_companion(pet) and menu.is_open()
+		ok = ok and not menu.show_reply({
+			"pet_instance_id": "base:player/pet/cloudowl_0001",
+			"reply_text": "This belongs to another companion.",
+		})
+		ok = ok and menu.show_reply({
+			"pet_instance_id": String(pet.runtime_state.get_pet_instance_id()),
+			"reply_text": "Pip reply routing is isolated.",
+		})
 		menu.close_menu()
 		var collar_slot := _find_slot(world.player.inventory, &"mossfox_collar")
 		ok = ok and collar_slot >= 0 and pet.equip_from_inventory(

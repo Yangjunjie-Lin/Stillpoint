@@ -661,10 +661,19 @@ func _pet_id() -> StringName:
 
 
 func _attack_skill_id() -> StringName:
-	return StringName(str(_state_or_definition_value(
+	var direct := StringName(str(_state_or_definition_value(
 		[&"equipped_attack_skill_id", &"attack_skill_id", &"combat_skill_id"],
-		&"pet_basic_attack",
+		&"",
 	)))
+	if direct != &"":
+		return direct
+	var authored_skills: Variant = _definition_value([&"attack_skills"], [])
+	if authored_skills is Array and not (authored_skills as Array).is_empty():
+		var first: Variant = (authored_skills as Array)[0]
+		var authored_id := StringName(str(_value_from(first, [&"id"], &"")))
+		if authored_id != &"":
+			return authored_id
+	return &"pet_basic_attack"
 
 
 func _health_ratio(world_context: Dictionary) -> float:

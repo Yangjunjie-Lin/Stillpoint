@@ -40,8 +40,7 @@ func interact(_actor: CharacterController, _context: InteractionContext) -> void
 
 func _find_session_pet() -> PetController:
 	var session := _find_session()
-	return session.companion_root.get_node_or_null("Pet") as PetController \
-		if session != null else null
+	return session.get_active_pet() if session != null else null
 
 
 func _find_session() -> WorldSession:
