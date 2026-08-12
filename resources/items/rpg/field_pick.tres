@@ -15,6 +15,7 @@ use_kind = 2
 tool_attack_id = &"attack_light_1"
 utility_actions = Array[StringName]([&"till_soil", &"mine_rock", &"break_stone"])
 attack_bonus = 2.0
+hand_form = &"field_pick"
 starter_balance_value = 4
 visual_archetype = &"field_pick"
 visual_primary_color = Color(0.352941, 0.235294, 0.14902, 1)

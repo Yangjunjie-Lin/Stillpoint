@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/wanderer_charm.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"festival_hairpin"
+display_name = "Festival Hairpin"
+item_type = 11
+max_stack = 1
+description = "A polished decorative pin with no physical burden or requirement."
+icon = ExtResource("2")
+equip_slot = 12
+equipment_class = 1
+charisma_bonus = 3.0
+visual_archetype = &"neck_charm"
+visual_primary_color = Color(0.72, 0.23, 0.35, 1)
+visual_secondary_color = Color(0.94, 0.75, 0.32, 1)

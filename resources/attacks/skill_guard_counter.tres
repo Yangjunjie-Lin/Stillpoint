@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AttackDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/attack_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"skill_guard_counter"
+display_name = "Guard Counter"
+animation_name = &"attack_light_1"
+damage = 13.0
+energy_cost = 4.0
+poise_damage = 10.0
+knockback_distance = 1.6
+windup = 0.07
+active = 0.13
+recovery = 0.18

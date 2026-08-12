@@ -5,11 +5,24 @@ extends Node
 
 signal equipment_changed
 
-const SECTION_VERSION := 1
+const SECTION_VERSION := 2
 const EQUIP_SLOTS: Array[int] = [
 	ItemDefinition.EquipSlot.WEAPON,
 	ItemDefinition.EquipSlot.ARMOR,
 	ItemDefinition.EquipSlot.CHARM,
+	ItemDefinition.EquipSlot.HEAD,
+	ItemDefinition.EquipSlot.LEGS,
+	ItemDefinition.EquipSlot.FEET,
+	ItemDefinition.EquipSlot.HANDS,
+	ItemDefinition.EquipSlot.WRISTS,
+	ItemDefinition.EquipSlot.RING_LEFT,
+	ItemDefinition.EquipSlot.RING_RIGHT,
+	ItemDefinition.EquipSlot.BELT,
+	ItemDefinition.EquipSlot.DECOR_HEAD,
+	ItemDefinition.EquipSlot.DECOR_BODY,
+	ItemDefinition.EquipSlot.DECOR_HANDS,
+	ItemDefinition.EquipSlot.DECOR_FEET,
+	ItemDefinition.EquipSlot.DECOR_ORNAMENT,
 ]
 
 var _equipped: Dictionary = {}
@@ -36,7 +49,40 @@ func is_slot_compatible(item_id: StringName, slot: int) -> bool:
 	if item_id == &"" or not _is_equipment_slot(slot):
 		return false
 	var definition := ResourceRegistry.get_item(item_id)
-	return definition != null and int(definition.equip_slot) == slot
+	return definition != null and definition.supports_equip_slot(slot)
+
+
+func get_load_state(strength: int, vitality: int, level: int) -> Dictionary:
+	var attribute_weight := 0.0
+	var requirement_load := 0.0
+	var charisma := 0.0
+	var unmet: Array[String] = []
+	for slot in EQUIP_SLOTS:
+		var definition := get_equipped_definition(slot)
+		if definition == null:
+			continue
+		if definition.is_decorative_equipment():
+			charisma += definition.charisma_bonus
+			continue
+		attribute_weight += maxf(0.0, definition.equipment_weight)
+		var strength_deficit := maxi(0, definition.required_strength - strength)
+		var vitality_deficit := maxi(0, definition.required_vitality - vitality)
+		var level_deficit := maxi(0, definition.minimum_level - level)
+		if strength_deficit > 0 or vitality_deficit > 0 or level_deficit > 0:
+			unmet.append(definition.display_name)
+		requirement_load += strength_deficit * 2.0 + vitality_deficit * 2.0 + level_deficit * 3.0
+	var capacity := maxf(1.0, strength * 3.0 + vitality * 1.5)
+	var overload := maxf(0.0, attribute_weight - capacity) + requirement_load
+	var penalty_ratio := clampf(overload / capacity, 0.0, 0.65)
+	return {
+		"attribute_weight": attribute_weight,
+		"capacity": capacity,
+		"overload": overload,
+		"penalty_ratio": penalty_ratio,
+		"charisma_bonus": charisma,
+		"unmet_items": unmet,
+		"overloaded": overload > 0.0001,
+	}
 
 
 func equip_from_inventory(
@@ -52,10 +98,11 @@ func equip_from_inventory(
 	var definition := ResourceRegistry.get_item(source.item_id)
 	if definition == null:
 		return false
-	var target_slot := int(definition.equip_slot)
+	var target_slot := requested_slot if requested_slot != ItemDefinition.EquipSlot.NONE \
+		else int(definition.equip_slot)
 	if not _is_equipment_slot(target_slot):
 		return false
-	if requested_slot != ItemDefinition.EquipSlot.NONE and requested_slot != target_slot:
+	if not definition.supports_equip_slot(target_slot):
 		return false
 	var next_item_id := source.item_id
 	var previous_item_id := get_equipped_item(target_slot)
@@ -132,13 +179,12 @@ func unequip_to_inventory_slot(
 
 
 func to_dict() -> Dictionary:
+	var slots: Dictionary = {}
+	for slot in EQUIP_SLOTS:
+		slots[_slot_key(slot)] = String(get_equipped_item(slot))
 	return {
 		"section_version": SECTION_VERSION,
-		"slots": {
-			"weapon": String(get_equipped_item(ItemDefinition.EquipSlot.WEAPON)),
-			"armor": String(get_equipped_item(ItemDefinition.EquipSlot.ARMOR)),
-			"charm": String(get_equipped_item(ItemDefinition.EquipSlot.CHARM)),
-		},
+		"slots": slots,
 	}
 
 
@@ -183,11 +229,10 @@ func _reset_slots() -> void:
 
 
 func _empty_slot_dictionary() -> Dictionary:
-	return {
-		ItemDefinition.EquipSlot.WEAPON: &"",
-		ItemDefinition.EquipSlot.ARMOR: &"",
-		ItemDefinition.EquipSlot.CHARM: &"",
-	}
+	var result: Dictionary = {}
+	for slot in EQUIP_SLOTS:
+		result[slot] = &""
+	return result
 
 
 func _is_equipment_slot(slot: int) -> bool:
@@ -202,6 +247,32 @@ func _slot_key(slot: int) -> String:
 			return "armor"
 		ItemDefinition.EquipSlot.CHARM:
 			return "charm"
+		ItemDefinition.EquipSlot.HEAD:
+			return "head"
+		ItemDefinition.EquipSlot.LEGS:
+			return "legs"
+		ItemDefinition.EquipSlot.FEET:
+			return "feet"
+		ItemDefinition.EquipSlot.HANDS:
+			return "hands"
+		ItemDefinition.EquipSlot.WRISTS:
+			return "wrists"
+		ItemDefinition.EquipSlot.RING_LEFT:
+			return "ring_left"
+		ItemDefinition.EquipSlot.RING_RIGHT:
+			return "ring_right"
+		ItemDefinition.EquipSlot.BELT:
+			return "belt"
+		ItemDefinition.EquipSlot.DECOR_HEAD:
+			return "decor_head"
+		ItemDefinition.EquipSlot.DECOR_BODY:
+			return "decor_body"
+		ItemDefinition.EquipSlot.DECOR_HANDS:
+			return "decor_hands"
+		ItemDefinition.EquipSlot.DECOR_FEET:
+			return "decor_feet"
+		ItemDefinition.EquipSlot.DECOR_ORNAMENT:
+			return "decor_ornament"
 	return ""
 
 

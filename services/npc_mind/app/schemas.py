@@ -67,6 +67,18 @@ class PlayerObservableCapability(BaseModel):
     visibility: Literal["public"] = "public"
 
 
+class PlayerVisibleLoadout(BaseModel):
+    """Bounded cues visible to an NPC without inventory or exact stats."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    main_hand_form: OntologyId = "empty"
+    off_hand_form: OntologyId = "empty"
+    dual_wielding: bool = False
+    load_posture: Literal["balanced", "strained"] = "balanced"
+    presentation: Literal["plain", "notable", "ornate"] = "plain"
+
+
 class PlayerOntologySnapshot(BaseModel):
     """Versioned, bounded public context an NPC may currently know or observe."""
 
@@ -75,6 +87,7 @@ class PlayerOntologySnapshot(BaseModel):
     schema_version: Literal[1] = 1
     public_identity: PlayerPublicIdentity
     visible_appearance: PlayerVisibleAppearance
+    visible_loadout: PlayerVisibleLoadout | None = None
     observable_capabilities: list[PlayerObservableCapability] = Field(
         default_factory=list,
         max_length=6,

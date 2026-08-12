@@ -26,6 +26,8 @@ var _equipped_weapon: ItemDefinition
 var _equipped_armor: ItemDefinition
 var _equipped_charm: ItemDefinition
 var _held_item: ItemDefinition
+var _off_hand_item: ItemDefinition
+var _worn_items: Array[ItemDefinition] = []
 var _loadout_attachments: Array[Node3D] = []
 
 
@@ -104,22 +106,32 @@ func apply_loadout(
 	armor: ItemDefinition,
 	charm: ItemDefinition,
 	held_item: ItemDefinition,
+	off_hand_item: ItemDefinition = null,
+	worn_items: Array[ItemDefinition] = [],
 ) -> void:
 	_equipped_weapon = weapon
 	_equipped_armor = armor
 	_equipped_charm = charm
 	_held_item = held_item
+	_off_hand_item = off_hand_item
+	_worn_items = worn_items.duplicate()
 	if is_inside_tree() and _visual_root != null:
 		_rebuild_loadout()
 
 
 func get_displayed_loadout() -> Dictionary:
-	var handheld := _held_item if _held_item != null else _equipped_weapon
+	var main_hand := _held_item if _held_item != null else _equipped_weapon
 	return {
 		"weapon": String(_equipped_weapon.id) if _equipped_weapon != null else "",
 		"armor": String(_equipped_armor.id) if _equipped_armor != null else "",
 		"charm": String(_equipped_charm.id) if _equipped_charm != null else "",
-		"held_item": String(handheld.id) if handheld != null else "",
+		# Legacy field keeps the selected 1–9 hand item semantics while the
+		# explicit main_hand/off_hand fields expose the true dual-wield model.
+		"held_item": String(_off_hand_item.id) if _off_hand_item != null else (
+			String(main_hand.id) if main_hand != null else ""
+		),
+		"main_hand": String(main_hand.id) if main_hand != null else "",
+		"off_hand": String(_off_hand_item.id) if _off_hand_item != null else "",
 	}
 
 
@@ -132,28 +144,54 @@ func _rebuild_loadout() -> void:
 	_loadout_attachments.clear()
 	for child in _loadout_root.get_children():
 		child.free()
-	var handheld := _held_item if _held_item != null else _equipped_weapon
-	_set_origin_weapon_visibility(handheld == null)
-	if handheld != null and handheld.visual_archetype != &"":
-		_build_handheld(handheld)
+	var main_hand := _held_item if _held_item != null else _equipped_weapon
+	_set_origin_weapon_visibility(main_hand == null and _off_hand_item == null)
+	if main_hand != null and main_hand.visual_archetype != &"":
+		_build_handheld(main_hand, false)
+	if _off_hand_item != null and _off_hand_item.visual_archetype != &"":
+		_build_handheld(_off_hand_item, true)
+		_build_legacy_held_alias(_off_hand_item)
+	elif main_hand != null and main_hand.visual_archetype != &"":
+		_build_legacy_held_alias(main_hand)
 	if _equipped_armor != null and _equipped_armor.visual_archetype != &"":
 		_build_armor(_equipped_armor)
 	if _equipped_charm != null and _equipped_charm.visual_archetype != &"":
 		_build_charm(_equipped_charm)
+	for definition in _worn_items:
+		_build_worn_equipment(definition)
 
 
-func _build_handheld(definition: ItemDefinition) -> void:
+func _build_handheld(definition: ItemDefinition, force_left: bool = false) -> void:
 	var grip_pose := ItemVisualFactory.grip_pose_for(definition)
 	var hand_name := (
-		"LeftHand" if str(grip_pose.get("hand", "right")) == "left" else "RightHand"
+		"LeftHand" if force_left or str(grip_pose.get("hand", "right")) == "left" else "RightHand"
 	)
 	var hand := _body_root.find_child(hand_name, true, false) as Node3D
 	if hand == null:
 		return
 	var model := ItemVisualFactory.create_model(definition, true)
-	model.name = "DisplayedHandheld"
+	model.name = "DisplayedOffHand" if force_left else "DisplayedMainHand"
+	if force_left and str(grip_pose.get("hand", "right")) != "left":
+		model.position.x = -model.position.x
+		model.rotation_degrees.y = -model.rotation_degrees.y
+		model.rotation_degrees.z = -model.rotation_degrees.z
 	hand.add_child(model)
 	_loadout_attachments.append(model)
+
+
+func _build_legacy_held_alias(definition: ItemDefinition) -> void:
+	# Compatibility-only hidden model: older visual queries looked for the
+	# selected hotbar tool under DisplayedHandheld in the main-hand hierarchy.
+	var grip_pose := ItemVisualFactory.grip_pose_for(definition)
+	var hand_name := "LeftHand" if str(grip_pose.get("hand", "right")) == "left" else "RightHand"
+	var hand := _body_root.find_child(hand_name, true, false) as Node3D
+	if hand == null:
+		return
+	var alias := ItemVisualFactory.create_model(definition, true)
+	alias.name = "DisplayedHandheld"
+	alias.visible = false
+	hand.add_child(alias)
+	_loadout_attachments.append(alias)
 
 
 func _build_armor(definition: ItemDefinition) -> void:
@@ -180,6 +218,72 @@ func _build_charm(definition: ItemDefinition) -> void:
 	_loadout_attachments.append(charm)
 	_dynamic_cylinder(charm, "CharmCord", 0.012, 0.28, Vector3(0, 0.08, 0.245), definition.visual_primary_color)
 	_dynamic_sphere(charm, "CharmStone", 0.075, Vector3(0, -0.09, 0.27), definition.visual_secondary_color, 0.32)
+
+
+func _build_worn_equipment(definition: ItemDefinition) -> void:
+	if definition == null:
+		return
+	match int(definition.equip_slot):
+		ItemDefinition.EquipSlot.HEAD, ItemDefinition.EquipSlot.DECOR_HEAD:
+			_wear_head(definition)
+		ItemDefinition.EquipSlot.LEGS:
+			_wear_pair(definition, "LeftLeg", "RightLeg", Vector3(0.24, 0.66, 0.24))
+		ItemDefinition.EquipSlot.FEET, ItemDefinition.EquipSlot.DECOR_FEET:
+			_wear_pair(definition, "LeftBoot", "RightBoot", Vector3(0.24, 0.2, 0.36))
+		ItemDefinition.EquipSlot.HANDS, ItemDefinition.EquipSlot.DECOR_HANDS:
+			_wear_pair(definition, "LeftHand", "RightHand", Vector3.ONE * 0.19)
+		ItemDefinition.EquipSlot.WRISTS:
+			_wear_pair(definition, "LeftArm", "RightArm", Vector3(0.2, 0.18, 0.2), Vector3(0, -0.2, 0))
+		ItemDefinition.EquipSlot.RING_LEFT:
+			_wear_single(definition, "LeftHand", Vector3.ONE * 0.115, Vector3(0, -0.02, 0.03))
+		ItemDefinition.EquipSlot.RING_RIGHT:
+			_wear_single(definition, "RightHand", Vector3.ONE * 0.115, Vector3(0, -0.02, 0.03))
+		ItemDefinition.EquipSlot.BELT:
+			_wear_single(definition, "Torso", Vector3(0.62, 0.12, 0.46), Vector3(0, -0.25, 0))
+		ItemDefinition.EquipSlot.DECOR_BODY:
+			_wear_single(definition, "Torso", Vector3(0.68, 0.1, 0.47), Vector3(0, 0.12, 0))
+		ItemDefinition.EquipSlot.DECOR_ORNAMENT:
+			_build_charm(definition)
+
+
+func _wear_head(definition: ItemDefinition) -> void:
+	var head := _body_root.find_child("Head", true, false) as Node3D
+	if head == null:
+		return
+	var overlay := Node3D.new()
+	overlay.name = "Displayed%s" % String(definition.id).to_pascal_case()
+	head.add_child(overlay)
+	_loadout_attachments.append(overlay)
+	_dynamic_cylinder(overlay, "HeadBand", 0.245, 0.09, Vector3(0, 0.09, 0), definition.visual_primary_color)
+	_dynamic_sphere(overlay, "HeadAccent", 0.045, Vector3(0.16, 0.17, 0.06), definition.visual_secondary_color, 0.25)
+
+
+func _wear_pair(
+	definition: ItemDefinition,
+	left_name: String,
+	right_name: String,
+	size: Vector3,
+	position_: Vector3 = Vector3.ZERO,
+) -> void:
+	_wear_single(definition, left_name, size, position_, "Left")
+	_wear_single(definition, right_name, size, position_, "Right")
+
+
+func _wear_single(
+	definition: ItemDefinition,
+	parent_name: String,
+	size: Vector3,
+	position_: Vector3 = Vector3.ZERO,
+	prefix: String = "",
+) -> void:
+	var target := _body_root.find_child(parent_name, true, false) as Node3D
+	if target == null:
+		return
+	var overlay := Node3D.new()
+	overlay.name = "Displayed%s%s" % [prefix, String(definition.id).to_pascal_case()]
+	target.add_child(overlay)
+	_loadout_attachments.append(overlay)
+	_dynamic_box(overlay, "Wearable", size, position_, definition.visual_primary_color, Vector3.ZERO, 0.15)
 
 
 func _set_origin_weapon_visibility(visible_: bool) -> void:

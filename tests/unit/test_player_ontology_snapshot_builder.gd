@@ -25,6 +25,7 @@ func run() -> bool:
 
 	var identity: Dictionary = snapshot.get("public_identity", {})
 	var appearance: Dictionary = snapshot.get("visible_appearance", {})
+	var loadout: Dictionary = snapshot.get("visible_loadout", {})
 	var capabilities: Array = snapshot.get("observable_capabilities", [])
 	var capability_ids: Array[String] = []
 	var capabilities_valid := capabilities.size() <= 6
@@ -58,6 +59,13 @@ func run() -> bool:
 			"palette_id": "ember",
 			"accessory_id": "none",
 		}
+		and loadout == {
+			"main_hand_form": "empty",
+			"off_hand_form": "empty",
+			"dual_wielding": false,
+			"load_posture": "balanced",
+			"presentation": "plain",
+		}
 		and capabilities_valid
 		and capability_ids.has("guarded")
 		and capability_ids.has("forceful")
@@ -67,6 +75,7 @@ func run() -> bool:
 		and not serialized.contains("24681357")
 		and not serialized.contains("inventory")
 		and not serialized.contains("equipment")
+		and not serialized.contains("active_slots")
 		and not serialized.contains("max_health_bonus")
 		and not serialized.contains("attack_bonus")
 	)

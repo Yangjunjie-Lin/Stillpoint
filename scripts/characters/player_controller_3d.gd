@@ -13,6 +13,7 @@ var hotbar := HotbarController.new()
 var inventory: InventoryComponent
 var equipment: EquipmentComponent
 var experience: ExperienceComponent
+var skill_loadout: SkillLoadoutComponent
 var current_region_id: StringName = &"town"
 var origin_id: StringName = GameManager.DEFAULT_ORIGIN_ID
 var selected_faction_id: StringName = GameManager.DEFAULT_FACTION_ID
@@ -38,6 +39,8 @@ var _base_crouch_speed: float = 2.5
 var _base_defense: float = 0.0
 var _base_energy_regen: float = 0.0
 var _character_build_bonuses: Dictionary = CharacterBuildCalculator.empty_bonuses()
+var _equipment_load_state: Dictionary = {}
+var _effective_charisma: float = CharacterBuildCalculator.BASE_CHARISMA
 
 
 func _ready() -> void:
@@ -45,6 +48,7 @@ func _ready() -> void:
 	inventory = get_node_or_null("InventoryComponent") as InventoryComponent
 	equipment = get_node_or_null("EquipmentComponent") as EquipmentComponent
 	experience = get_node_or_null("ExperienceComponent") as ExperienceComponent
+	skill_loadout = get_node_or_null("SkillLoadoutComponent") as SkillLoadoutComponent
 	_appearance_controller = get_node_or_null(
 		"VisualRoot/CharacterModel"
 	) as PlayerAppearanceController
@@ -144,6 +148,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed(&"normal_attack"):
 		if combat != null and state.can_attack():
 			combat.request_attack(&"attack_light_1")
+	elif _try_activate_skill_input(event):
+		pass
 	elif event.is_action_pressed(&"interact"):
 		_try_interact()
 	elif event.is_action_pressed(&"hotbar_next"):
@@ -262,6 +268,50 @@ func get_selected_item_definition() -> ItemDefinition:
 	return ResourceRegistry.get_item(stack.item_id)
 
 
+func get_main_hand_item_definition() -> ItemDefinition:
+	return equipment.get_equipped_definition(ItemDefinition.EquipSlot.WEAPON) \
+		if equipment != null else null
+
+
+func get_off_hand_item_definition() -> ItemDefinition:
+	var main_hand := get_main_hand_item_definition()
+	if main_hand == null or main_hand.grip_hands >= 2:
+		return null
+	var selected := get_selected_item_definition()
+	if selected == null or not selected.can_hold_in_off_hand():
+		return null
+	return selected
+
+
+func get_single_held_item_definition() -> ItemDefinition:
+	if get_main_hand_item_definition() != null:
+		return null
+	var selected := get_selected_item_definition()
+	return selected if selected != null and selected.resolved_hand_form() != &"" else null
+
+
+func is_dual_wielding() -> bool:
+	return get_main_hand_item_definition() != null and get_off_hand_item_definition() != null
+
+
+func activate_skill_slot(index: int) -> bool:
+	if skill_loadout == null:
+		return false
+	var activated := skill_loadout.activate_slot(index, self)
+	if not activated:
+		var state_ := skill_loadout.get_slot_state(index, self)
+		EventBus.notice_requested.emit(str(state_.get("reason", "Skill unavailable")))
+	return activated
+
+
+func _try_activate_skill_input(event: InputEvent) -> bool:
+	for index in SkillLoadoutComponent.ACTIVE_SLOT_COUNT:
+		if event.is_action_pressed(StringName("skill_slot_%d" % (index + 1))):
+			activate_skill_slot(index)
+			return true
+	return false
+
+
 func get_attack_motion_state() -> StringName:
 	var selected := get_selected_item_definition()
 	return &"tool_attack" if selected != null and selected.is_combat_tool() else &"attack"
@@ -331,28 +381,74 @@ func apply_equipment_bonuses() -> void:
 	var attack_bonus := float(_character_build_bonuses.get(&"attack_bonus", 0.0))
 	var defense_bonus := float(_character_build_bonuses.get(&"defense_bonus", 0.0))
 	var regen_bonus := float(_character_build_bonuses.get(&"energy_regen_bonus", 0.0))
-	var active_tool := get_selected_item_definition()
-	if active_tool == null or not active_tool.is_combat_tool():
-		active_tool = null
+	var health_bonus := 0.0
+	var energy_bonus := 0.0
+	var speed_bonus := float(_character_build_bonuses.get(&"move_speed_bonus", 0.0))
 	if equipment != null:
 		for slot in EquipmentComponent.EQUIP_SLOTS:
 			var item_definition := equipment.get_equipped_definition(slot)
 			if item_definition == null:
 				continue
-			if active_tool == null or slot != ItemDefinition.EquipSlot.WEAPON:
-				attack_bonus += item_definition.attack_bonus
+			attack_bonus += item_definition.attack_bonus
 			defense_bonus += item_definition.defense_bonus
 			regen_bonus += item_definition.energy_regen_bonus
-	if active_tool != null:
-		attack_bonus += active_tool.attack_bonus
+			health_bonus += item_definition.max_health_bonus
+			energy_bonus += item_definition.max_energy_bonus
+			speed_bonus += item_definition.move_speed_bonus
+	var active_hand_item := get_off_hand_item_definition()
+	if active_hand_item == null:
+		active_hand_item = get_single_held_item_definition()
+	if active_hand_item != null and (
+		is_dual_wielding() or active_hand_item.is_combat_tool()
+	):
+		attack_bonus += active_hand_item.attack_bonus
+	var passive_bonuses := skill_loadout.get_passive_bonuses(self, current_region_id) \
+		if skill_loadout != null else {}
+	attack_bonus += float(passive_bonuses.get("attack_bonus", 0.0))
+	defense_bonus += float(passive_bonuses.get("defense_bonus", 0.0))
+	regen_bonus += float(passive_bonuses.get("energy_regen_bonus", 0.0))
+	speed_bonus += float(passive_bonuses.get("move_speed_bonus", 0.0))
+	var level := experience.level if experience != null else 1
+	_equipment_load_state = equipment.get_load_state(
+		get_physical_strength(), get_physical_vitality(), level
+	) if equipment != null else {}
+	var penalty_ratio := float(_equipment_load_state.get("penalty_ratio", 0.0))
+	attack_bonus *= 1.0 - penalty_ratio * 0.5
+	defense_bonus *= 1.0 - penalty_ratio * 0.6
+	regen_bonus *= 1.0 - penalty_ratio
 	if experience != null:
 		attack_bonus += experience.bullet_damage_bonus
 	if health != null:
+		var level_health_bonus := 0.0
+		if experience != null and experience.curve != null:
+			level_health_bonus = float(maxi(0, experience.level - 1)) \
+				* experience.curve.health_gain_per_level
+		health.max_health = maxf(
+			1.0,
+			_base_max_health
+				+ float(_character_build_bonuses.get(&"max_health_bonus", 0.0))
+				+ level_health_bonus
+				+ health_bonus,
+		)
+		health.current_health = minf(health.current_health, health.max_health)
 		health.defense = maxf(0.0, _base_defense + defense_bonus)
 	if energy != null:
+		energy.max_energy = maxf(
+			1.0,
+			_base_max_energy
+				+ float(_character_build_bonuses.get(&"max_energy_bonus", 0.0))
+				+ energy_bonus,
+		)
+		energy.current_energy = minf(energy.current_energy, energy.max_energy)
 		energy.regen_per_second = maxf(0.0, _base_energy_regen + regen_bonus)
 	if combat != null:
 		combat.damage_bonus = maxf(0.0, attack_bonus)
+	_walk_speed = maxf(0.5, (_base_walk_speed + speed_bonus) * (1.0 - penalty_ratio * 0.45))
+	_run_speed = maxf(_walk_speed, (_base_run_speed + speed_bonus) * (1.0 - penalty_ratio * 0.55))
+	_crouch_speed = maxf(0.25, (_base_crouch_speed + speed_bonus) * (1.0 - penalty_ratio * 0.35))
+	_effective_charisma = CharacterBuildCalculator.BASE_CHARISMA \
+		+ float(_equipment_load_state.get("charisma_bonus", 0.0)) \
+		+ float(passive_bonuses.get("charisma_bonus", 0.0))
 
 
 func _on_hotbar_selection_changed(_index: int) -> void:
@@ -366,19 +462,20 @@ func _sync_loadout_visuals() -> void:
 	var weapon: ItemDefinition = null
 	var armor: ItemDefinition = null
 	var charm: ItemDefinition = null
+	var worn_items: Array[ItemDefinition] = []
 	if equipment != null:
 		weapon = equipment.get_equipped_definition(ItemDefinition.EquipSlot.WEAPON)
 		armor = equipment.get_equipped_definition(ItemDefinition.EquipSlot.ARMOR)
 		charm = equipment.get_equipped_definition(ItemDefinition.EquipSlot.CHARM)
-	var held_item: ItemDefinition = null
-	if inventory != null:
-		var selected_slot := hotbar.get_inventory_slot_index()
-		var stack := inventory.get_slot(selected_slot)
-		if stack != null and not stack.is_empty():
-			var selected := ResourceRegistry.get_item(stack.item_id)
-			if selected != null and selected.resolved_visual_archetype() != &"":
-				held_item = selected
-	_appearance_controller.apply_loadout(weapon, armor, charm, held_item)
+		for slot in EquipmentComponent.EQUIP_SLOTS:
+			if slot in [ItemDefinition.EquipSlot.WEAPON, ItemDefinition.EquipSlot.ARMOR, ItemDefinition.EquipSlot.CHARM]:
+				continue
+			var worn := equipment.get_equipped_definition(slot)
+			if worn != null:
+				worn_items.append(worn)
+	var off_hand := get_off_hand_item_definition()
+	var held_item := get_single_held_item_definition()
+	_appearance_controller.apply_loadout(weapon, armor, charm, held_item, off_hand, worn_items)
 
 
 func apply_character_build(build_data: Dictionary, restore_to_full: bool = false) -> bool:
@@ -473,6 +570,24 @@ func get_physical_strength() -> int:
 	return CharacterBuildCalculator.physical_strength_from_bonuses(
 		_character_build_bonuses
 	)
+
+
+func get_physical_vitality() -> int:
+	return CharacterBuildCalculator.physical_vitality_from_bonuses(
+		_character_build_bonuses
+	)
+
+
+func get_charisma() -> float:
+	return _effective_charisma
+
+
+func get_equipment_load_state() -> Dictionary:
+	return _equipment_load_state.duplicate(true)
+
+
+func refresh_contextual_capabilities() -> void:
+	apply_equipment_bonuses()
 
 
 func get_combat_level() -> int:
@@ -625,6 +740,7 @@ func to_dict() -> Dictionary:
 	data["inventory"] = inventory.to_dict() if inventory else {}
 	data["equipment"] = equipment.to_dict() if equipment else {}
 	data["experience"] = experience.to_dict() if experience else {}
+	data["skill_loadout"] = skill_loadout.to_dict() if skill_loadout else {}
 	data["character_build"] = get_character_build_data()
 	data["current_region_id"] = String(current_region_id)
 	data["game_time"] = game_time
@@ -640,12 +756,15 @@ func from_dict(data: Dictionary) -> void:
 		inventory.from_dict(data.get("inventory", {}))
 	if equipment != null:
 		equipment.from_dict(data.get("equipment", {}))
+	if skill_loadout != null:
+		skill_loadout.from_dict(data.get("skill_loadout", {}))
 	var build_data: Variant = data.get("character_build", GameManager.get_default_character_build())
 	if typeof(build_data) != TYPE_DICTIONARY:
 		build_data = GameManager.get_default_character_build()
 	apply_character_build(build_data as Dictionary, false)
 	current_region_id = StringName(str(data.get("current_region_id", current_region_id)))
 	game_time = float(data.get("game_time", game_time))
+	apply_equipment_bonuses()
 
 
 func _on_experience_changed(current: int, to_next: int, level: int) -> void:

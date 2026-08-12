@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"field_rhythm"
+display_name = "Field Rhythm"
+category = &"passive"
+description = "Familiar field routines reduce wasted movement and restore energy."
+activation_mode = 2
+active_region_ids = Array[StringName]([&"base:farmland", &"base:wilderness"])
+required_proficiency_skill_id = &"soilworking"
+passive_energy_regen_bonus = 0.75
+passive_move_speed_bonus = 0.1
+ontology_node_id = &"skill:field_rhythm"
+parent_skill_ids = Array[StringName]([&"soilworking", &"survival"])

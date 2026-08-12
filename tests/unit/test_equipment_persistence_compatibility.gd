@@ -33,7 +33,7 @@ func run() -> bool:
 	# Unsupported future and malformed sections fail without mutating live state.
 	var before_invalid := restored.to_dict()
 	ok = ok and not restored.from_dict({
-		"section_version": 2,
+		"section_version": EquipmentComponent.SECTION_VERSION + 1,
 		"slots": {"weapon": "future:item"},
 	})
 	ok = ok and restored.to_dict() == before_invalid

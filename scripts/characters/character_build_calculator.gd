@@ -43,6 +43,8 @@ const TOTAL_BUILD_POINT_BUDGET: int = (
 )
 const MAX_SEED: int = 2_147_483_647
 const BASE_PHYSICAL_STRENGTH: int = 5
+const BASE_PHYSICAL_VITALITY: int = 5
+const BASE_CHARISMA: float = 5.0
 
 
 static func calculate_bonuses(
@@ -88,6 +90,14 @@ static func physical_strength_from_bonuses(bonuses: Dictionary) -> int:
 	var point_value := float(VALUE_PER_POINT[&"attack_bonus"])
 	var physical_points := maxi(0, roundi(attack_bonus / point_value))
 	return BASE_PHYSICAL_STRENGTH + physical_points
+
+
+static func physical_vitality_from_bonuses(bonuses: Dictionary) -> int:
+	var energy_bonus := float(bonuses.get(
+		&"max_energy_bonus", bonuses.get("max_energy_bonus", 0.0)
+	))
+	var point_value := float(VALUE_PER_POINT[&"max_energy_bonus"])
+	return BASE_PHYSICAL_VITALITY + maxi(0, roundi(energy_bonus / point_value))
 
 
 static func empty_bonuses() -> Dictionary:

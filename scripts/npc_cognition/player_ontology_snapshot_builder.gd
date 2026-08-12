@@ -63,7 +63,30 @@ static func build(player: PlayerController3D, display_name: String) -> Dictionar
 			"profession_label": _bounded_text(profession.display_name, MAX_LABEL_LENGTH),
 		},
 		"visible_appearance": visible_appearance,
+		"visible_loadout": _build_visible_loadout(player),
 		"observable_capabilities": _build_capabilities(player, faction, profession),
+	}
+
+
+static func _build_visible_loadout(player: PlayerController3D) -> Dictionary:
+	var main_hand := player.get_main_hand_item_definition()
+	if main_hand == null:
+		main_hand = player.get_single_held_item_definition()
+	var off_hand := player.get_off_hand_item_definition()
+	var load_state := player.get_equipment_load_state()
+	var presentation := "plain"
+	if player.get_charisma() >= CharacterBuildCalculator.BASE_CHARISMA + 6.0:
+		presentation = "ornate"
+	elif player.get_charisma() >= CharacterBuildCalculator.BASE_CHARISMA + 2.0:
+		presentation = "notable"
+	return {
+		"main_hand_form": _bounded_id(String(main_hand.resolved_hand_form())) \
+			if main_hand != null else "empty",
+		"off_hand_form": _bounded_id(String(off_hand.resolved_hand_form())) \
+			if off_hand != null else "empty",
+		"dual_wielding": main_hand != null and off_hand != null,
+		"load_posture": "strained" if bool(load_state.get("overloaded", false)) else "balanced",
+		"presentation": presentation,
 	}
 
 

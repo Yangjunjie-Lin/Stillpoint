@@ -9,7 +9,8 @@ const DEFAULT_ACTIONS: Array[StringName] = [
 	&"hotbar_previous", &"hotbar_next", &"use_hotbar_item",
 	&"hotbar_slot_1", &"hotbar_slot_2", &"hotbar_slot_3", &"hotbar_slot_4",
 	&"hotbar_slot_5", &"hotbar_slot_6", &"hotbar_slot_7", &"hotbar_slot_8",
-	&"action_u", &"action_i", &"action_o", &"action_l",
+	&"hotbar_slot_9",
+	&"skill_slot_1", &"skill_slot_2", &"skill_slot_3", &"skill_slot_4",
 	&"pause", &"open_menu", &"open_map",
 ]
 

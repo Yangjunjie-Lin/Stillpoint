@@ -67,6 +67,7 @@ func run() -> bool:
 		and not serialized.contains(str(TEST_SEED))
 		and not serialized.contains("inventory")
 		and not serialized.contains("equipment")
+		and not serialized.contains("active_slots")
 	)
 	GameManager.resume_requested = false
 	restored.free()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://player3d001"]
+[gd_scene load_steps=24 format=3 uid="uid://player3d001"]
 
 [ext_resource type="Script" path="res://scripts/characters/player_controller_3d.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2"]
@@ -24,6 +24,7 @@
 [ext_resource type="Script" path="res://scripts/characters/player/player_appearance_controller.gd" id="21"]
 [ext_resource type="Script" path="res://scripts/components/experience_component.gd" id="22"]
 [ext_resource type="Resource" path="res://resources/progression/default_experience_curve.tres" id="23"]
+[ext_resource type="Script" path="res://scripts/components/skill_loadout_component.gd" id="24"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -76,6 +77,9 @@ light_attack_ids = Array[StringName]([&"attack_light_1", &"attack_light_2", &"at
 
 [node name="SkillComponent" type="Node" parent="."]
 script = ExtResource("8")
+
+[node name="SkillLoadoutComponent" type="Node" parent="."]
+script = ExtResource("24")
 
 [node name="StatusEffectComponent" type="Node" parent="."]
 script = ExtResource("9")

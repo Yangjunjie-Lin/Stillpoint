@@ -37,6 +37,13 @@ def main() -> int:
                 "palette_id": "ember",
                 "accessory_id": "satchel",
             },
+            "visible_loadout": {
+                "main_hand_form": "one_hand_sword",
+                "off_hand_form": "field_pick",
+                "dual_wielding": True,
+                "load_posture": "balanced",
+                "presentation": "notable",
+            },
             "observable_capabilities": [
                 {
                     "trait_id": "guarded",
@@ -65,6 +72,7 @@ def main() -> int:
         "max_health_bonus",
         "inventory",
         "equipment",
+        "active_slots",
     ):
         if private_field in serialized_request:
             raise AssertionError(f"private player field leaked into contract: {private_field}")

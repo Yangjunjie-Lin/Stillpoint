@@ -37,7 +37,8 @@ func use_skill(skill: SkillDefinition, energy: EnergyComponent, game_time: float
 
 func practice(skill_id: StringName, context: Dictionary = {}) -> Dictionary:
 	var definition := ResourceRegistry.get_skill(skill_id)
-	if definition == null or not definition.is_valid():
+	if definition == null or not definition.is_valid() \
+			or definition.activation_mode != SkillDefinition.ActivationMode.PROFICIENCY:
 		return _result(skill_id, &"unknown_skill")
 	var day := maxi(1, int(context.get("day", WorldTimeService.day)))
 	var base_points := maxf(0.0, float(context.get("base_points", definition.practice_gain)))
@@ -143,6 +144,11 @@ func get_points(skill_id: StringName) -> float:
 	return maxf(0.0, float(_proficiencies.get(String(skill_id), 0.0)))
 
 
+func set_cooldown(skill_id: StringName, ready_at: float) -> void:
+	if skill_id != &"" and is_finite(ready_at):
+		_cooldowns[skill_id] = maxf(0.0, ready_at)
+
+
 func set_proficiency_points(skill_id: StringName, points: float) -> bool:
 	var definition := ResourceRegistry.get_skill(skill_id)
 	if definition == null or not is_finite(points):
@@ -197,6 +203,8 @@ func get_ranked_proficiencies(limit: int = 4) -> Array[Dictionary]:
 func get_all_skill_states(day: int = -1) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for definition in ResourceRegistry.get_all_skills():
+		if definition.activation_mode != SkillDefinition.ActivationMode.PROFICIENCY:
+			continue
 		var state := get_state(definition.id, day)
 		state["category"] = String(definition.category)
 		state["max_proficiency"] = definition.max_proficiency

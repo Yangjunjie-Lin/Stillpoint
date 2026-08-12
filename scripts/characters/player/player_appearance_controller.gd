@@ -11,6 +11,8 @@ var current_weapon: ItemDefinition
 var current_armor: ItemDefinition
 var current_charm: ItemDefinition
 var current_held_item: ItemDefinition
+var current_off_hand_item: ItemDefinition
+var current_worn_items: Array[ItemDefinition] = []
 
 
 func apply_origin(origin_id: StringName) -> bool:
@@ -50,11 +52,15 @@ func apply_loadout(
 	armor: ItemDefinition,
 	charm: ItemDefinition,
 	held_item: ItemDefinition,
+	off_hand_item: ItemDefinition = null,
+	worn_items: Array[ItemDefinition] = [],
 ) -> void:
 	current_weapon = weapon
 	current_armor = armor
 	current_charm = charm
 	current_held_item = held_item
+	current_off_hand_item = off_hand_item
+	current_worn_items = worn_items.duplicate()
 	_apply_current_loadout()
 
 
@@ -67,7 +73,8 @@ func get_displayed_loadout() -> Dictionary:
 func _apply_current_loadout() -> void:
 	if current_model is StylizedHeroModel:
 		(current_model as StylizedHeroModel).apply_loadout(
-			current_weapon, current_armor, current_charm, current_held_item
+			current_weapon, current_armor, current_charm, current_held_item,
+			current_off_hand_item, current_worn_items,
 		)
 
 
@@ -81,3 +88,5 @@ func clear_model() -> void:
 	current_armor = null
 	current_charm = null
 	current_held_item = null
+	current_off_hand_item = null
+	current_worn_items.clear()

@@ -15,6 +15,7 @@ use_kind = 2
 tool_attack_id = &"attack_light_2"
 utility_actions = Array[StringName]([&"pry_open", &"lever", &"break_board"])
 attack_bonus = 3.0
+hand_form = &"pry_bar"
 visual_archetype = &"pry_bar"
 visual_primary_color = Color(0.24, 0.29, 0.31, 1)
 visual_secondary_color = Color(0.7, 0.76, 0.78, 1)

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="AttackDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/attack_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"skill_offhand_sweep"
+display_name = "Off-hand Sweep"
+animation_name = &"attack_light_2"
+damage = 12.0
+energy_cost = 5.0
+maximum_targets = 3
+knockback_distance = 2.0
+windup = 0.1
+active = 0.2
+recovery = 0.24

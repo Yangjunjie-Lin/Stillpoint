@@ -22,7 +22,7 @@ func run() -> bool:
 		ok = ok and ledger.page_stack.get_tab_count() == 4
 		ok = ok and ledger.get_node_or_null("Center/Panel/Margin/VBox/Body/Details") is PanelContainer
 		ledger.call("_select_page", 2)
-		ok = ok and ledger.item_name_label.text == "Training context"
+		ok = ok and ledger.item_name_label.text == "Skill configuration"
 		ledger.call("_select_page", 3)
 		ok = ok and ledger.item_name_label.text == "Adventurer record"
 		ledger.close_menu()

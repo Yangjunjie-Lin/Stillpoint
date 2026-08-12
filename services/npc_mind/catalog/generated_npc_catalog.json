@@ -2542,6 +2542,69 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_active_combat",
+        "predicate": "BELONGS_TO",
+        "source_id": "dual_crosscut",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:dual_crosscut",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_active_skill",
+        "predicate": "PRACTICED_BY",
+        "source_id": "dual_crosscut",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:dual_crosscut",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "dual_crosscut",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:dual_crosscut",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_passive",
+        "predicate": "BELONGS_TO",
+        "source_id": "dungeon_awareness",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:dungeon_awareness",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "dungeon_awareness",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:dungeon_awareness",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_passive",
+        "predicate": "BELONGS_TO",
+        "source_id": "field_rhythm",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:field_rhythm",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "field_rhythm",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:field_rhythm",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "concept:skill_domain_life",
         "predicate": "BELONGS_TO",
         "source_id": "fishing",
@@ -2637,6 +2700,33 @@
         "source_id": "foraging",
         "source_type": "world_catalog",
         "subject_node_id": "skill:foraging",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_active_combat",
+        "predicate": "BELONGS_TO",
+        "source_id": "guard_counter",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guard_counter",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_active_skill",
+        "predicate": "PRACTICED_BY",
+        "source_id": "guard_counter",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guard_counter",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "guard_counter",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:guard_counter",
         "visibility": "public"
       },
       {
@@ -3033,6 +3123,60 @@
         "source_id": "mining",
         "source_type": "world_catalog",
         "subject_node_id": "skill:mining",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_active_combat",
+        "predicate": "BELONGS_TO",
+        "source_id": "offhand_sweep",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:offhand_sweep",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_active_skill",
+        "predicate": "PRACTICED_BY",
+        "source_id": "offhand_sweep",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:offhand_sweep",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "offhand_sweep",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:offhand_sweep",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_active_combat",
+        "predicate": "BELONGS_TO",
+        "source_id": "power_strike",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:power_strike",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_active_skill",
+        "predicate": "PRACTICED_BY",
+        "source_id": "power_strike",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:power_strike",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "power_strike",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:power_strike",
         "visibility": "public"
       },
       {
@@ -3559,6 +3703,14 @@
         "visibility": "public"
       },
       {
+        "label": "Active Skill",
+        "metadata": {},
+        "node_id": "concept:practice_action_active_skill",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Break Stone",
         "metadata": {},
         "node_id": "concept:practice_action_break_stone",
@@ -3775,6 +3927,14 @@
         "visibility": "public"
       },
       {
+        "label": "Active Combat Skill Domain",
+        "metadata": {},
+        "node_id": "concept:skill_domain_active_combat",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Combat Skill Domain",
         "metadata": {},
         "node_id": "concept:skill_domain_combat",
@@ -3794,6 +3954,14 @@
         "label": "Life Skill Domain",
         "metadata": {},
         "node_id": "concept:skill_domain_life",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Passive Skill Domain",
+        "metadata": {},
+        "node_id": "concept:skill_domain_passive",
         "node_type": "concept",
         "source": "world_catalog",
         "visibility": "public"
@@ -4378,6 +4546,54 @@
         "visibility": "public"
       },
       {
+        "label": "Dual Crosscut",
+        "metadata": {
+          "category": "active_combat",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 7.0,
+          "description": "Cross two one-handed implements through the same opening.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "dual_crosscut"
+        },
+        "node_id": "skill:dual_crosscut",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Dungeon Awareness",
+        "metadata": {
+          "category": "passive",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 10.0,
+          "description": "Survival habits become defensive intuition below Greywake.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "dungeon_awareness"
+        },
+        "node_id": "skill:dungeon_awareness",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Field Rhythm",
+        "metadata": {
+          "category": "passive",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 10.0,
+          "description": "Familiar field routines reduce wasted movement and restore energy.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "field_rhythm"
+        },
+        "node_id": "skill:field_rhythm",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Fishing",
         "metadata": {
           "category": "life",
@@ -4405,6 +4621,22 @@
           "skill_id": "foraging"
         },
         "node_id": "skill:foraging",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Guard Counter",
+        "metadata": {
+          "category": "active_combat",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 7.0,
+          "description": "Recover structure and answer immediately with the main hand.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "guard_counter"
+        },
+        "node_id": "skill:guard_counter",
         "node_type": "skill",
         "source": "world_catalog",
         "visibility": "public"
@@ -4501,6 +4733,38 @@
           "skill_id": "mining"
         },
         "node_id": "skill:mining",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Off-hand Sweep",
+        "metadata": {
+          "category": "active_combat",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 8.0,
+          "description": "Turn the selected 1–9 off-hand item through a controlling sweep.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "offhand_sweep"
+        },
+        "node_id": "skill:offhand_sweep",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Power Strike",
+        "metadata": {
+          "category": "active_combat",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 8.0,
+          "description": "Commit the main hand to a forceful, high-poise strike.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 9,
+          "skill_id": "power_strike"
+        },
+        "node_id": "skill:power_strike",
         "node_type": "skill",
         "source": "world_catalog",
         "visibility": "public"

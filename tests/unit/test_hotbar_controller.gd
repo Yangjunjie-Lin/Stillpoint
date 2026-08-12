@@ -7,6 +7,6 @@ func run() -> bool:
 	bar.select_next()
 	bar.select_previous()
 	var ok := bar.selected_index == start
-	ok = ok and bar.select_index(7) and bar.selected_index == 7
-	ok = ok and not bar.select_index(8) and bar.selected_index == 7
+	ok = ok and bar.select_index(8) and bar.selected_index == 8
+	ok = ok and not bar.select_index(9) and bar.selected_index == 8
 	return ok

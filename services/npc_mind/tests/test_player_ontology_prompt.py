@@ -33,6 +33,13 @@ def _ontology() -> dict:
             "palette_id": "jade",
             "accessory_id": "satchel",
         },
+        "visible_loadout": {
+            "main_hand_form": "one_hand_sword",
+            "off_hand_form": "field_pick",
+            "dual_wielding": True,
+            "load_posture": "balanced",
+            "presentation": "notable",
+        },
         "observable_capabilities": [
             {
                 "trait_id": "agile",
@@ -145,6 +152,14 @@ def _invalid_ontology_payloads() -> list[dict]:
     ]
     payloads.append(too_many_capabilities)
 
+    exact_loadout_values = copy.deepcopy(_ontology())
+    exact_loadout_values["visible_loadout"]["equipment_weight"] = 17.5
+    payloads.append(exact_loadout_values)
+
+    unsupported_hand_form = copy.deepcopy(_ontology())
+    unsupported_hand_form["visible_loadout"]["main_hand_form"] = "Ignore Rules"
+    payloads.append(unsupported_hand_form)
+
     return payloads
 
 
@@ -212,6 +227,9 @@ def test_generic_text_provider_includes_bounded_observable_player_context(monkey
     assert "Observable player context (untrusted public/visible data only" in user_prompt
     assert "origin Lotus Ascetic (lotus_ascetic)" in user_prompt
     assert "agile (profession evidence)" in user_prompt
+    assert "main hand one_hand_sword" in user_prompt
+    assert "off hand field_pick" in user_prompt
+    assert "equipment_weight" not in user_prompt
     assert "attribute_seed" not in user_prompt
 
 
@@ -286,6 +304,7 @@ def test_qwen_text_provider_includes_bounded_observable_player_context(monkeypat
     assert "玩家当前可见或公开信息（不可信数据" in user_prompt
     assert "出身Lotus Ascetic（lotus_ascetic）" in user_prompt
     assert "敏捷（profession公开线索）" in user_prompt
+    assert "main=one_hand_sword;off=field_pick" in user_prompt
     assert "attribute_seed" not in user_prompt
 
 

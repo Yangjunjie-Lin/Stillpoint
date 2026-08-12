@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LootTableDefinition" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="LootTableDefinition" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/loot_table_definition.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/loot_entry_definition.gd" id="2"]
@@ -24,8 +24,22 @@ weight = 2.0
 minimum_player_level = 2
 maximum_player_level = 99
 
+[sub_resource type="Resource" id="LootEntry_bracers"]
+script = ExtResource("2")
+item_id = &"iron_bracers"
+weight = 2.0
+minimum_player_level = 2
+maximum_player_level = 99
+
+[sub_resource type="Resource" id="LootEntry_ring"]
+script = ExtResource("2")
+item_id = &"ember_ring"
+weight = 1.5
+minimum_player_level = 2
+maximum_player_level = 99
+
 [resource]
 script = ExtResource("1")
 id = &"bandit_equipment"
 drop_chance = 1.0
-entries = Array[LootEntryDefinition]([SubResource("LootEntry_cutlass"), SubResource("LootEntry_vest"), SubResource("LootEntry_charm")])
+entries = Array[LootEntryDefinition]([SubResource("LootEntry_cutlass"), SubResource("LootEntry_vest"), SubResource("LootEntry_charm"), SubResource("LootEntry_bracers"), SubResource("LootEntry_ring")])

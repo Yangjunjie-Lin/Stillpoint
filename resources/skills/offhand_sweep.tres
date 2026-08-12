@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"offhand_sweep"
+display_name = "Off-hand Sweep"
+category = &"active_combat"
+description = "Turn the selected 1–9 off-hand item through a controlling sweep."
+energy_cost = 2.0
+cooldown = 0.9
+activation_mode = 1
+active_kind = 1
+attack_id = &"skill_offhand_sweep"
+required_off_hand_forms = Array[StringName]([&"one_hand_sword", &"field_pick", &"pry_bar"])
+required_proficiency_skill_id = &"improvised_weapons"
+ontology_node_id = &"skill:offhand_sweep"
+parent_skill_ids = Array[StringName]([&"improvised_weapons"])
+practice_action_ids = Array[StringName]([&"active_skill"])
+practice_gain = 0.8
+daily_gain_cap = 8.0

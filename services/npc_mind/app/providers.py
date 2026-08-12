@@ -542,6 +542,7 @@ def _text_player_ontology_context(snapshot: PlayerOntologySnapshot | None) -> st
         return ""
     identity = payload["public_identity"]
     appearance = payload["visible_appearance"]
+    loadout = payload.get("visible_loadout")
     identity_parts = []
     if identity.get("display_name"):
         identity_parts.append(f"name {identity['display_name']}")
@@ -568,6 +569,15 @@ def _text_player_ontology_context(snapshot: PlayerOntologySnapshot | None) -> st
         "Public identity: " + "; ".join(identity_parts),
         "Visible appearance: " + "; ".join(appearance_parts),
     ]
+    if loadout is not None:
+        lines.append(
+            "Visible loadout: "
+            f"main hand {loadout['main_hand_form']}; "
+            f"off hand {loadout['off_hand_form']}; "
+            f"dual wielding {loadout['dual_wielding']}; "
+            f"posture {loadout['load_posture']}; "
+            f"presentation {loadout['presentation']}"
+        )
     if capability_parts:
         lines.append("Observable capability tendencies: " + "; ".join(capability_parts))
     return "\n".join(lines)
@@ -579,6 +589,7 @@ def _qwen_player_ontology_context(snapshot: PlayerOntologySnapshot | None) -> st
         return ""
     identity = payload["public_identity"]
     appearance = payload["visible_appearance"]
+    loadout = payload.get("visible_loadout")
     identity_parts = []
     if identity.get("display_name"):
         identity_parts.append(f"姓名{identity['display_name']}")
@@ -605,6 +616,13 @@ def _qwen_player_ontology_context(snapshot: PlayerOntologySnapshot | None) -> st
         "身份：" + "；".join(identity_parts),
         "外观：" + "；".join(appearance_parts),
     ]
+    if loadout is not None:
+        sections.append(
+            "visible loadout: "
+            f"main={loadout['main_hand_form']};off={loadout['off_hand_form']};"
+            f"dual={loadout['dual_wielding']};posture={loadout['load_posture']};"
+            f"presentation={loadout['presentation']}"
+        )
     if capability_parts:
         sections.append("可观察能力倾向：" + "；".join(capability_parts))
     return "；".join(sections)

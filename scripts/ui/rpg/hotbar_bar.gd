@@ -1,6 +1,6 @@
 class_name HotbarBar
 extends PanelContainer
-## Always-visible eight-slot hotbar backed by the first inventory row.
+## Always-visible nine-slot off-hand hotbar backed by the first inventory row.
 
 @onready var slots_container: HBoxContainer = %Slots
 
@@ -33,10 +33,10 @@ func _build_slots() -> void:
 	_buttons.clear()
 	for index in HotbarController.SLOT_COUNT:
 		var button := InventorySlotButton.new()
-		button.custom_minimum_size = Vector2(82.0, 72.0)
+		button.custom_minimum_size = Vector2(72.0, 68.0)
 		button.focus_mode = Control.FOCUS_NONE
 		button.expand_icon = true
-		button.add_theme_constant_override("icon_max_width", 34)
+		button.add_theme_constant_override("icon_max_width", 31)
 		button.configure(self, &"hotbar", index)
 		button.pressed.connect(_on_slot_pressed.bind(index))
 		button.gui_input.connect(_on_slot_gui_input.bind(index))

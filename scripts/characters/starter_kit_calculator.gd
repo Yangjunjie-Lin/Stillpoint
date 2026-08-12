@@ -24,6 +24,14 @@ const FARMING_ESSENTIALS: Dictionary = {
 const UTILITY_ESSENTIALS: Dictionary = {
 	"crowbar": 1,
 }
+const EQUIPMENT_FOUNDATION: Dictionary = {
+	"scout_hood": 1,
+	"trail_trousers": 1,
+	"road_boots": 1,
+	"work_gloves": 1,
+	"traveler_belt": 1,
+	"festival_hairpin": 1,
+}
 
 
 static func calculate_value(profession: ProfessionDefinition) -> int:
@@ -67,6 +75,10 @@ static func grant_farming_essentials(inventory: InventoryComponent) -> bool:
 
 static func grant_utility_essentials(inventory: InventoryComponent) -> bool:
 	return _grant_items(inventory, UTILITY_ESSENTIALS)
+
+
+static func grant_equipment_foundation(inventory: InventoryComponent) -> bool:
+	return _grant_items(inventory, EQUIPMENT_FOUNDATION)
 
 
 static func _grant_items(inventory: InventoryComponent, items: Dictionary) -> bool:

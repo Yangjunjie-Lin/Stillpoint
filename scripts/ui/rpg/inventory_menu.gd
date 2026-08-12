@@ -3,7 +3,7 @@ extends Control
 ## Categorized RPG data ledger backed by authoritative runtime components.
 
 @onready var backpack_grid: GridContainer = %BackpackGrid
-@onready var equipment_grid: VBoxContainer = %EquipmentGrid
+@onready var equipment_grid: GridContainer = %EquipmentGrid
 @onready var proficiency_label: RichTextLabel = %ProficiencyLabel
 @onready var character_label: RichTextLabel = %CharacterLabel
 @onready var equipment_summary: Label = %EquipmentSummary
@@ -17,6 +17,8 @@ extends Control
 @onready var equipment_tab: Button = %EquipmentTab
 @onready var skills_tab: Button = %SkillsTab
 @onready var character_tab: Button = %CharacterTab
+@onready var skill_loadout_row: HBoxContainer = %SkillLoadoutRow
+@onready var skill_context_label: Label = %SkillContextLabel
 @onready var item_name_label: Label = %ItemName
 @onready var item_type_label: Label = %ItemType
 @onready var description_label: Label = %Description
@@ -30,6 +32,7 @@ var _inventory: InventoryComponent
 var _equipment: EquipmentComponent
 var _inventory_buttons: Array[InventorySlotButton] = []
 var _equipment_buttons: Dictionary = {}
+var _skill_selectors: Array[OptionButton] = []
 var _selected_kind: StringName = &""
 var _selected_inventory_index: int = -1
 var _selected_equipment_slot: int = ItemDefinition.EquipSlot.NONE
@@ -58,6 +61,7 @@ func _ready() -> void:
 	character_tab.pressed.connect(_select_page.bind(3))
 	_build_backpack_slots(24)
 	_build_equipment_slots()
+	_build_skill_loadout_controls()
 	_select_page(0)
 	call_deferred("_bind_world")
 
@@ -153,11 +157,11 @@ func _build_equipment_slots() -> void:
 	_equipment_buttons.clear()
 	for slot in EquipmentComponent.EQUIP_SLOTS:
 		var button := InventorySlotButton.new()
-		button.custom_minimum_size = Vector2(270.0, 70.0)
+		button.custom_minimum_size = Vector2(346.0, 48.0)
 		button.focus_mode = Control.FOCUS_NONE
 		button.expand_icon = true
 		button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.add_theme_constant_override("icon_max_width", 38)
+		button.add_theme_constant_override("icon_max_width", 30)
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.configure(self, &"equipment", -1, StringName(str(slot)))
 		button.set_meta("equipment_slot", slot)
@@ -194,6 +198,7 @@ func _refresh() -> void:
 		for slot in EquipmentComponent.EQUIP_SLOTS:
 			_refresh_equipment_slot(slot)
 	_refresh_proficiencies()
+	_refresh_skill_loadout()
 	_refresh_character_overview()
 	_refresh_equipment_summary()
 	_refresh_capacity()
@@ -231,6 +236,77 @@ func _refresh_proficiencies() -> void:
 	proficiency_label.text = "\n".join(lines)
 
 
+func _build_skill_loadout_controls() -> void:
+	for child in skill_loadout_row.get_children():
+		child.queue_free()
+	_skill_selectors.clear()
+	for slot_index in SkillLoadoutComponent.ACTIVE_SLOT_COUNT:
+		var stack := VBoxContainer.new()
+		stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var key_label := Label.new()
+		key_label.text = "SLOT %d  [%s]" % [
+			slot_index + 1,
+			InputBindingService.get_display_text(StringName("skill_slot_%d" % (slot_index + 1))),
+		]
+		key_label.add_theme_color_override("font_color", Color("76caba"))
+		key_label.add_theme_font_size_override("font_size", 11)
+		var selector := OptionButton.new()
+		selector.custom_minimum_size = Vector2(160.0, 36.0)
+		selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		selector.item_selected.connect(_on_skill_selector_changed.bind(slot_index))
+		stack.add_child(key_label)
+		stack.add_child(selector)
+		skill_loadout_row.add_child(stack)
+		_skill_selectors.append(selector)
+
+
+func _refresh_skill_loadout() -> void:
+	if _player == null or _player.skill_loadout == null:
+		return
+	var available := _player.skill_loadout.get_available_active_skills()
+	for slot_index in _skill_selectors.size():
+		var selector := _skill_selectors[slot_index]
+		var selected_skill_id := _player.skill_loadout.get_slot_skill_id(slot_index)
+		selector.clear()
+		selector.add_item("Empty")
+		selector.set_item_metadata(0, "")
+		var selected_index := 0
+		for definition in available:
+			selector.add_item(definition.display_name)
+			var item_index := selector.item_count - 1
+			selector.set_item_metadata(item_index, String(definition.id))
+			if definition.id == selected_skill_id:
+				selected_index = item_index
+		selector.select(selected_index)
+		var state_ := _player.skill_loadout.get_slot_state(slot_index, _player)
+		selector.tooltip_text = str(state_.get("reason", ""))
+	var main_hand := _player.get_main_hand_item_definition()
+	var off_hand := _player.get_off_hand_item_definition()
+	var passives := _player.skill_loadout.get_active_passives(
+		_player, _player.current_region_id
+	)
+	var passive_names: Array[String] = []
+	for passive in passives:
+		passive_names.append(passive.display_name)
+	skill_context_label.text = "Main hand: %s   ·   Off hand (1–9): %s   ·   Scene passives: %s" % [
+		main_hand.display_name if main_hand != null else "Empty",
+		off_hand.display_name if off_hand != null else "Empty",
+		", ".join(passive_names) if not passive_names.is_empty() else "None",
+	]
+
+
+func _on_skill_selector_changed(item_index: int, slot_index: int) -> void:
+	if _player == null or _player.skill_loadout == null:
+		return
+	var selector := _skill_selectors[slot_index]
+	var skill_id := StringName(str(selector.get_item_metadata(item_index)))
+	if not _player.skill_loadout.configure_slot(slot_index, skill_id):
+		status_label.text = "Active loadout rejected: duplicate skill or offensive limit exceeded."
+	else:
+		status_label.text = "Skill slot %d configured." % (slot_index + 1)
+	_refresh_skill_loadout()
+
+
 func _refresh_character_overview() -> void:
 	if character_label == null or _player == null:
 		return
@@ -248,6 +324,7 @@ func _refresh_character_overview() -> void:
 	var energy_text := "--"
 	if _player.energy != null:
 		energy_text = "%.0f / %.0f" % [_player.energy.current_energy, _player.energy.max_energy]
+	var load_state := _player.get_equipment_load_state()
 	character_label.text = "\n".join([
 		"[color=#58c8b6][font_size=15]IDENTITY[/font_size][/color]",
 		"[font_size=22][color=#ead49f]%s[/color][/font_size]" % GameManager.player_name,
@@ -258,7 +335,8 @@ func _refresh_character_overview() -> void:
 		"[color=#58c8b6][font_size=15]PROGRESSION & VITALS[/font_size][/color]",
 		"Level        [color=#ead49f]%d[/color]     XP  %d / %d" % [level, xp, next_xp],
 		"Health       %s     Energy  %s" % [health_text, energy_text],
-		"Strength     %d     Defense  %.1f" % [_player.get_physical_strength(), _player.health.defense if _player.health != null else 0.0],
+		"Strength     %d     Vitality %d     Charisma %.1f" % [_player.get_physical_strength(), _player.get_physical_vitality(), _player.get_charisma()],
+		"Defense      %.1f     Load %.1f / %.1f" % [_player.health.defense if _player.health != null else 0.0, float(load_state.get("attribute_weight", 0.0)), float(load_state.get("capacity", 0.0))],
 		"",
 		"[color=#58c8b6][font_size=15]WORLD STATUS[/font_size][/color]",
 		"Region       %s" % String(_world.current_region_id if _world != null else _player.current_region_id),
@@ -273,6 +351,7 @@ func _refresh_equipment_summary() -> void:
 	var attack_bonus := 0.0
 	var defense_bonus := 0.0
 	var energy_bonus := 0.0
+	var charisma_bonus := 0.0
 	for slot in EquipmentComponent.EQUIP_SLOTS:
 		var definition := _equipment.get_equipped_definition(slot)
 		if definition == null:
@@ -281,8 +360,12 @@ func _refresh_equipment_summary() -> void:
 		attack_bonus += definition.attack_bonus
 		defense_bonus += definition.defense_bonus
 		energy_bonus += definition.energy_regen_bonus
-	equipment_summary.text = "LOADOUT EFFECT\n%d / %d slots equipped\nAttack  +%.1f     Defense  +%.1f     Energy recovery  +%.1f" % [
-		equipped_count, EquipmentComponent.EQUIP_SLOTS.size(), attack_bonus, defense_bonus, energy_bonus,
+		charisma_bonus += definition.charisma_bonus
+	var load_state := _player.get_equipment_load_state() if _player != null else {}
+	var load_label := "OVERLOADED  -%.0f%% effectiveness" % (float(load_state.get("penalty_ratio", 0.0)) * 100.0) \
+		if bool(load_state.get("overloaded", false)) else "Within physical capacity"
+	equipment_summary.text = "LOADOUT EFFECT\n%d / %d slots equipped  ·  %.1f / %.1f load  ·  %s\nAttack +%.1f  Defense +%.1f  Energy +%.1f  Charisma +%.1f" % [
+		equipped_count, EquipmentComponent.EQUIP_SLOTS.size(), float(load_state.get("attribute_weight", 0.0)), float(load_state.get("capacity", 0.0)), load_label, attack_bonus, defense_bonus, energy_bonus, charisma_bonus,
 	]
 
 
@@ -480,13 +563,13 @@ func drop_slot_data(button: InventorySlotButton, data: Variant) -> void:
 
 func _refresh_details() -> void:
 	if _active_page == 2:
-		item_name_label.text = "Training context"
-		item_type_label.text = "PROFICIENCY & FATIGUE"
+		item_name_label.text = "Skill configuration"
+		item_type_label.text = "ACTIVE LOADOUT & SCENE PASSIVES"
 		description_label.text = (
-			"Skills are grouped by discipline so strengths and gaps remain easy to compare. "
-			+ "Daily gain and capacity are shown beside each proficiency."
+			"Four rebindable active slots are available. No more than three offensive skills "
+			+ "may be carried, and their availability follows the forms held in both hands."
 		)
-		bonuses_label.text = "Vary the place, tool, and activity to sustain learning efficiency. Rest restores diminished training capacity."
+		bonuses_label.text = "Passive skills require no slot and activate automatically when their scene and proficiency conditions match."
 		status_label.text = ""
 		action_button.disabled = true
 		return
@@ -638,9 +721,35 @@ func _equipment_slot_name(slot: int) -> String:
 		ItemDefinition.EquipSlot.WEAPON:
 			return "WEAPON"
 		ItemDefinition.EquipSlot.ARMOR:
-			return "ARMOR"
+			return "CHEST / TOP"
 		ItemDefinition.EquipSlot.CHARM:
-			return "CHARM"
+			return "ORNAMENT"
+		ItemDefinition.EquipSlot.HEAD:
+			return "HEAD"
+		ItemDefinition.EquipSlot.LEGS:
+			return "TROUSERS"
+		ItemDefinition.EquipSlot.FEET:
+			return "SHOES"
+		ItemDefinition.EquipSlot.HANDS:
+			return "GLOVES"
+		ItemDefinition.EquipSlot.WRISTS:
+			return "BRACERS"
+		ItemDefinition.EquipSlot.RING_LEFT:
+			return "LEFT RING"
+		ItemDefinition.EquipSlot.RING_RIGHT:
+			return "RIGHT RING"
+		ItemDefinition.EquipSlot.BELT:
+			return "BELT"
+		ItemDefinition.EquipSlot.DECOR_HEAD:
+			return "HEAD DECOR"
+		ItemDefinition.EquipSlot.DECOR_BODY:
+			return "BODY DECOR"
+		ItemDefinition.EquipSlot.DECOR_HANDS:
+			return "HAND DECOR"
+		ItemDefinition.EquipSlot.DECOR_FEET:
+			return "FOOT DECOR"
+		ItemDefinition.EquipSlot.DECOR_ORNAMENT:
+			return "EXTRA ORNAMENT"
 	return "EQUIPMENT"
 
 
@@ -665,6 +774,16 @@ func _definition_bonuses(definition: ItemDefinition) -> String:
 		parts.append("+%.0f defense" % definition.defense_bonus)
 	if definition.energy_regen_bonus > 0.0:
 		parts.append("+%.1f energy regeneration" % definition.energy_regen_bonus)
+	if definition.max_health_bonus > 0.0:
+		parts.append("+%.0f maximum health" % definition.max_health_bonus)
+	if definition.max_energy_bonus > 0.0:
+		parts.append("+%.0f maximum energy" % definition.max_energy_bonus)
+	if definition.move_speed_bonus > 0.0:
+		parts.append("+%.2f movement speed" % definition.move_speed_bonus)
+	if definition.charisma_bonus > 0.0:
+		parts.append("+%.1f charisma · decorative, no physical requirement" % definition.charisma_bonus)
+	if definition.is_attribute_equipment():
+		parts.append("Weight %.1f · requires level %d, strength %d, vitality %d" % [definition.equipment_weight, definition.minimum_level, definition.required_strength, definition.required_vitality])
 	if definition.is_skill_book():
 		var skill := ResourceRegistry.get_skill(definition.teaches_skill_id)
 		parts.append("Study: +%.1f %s proficiency" % [

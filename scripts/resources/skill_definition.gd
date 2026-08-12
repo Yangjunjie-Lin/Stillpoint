@@ -1,6 +1,19 @@
 class_name SkillDefinition
 extends Resource
 
+enum ActivationMode {
+	PROFICIENCY,
+	ACTIVE,
+	PASSIVE,
+}
+
+enum ActiveKind {
+	UTILITY,
+	OFFENSIVE,
+	DEFENSIVE,
+	MOVEMENT,
+}
+
 @export var id: StringName = &"skill"
 @export var display_name: String = "Skill"
 @export var category: StringName = &"utility"
@@ -11,6 +24,24 @@ extends Resource
 @export var range: float = 2.0
 @export var animation_id: StringName = &""
 @export var effects: Array[Resource] = []
+
+@export_group("Skill Loadout")
+@export var activation_mode: ActivationMode = ActivationMode.PROFICIENCY
+@export var active_kind: ActiveKind = ActiveKind.UTILITY
+@export var attack_id: StringName = &""
+@export var required_main_hand_forms: Array[StringName] = []
+@export var required_off_hand_forms: Array[StringName] = []
+@export var requires_dual_wield: bool = false
+@export var required_proficiency_skill_id: StringName = &""
+@export_range(0.0, 100.0, 0.5) var required_proficiency_points: float = 0.0
+
+@export_group("Scene Passive")
+@export var active_region_ids: Array[StringName] = []
+@export var passive_attack_bonus: float = 0.0
+@export var passive_defense_bonus: float = 0.0
+@export var passive_energy_regen_bonus: float = 0.0
+@export var passive_move_speed_bonus: float = 0.0
+@export var passive_charisma_bonus: float = 0.0
 
 @export_group("Proficiency Ontology")
 @export var ontology_node_id: StringName = &""
@@ -38,7 +69,7 @@ func resolved_ontology_node_id() -> StringName:
 
 
 func is_valid() -> bool:
-	return (
+	var base_valid := (
 		id != &""
 		and not display_name.strip_edges().is_empty()
 		and max_proficiency > 0.0
@@ -48,6 +79,42 @@ func is_valid() -> bool:
 		and overtraining_threshold > repetition_soft_limit
 		and context_recovery_days > 0
 	)
+	if not base_valid:
+		return false
+	if activation_mode == ActivationMode.ACTIVE:
+		return (
+			attack_id != &""
+			and cooldown >= 0.0
+			and energy_cost >= 0.0
+			and required_proficiency_skill_id != id
+		)
+	return true
+
+
+func is_active_skill() -> bool:
+	return activation_mode == ActivationMode.ACTIVE
+
+
+func is_passive_skill() -> bool:
+	return activation_mode == ActivationMode.PASSIVE
+
+
+func is_offensive_active() -> bool:
+	return is_active_skill() and active_kind == ActiveKind.OFFENSIVE
+
+
+func applies_in_region(region_id: StringName) -> bool:
+	return active_region_ids.is_empty() or active_region_ids.has(region_id)
+
+
+func hand_requirements_match(main_hand_form: StringName, off_hand_form: StringName) -> bool:
+	if requires_dual_wield and (main_hand_form == &"" or off_hand_form == &""):
+		return false
+	if not required_main_hand_forms.is_empty() and not required_main_hand_forms.has(main_hand_form):
+		return false
+	if not required_off_hand_forms.is_empty() and not required_off_hand_forms.has(off_hand_form):
+		return false
+	return true
 
 
 func level_from_points(points: float) -> int:
@@ -81,6 +148,13 @@ func to_catalog_dict() -> Dictionary:
 		"display_name": display_name,
 		"description": description,
 		"category": String(category),
+		"activation_mode": ActivationMode.keys()[activation_mode].to_lower(),
+		"active_kind": ActiveKind.keys()[active_kind].to_lower(),
+		"attack_id": String(attack_id),
+		"required_main_hand_forms": _strings(required_main_hand_forms),
+		"required_off_hand_forms": _strings(required_off_hand_forms),
+		"requires_dual_wield": requires_dual_wield,
+		"active_region_ids": _strings(active_region_ids),
 		"parent_skill_ids": _strings(parent_skill_ids),
 		"related_skill_ids": _strings(related_skill_ids),
 		"allowed_tool_ids": _strings(allowed_tool_ids),

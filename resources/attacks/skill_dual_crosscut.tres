@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="AttackDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/attack_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"skill_dual_crosscut"
+display_name = "Dual Crosscut"
+animation_name = &"attack_light_3"
+damage = 23.0
+energy_cost = 10.0
+poise_damage = 16.0
+maximum_targets = 2
+knockback_distance = 2.6
+windup = 0.16
+active = 0.18
+recovery = 0.36

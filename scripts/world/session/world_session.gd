@@ -76,6 +76,9 @@ func _ready() -> void:
 	else:
 		region_service.enter_region(start_region)
 		current_region_id = region_service.get_current_region_id()
+	if player != null:
+		player.current_region_id = current_region_id
+		player.refresh_contextual_capabilities()
 	region_service.region_changed.connect(_on_region_changed)
 	if EventBus.has_signal("request_world_save"):
 		EventBus.request_world_save.connect(save_world_state)
@@ -395,6 +398,8 @@ func _spawn_player() -> void:
 		player.equipment.equipment_changed.connect(_on_player_items_changed)
 	if player.experience != null and not player.experience.experience_changed.is_connected(_on_player_progression_changed):
 		player.experience.experience_changed.connect(_on_player_progression_changed)
+	if player.skill_loadout != null and not player.skill_loadout.loadout_changed.is_connected(_on_player_items_changed):
+		player.skill_loadout.loadout_changed.connect(_on_player_items_changed)
 	var camera_rig := get_node_or_null("CameraRig") as CameraController3D
 	if camera_rig != null:
 		camera_rig.set_target(player)
@@ -431,6 +436,8 @@ func _grant_starter_inventory() -> void:
 		push_error("WorldSession: could not grant farming essentials")
 	if not StarterKitCalculator.grant_utility_essentials(player.inventory):
 		push_error("WorldSession: could not grant utility essentials")
+	if not StarterKitCalculator.grant_equipment_foundation(player.inventory):
+		push_error("WorldSession: could not grant equipment foundation")
 
 
 func _on_player_progression_changed(_current: int, _to_next: int, _level: int) -> void:
@@ -467,6 +474,9 @@ func _restore_mount(data: Dictionary) -> void:
 
 func _on_region_changed(_previous: StringName, current: StringName) -> void:
 	current_region_id = current
+	if player != null:
+		player.current_region_id = current
+		player.refresh_contextual_capabilities()
 	region_changed.emit(current)
 	EventBus.region_changed.emit(current)
 	var pet := companion_root.get_node_or_null("Pet") as PetController

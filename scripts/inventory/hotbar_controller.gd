@@ -3,7 +3,7 @@ extends RefCounted
 
 signal selection_changed(index: int)
 
-const SLOT_COUNT := 8
+const SLOT_COUNT := 9
 
 var selected_index: int = 0
 var slot_refs: Array[int] = []

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/padded_vest.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"trail_trousers"
+display_name = "Trail Trousers"
+item_type = 11
+max_stack = 1
+description = "Hard-wearing trousers reinforced at the knees."
+icon = ExtResource("2")
+equip_slot = 5
+defense_bonus = 1.5
+equipment_weight = 3.0
+required_vitality = 5
+visual_archetype = &"padded_armor"
+visual_primary_color = Color(0.24, 0.27, 0.25, 1)
+visual_secondary_color = Color(0.52, 0.4, 0.22, 1)
