@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"stonehound_guard_collar"
+display_name = "Resonance Guard Collar"
+item_type = 7
+max_stack = 1
+description = "A padded iron collar tuned to carry warning vibrations across a stone hound's hide."
+buy_price = 90
+sell_price = 36
+rarity = &"uncommon"
+defense_bonus = 1.5
+equipment_weight = 2.2
+pet_tags = Array[StringName]([&"pet_collar", &"hound", &"medium_companion", &"stonehide"])
+visual_archetype = &"pet_guard_collar"
+visual_primary_color = Color(0.25, 0.29, 0.31, 1)
+visual_secondary_color = Color(0.38, 0.58, 0.66, 1)

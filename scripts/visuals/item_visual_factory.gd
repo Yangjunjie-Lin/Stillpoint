@@ -160,6 +160,48 @@ const HAND_GRIP_POSES := {
 		"rotation_degrees": Vector3(8, 0, 5),
 		"scale": Vector3.ONE * 0.72,
 	},
+	&"pet_guard_collar": {
+		"hand": "right",
+		"grip_kind": "support_heavy_loop",
+		"position": Vector3(0.08, -0.12, 0.18),
+		"rotation_degrees": Vector3(-72, 0, -8),
+		"scale": Vector3.ONE * 0.62,
+	},
+	&"pet_back_guard": {
+		"hand": "right",
+		"grip_kind": "support_forged_gear",
+		"position": Vector3(0.1, -0.14, 0.2),
+		"rotation_degrees": Vector3(-68, -8, -10),
+		"scale": Vector3.ONE * 0.48,
+	},
+	&"pet_oath_charm": {
+		"hand": "right",
+		"grip_kind": "pinch_ring",
+		"position": Vector3(0.03, -0.17, 0.14),
+		"rotation_degrees": Vector3(8, 0, 5),
+		"scale": Vector3.ONE * 0.72,
+	},
+	&"pet_flight_band": {
+		"hand": "right",
+		"grip_kind": "present_light_loop",
+		"position": Vector3(0.08, -0.11, 0.18),
+		"rotation_degrees": Vector3(-72, 0, -8),
+		"scale": Vector3.ONE * 0.7,
+	},
+	&"pet_wing_harness": {
+		"hand": "right",
+		"grip_kind": "support_folded_gear",
+		"position": Vector3(0.1, -0.12, 0.2),
+		"rotation_degrees": Vector3(-68, -8, -10),
+		"scale": Vector3.ONE * 0.6,
+	},
+	&"pet_talon_charm": {
+		"hand": "right",
+		"grip_kind": "pinch_ring",
+		"position": Vector3(0.03, -0.17, 0.14),
+		"rotation_degrees": Vector3(8, 0, 5),
+		"scale": Vector3.ONE * 0.72,
+	},
 }
 
 
@@ -215,6 +257,18 @@ static func create_model(definition: ItemDefinition, for_hand: bool = false) -> 
 			_build_pet_harness(root, definition)
 		&"pet_charm":
 			_build_pet_charm(root, definition)
+		&"pet_guard_collar":
+			_build_pet_guard_collar(root, definition)
+		&"pet_back_guard":
+			_build_pet_back_guard(root, definition)
+		&"pet_oath_charm":
+			_build_pet_oath_charm(root, definition)
+		&"pet_flight_band":
+			_build_pet_flight_band(root, definition)
+		&"pet_wing_harness":
+			_build_pet_wing_harness(root, definition)
+		&"pet_talon_charm":
+			_build_pet_talon_charm(root, definition)
 		_:
 			_build_trinket(root, definition)
 	if for_hand:
@@ -406,6 +460,51 @@ static func _build_pet_charm(root: Node3D, definition: ItemDefinition) -> void:
 	_torus(root, "BellLip", 0.12, 0.165, Vector3(0, 0.04, 0), definition.visual_primary_color.lightened(0.16), Vector3.ZERO, 0.76)
 	_sphere(root, "MutedClapper", 0.045, Vector3(0, -0.045, 0), definition.visual_secondary_color, 0.55)
 	_sphere(root, "CalmingInlay", 0.055, Vector3(0, 0.19, 0.1), definition.visual_secondary_color, 0.32, Vector3(0.75, 1.0, 0.35))
+
+
+static func _build_pet_guard_collar(root: Node3D, definition: ItemDefinition) -> void:
+	_torus(root, "PaddedIronBand", 0.27, 0.34, Vector3(0, 0.27, 0), definition.visual_primary_color, Vector3(90, 0, 0), 0.5)
+	_box(root, "ResonanceBuckle", Vector3(0.22, 0.16, 0.09), Vector3(0.33, 0.27, 0), definition.visual_secondary_color, Vector3(0, 0, 8), 0.75)
+	_box(root, "VibrationPlate", Vector3(0.18, 0.22, 0.07), Vector3(0, -0.02, 0), definition.visual_primary_color.lightened(0.12), Vector3(0, 0, 45), 0.42)
+	_torus(root, "PlateBorder", 0.1, 0.14, Vector3(0, -0.02, 0.04), definition.visual_secondary_color, Vector3(90, 0, 0), 0.68)
+
+
+static func _build_pet_back_guard(root: Node3D, definition: ItemDefinition) -> void:
+	for index in 3:
+		var z := -0.27 + float(index) * 0.27
+		_box(root, "GuardPlate%d" % index, Vector3(0.62 - index * 0.05, 0.12, 0.32), Vector3(0, 0.3, z), definition.visual_primary_color.lightened(index * 0.05), Vector3(index * 3.0, 0, 0), 0.55)
+	_box(root, "Underlay", Vector3(0.52, 0.06, 0.78), Vector3(0, 0.23, 0), definition.visual_secondary_color.darkened(0.18))
+	_torus(root, "FrontAnchor", 0.22, 0.27, Vector3(0, 0.18, -0.34), definition.visual_secondary_color, Vector3(90, 0, 0), 0.28)
+	_torus(root, "RearAnchor", 0.24, 0.29, Vector3(0, 0.18, 0.34), definition.visual_secondary_color, Vector3(90, 0, 0), 0.28)
+
+
+static func _build_pet_oath_charm(root: Node3D, definition: ItemDefinition) -> void:
+	_torus(root, "OathRing", 0.075, 0.11, Vector3(0, 0.5, 0), definition.visual_secondary_color, Vector3(90, 0, 0), 0.72)
+	_cylinder(root, "OathLink", 0.014, 0.18, Vector3(0, 0.39, 0), definition.visual_secondary_color, Vector3.ZERO, 0.62)
+	_box(root, "Oathstone", Vector3(0.24, 0.26, 0.1), Vector3(0, 0.2, 0), definition.visual_primary_color, Vector3(0, 0, 45), 0.26)
+	_torus(root, "OathSigil", 0.06, 0.095, Vector3(0, 0.2, 0.06), definition.visual_secondary_color.lightened(0.15), Vector3(90, 0, 0), 0.48)
+
+
+static func _build_pet_flight_band(root: Node3D, definition: ItemDefinition) -> void:
+	_torus(root, "FeatherlightBand", 0.245, 0.285, Vector3(0, 0.28, 0), definition.visual_primary_color, Vector3(90, 0, 0), 0.28)
+	_box(root, "WindClasp", Vector3(0.15, 0.1, 0.055), Vector3(0.28, 0.28, 0), definition.visual_secondary_color, Vector3(0, 0, 8), 0.66)
+	for side in [-1.0, 1.0]:
+		_cone(root, "Feather%.0f" % side, 0.085, 0.012, 0.28, Vector3(side * 0.12, 0.03, 0), definition.visual_secondary_color, Vector3(0, 0, side * 24.0))
+
+
+static func _build_pet_wing_harness(root: Node3D, definition: ItemDefinition) -> void:
+	_box(root, "BreastPanel", Vector3(0.38, 0.08, 0.55), Vector3(0, 0.25, 0), definition.visual_primary_color)
+	_box(root, "SpineRibbon", Vector3(0.12, 0.05, 0.7), Vector3(0, 0.31, 0), definition.visual_secondary_color)
+	for side in [-1.0, 1.0]:
+		_torus(root, "WingRootBand%.0f" % side, 0.13, 0.18, Vector3(side * 0.23, 0.24, 0), definition.visual_primary_color.lightened(0.08), Vector3(90, 0, 0), 0.2)
+		_box(root, "WingClasp%.0f" % side, Vector3(0.08, 0.09, 0.05), Vector3(side * 0.31, 0.24, 0), definition.visual_secondary_color, Vector3.ZERO, 0.62)
+
+
+static func _build_pet_talon_charm(root: Node3D, definition: ItemDefinition) -> void:
+	_torus(root, "TalonRing", 0.07, 0.1, Vector3(0, 0.5, 0), definition.visual_secondary_color, Vector3(90, 0, 0), 0.7)
+	_cylinder(root, "SkyglassLink", 0.012, 0.17, Vector3(0, 0.39, 0), definition.visual_secondary_color, Vector3.ZERO, 0.58)
+	_cone(root, "SkyglassDrop", 0.13, 0.025, 0.3, Vector3(0, 0.18, 0), definition.visual_primary_color, Vector3.ZERO, 0.28)
+	_sphere(root, "DuskFacet", 0.052, Vector3(0, 0.2, 0.11), definition.visual_secondary_color.lightened(0.18), 0.34, Vector3(0.8, 1.2, 0.42))
 
 
 static func _build_trinket(root: Node3D, definition: ItemDefinition) -> void:

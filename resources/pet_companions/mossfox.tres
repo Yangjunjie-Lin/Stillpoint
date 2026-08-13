@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="PetCompanionDefinition" load_steps=14 format=3]
+[gd_resource type="Resource" script_class="PetCompanionDefinition" load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_companion_definition.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_species_definition.gd" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_lifestyle_definition.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_skill_definition.gd" id="6"]
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_equipment_slot_definition.gd" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/pets/pet_companion_actor.tscn" id="8"]
 
 [sub_resource type="Resource" id="Species"]
 script = ExtResource("2")
@@ -129,6 +130,7 @@ id = &"collar"
 display_name = "Collar"
 accepted_item_tags = Array[StringName]([&"pet_collar"])
 allowed_species_tags = Array[StringName]([&"fox", &"small_companion"])
+required_item_fit_tags = Array[StringName]([&"fox"])
 maximum_weight = 2.0
 
 [sub_resource type="Resource" id="BodySlot"]
@@ -137,6 +139,7 @@ id = &"body"
 display_name = "Body Gear"
 accepted_item_tags = Array[StringName]([&"pet_armor"])
 allowed_species_tags = Array[StringName]([&"small_companion"])
+required_item_fit_tags = Array[StringName]([&"fox"])
 maximum_weight = 4.0
 
 [sub_resource type="Resource" id="CharmSlot"]
@@ -144,6 +147,7 @@ script = ExtResource("7")
 id = &"charm"
 display_name = "Charm"
 accepted_item_tags = Array[StringName]([&"pet_charm"])
+required_item_fit_tags = Array[StringName]([&"fox"])
 maximum_weight = 1.0
 
 [resource]
@@ -151,6 +155,7 @@ script = ExtResource("1")
 id = &"mossfox"
 display_name = "Pip"
 biography = "A bright-eyed moss fox adopted near Stillpoint's farmland."
+scene = ExtResource("8")
 species = SubResource("Species")
 personality = SubResource("Personality")
 base_attributes = SubResource("Attributes")

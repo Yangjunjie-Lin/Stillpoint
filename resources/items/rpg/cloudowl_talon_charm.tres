@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"cloudowl_talon_charm"
+display_name = "Skyglass Talon Charm"
+item_type = 7
+max_stack = 1
+description = "A balanced skyglass drop worn above one talon, bright enough to catch a companion's eye at dusk."
+buy_price = 110
+sell_price = 44
+rarity = &"uncommon"
+attack_bonus = 1.25
+energy_regen_bonus = 0.5
+equipment_weight = 0.3
+pet_tags = Array[StringName]([&"pet_charm", &"owl", &"avian", &"small_companion"])
+visual_archetype = &"pet_talon_charm"
+visual_primary_color = Color(0.34, 0.66, 0.78, 1)
+visual_secondary_color = Color(0.82, 0.71, 0.38, 1)

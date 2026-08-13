@@ -140,6 +140,7 @@ func _definition() -> PetCompanionDefinition:
 	collar.display_name = "Collar"
 	collar.accepted_item_tags = [&"pet_collar"]
 	collar.allowed_species_tags = [&"fox"]
+	collar.required_item_fit_tags = [&"fox"]
 	collar.maximum_weight = 4.0
 
 	var definition := PetCompanionDefinition.new()

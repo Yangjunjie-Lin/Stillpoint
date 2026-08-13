@@ -14,6 +14,20 @@ func run() -> bool:
 	var definitions: Dictionary = {}
 	var instances: Dictionary = {}
 	var ok := pets.size() >= expected.size()
+	var invalid_scene := PackedScene.new()
+	var invalid_root := Node3D.new()
+	invalid_root.name = "InvalidPetSceneRoot"
+	ok = ok and invalid_scene.pack(invalid_root) == OK
+	invalid_root.free()
+	var invalid_definition := (
+		ResourceRegistry.get_pet_companion(&"cloudowl").duplicate(true)
+		as PetCompanionDefinition
+	)
+	invalid_definition.id = &"invalid_scene_pet"
+	invalid_definition.scene = invalid_scene
+	ok = ok and world._create_pet_actor(
+		invalid_definition, &"base:test/pet/invalid_scene"
+	) == null
 	for pet in pets:
 		var definition_id := String(pet.pet_definition.id)
 		var instance_id := String(pet.runtime_state.get_pet_instance_id())
@@ -25,6 +39,17 @@ func run() -> bool:
 			ok = ok and model != null \
 				and str(model.get_visual_signature().get("archetype", "")) \
 					== str(expected[definition_id])
+			if model != null:
+				var expected_style := {
+					"mossfox": "field_harness",
+					"stonehound": "layered_guard",
+					"cloudowl": "flight_rig",
+				}
+				var expected_style_id: String = str(expected_style.get(definition_id, ""))
+				ok = ok and str(model.get_visual_signature().get("equipment_style", "")) == expected_style_id
+			ok = ok and pet.pet_definition.scene != null
+			if definition_id != "mossfox":
+				ok = ok and pet.scene_file_path == "res://scenes/pets/pet_companion_actor.tscn"
 		ok = ok and interactable != null \
 			and interactable.get_interaction_text(world.player).contains(
 				pet.get_display_name()

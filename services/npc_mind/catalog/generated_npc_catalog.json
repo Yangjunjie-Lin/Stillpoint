@@ -3152,6 +3152,33 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/cloudowl_flight_band",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/cloudowl_talon_charm",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/cloudowl_wing_harness",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/field_pick",
         "predicate": "OFFERS",
         "source_id": "shop:stillpoint_blacksmith_equipment",
@@ -3179,8 +3206,62 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_back_guard",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_guard_collar",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_oath_charm",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "npc_definition:blacksmith",
         "predicate": "OPERATED_BY",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:cloudowl_flight_band",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:cloudowl_talon_charm",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:cloudowl_wing_harness",
+        "predicate": "SELLS",
         "source_id": "shop:stillpoint_blacksmith_equipment",
         "source_type": "world_catalog",
         "subject_node_id": "shop:stillpoint_blacksmith_equipment",
@@ -3207,6 +3288,33 @@
       {
         "confidence": 1.0,
         "object_node_id": "item:iron_ore",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:stonehound_back_guard",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:stonehound_guard_collar",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:stonehound_oath_charm",
         "predicate": "SELLS",
         "source_id": "shop:stillpoint_blacksmith_equipment",
         "source_type": "world_catalog",
@@ -3242,6 +3350,33 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "item:cloudowl_flight_band",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/cloudowl_flight_band",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:cloudowl_talon_charm",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/cloudowl_talon_charm",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:cloudowl_wing_harness",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/cloudowl_wing_harness",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "item:field_pick",
         "predicate": "SELLS",
         "source_id": "shop:stillpoint_blacksmith_equipment",
@@ -3265,6 +3400,33 @@
         "source_id": "shop:stillpoint_blacksmith_equipment",
         "source_type": "world_catalog",
         "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/iron_ore",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:stonehound_back_guard",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_back_guard",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:stonehound_guard_collar",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_guard_collar",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:stonehound_oath_charm",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_oath_charm",
         "visibility": "public"
       },
       {
@@ -5264,6 +5426,30 @@
         "visibility": "public"
       },
       {
+        "label": "Zephyr Flight Band",
+        "metadata": {},
+        "node_id": "item:cloudowl_flight_band",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Skyglass Talon Charm",
+        "metadata": {},
+        "node_id": "item:cloudowl_talon_charm",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Cloudweave Wing Harness",
+        "metadata": {},
+        "node_id": "item:cloudowl_wing_harness",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Crowbar",
         "metadata": {},
         "node_id": "item:crowbar",
@@ -5315,6 +5501,30 @@
         "label": "Road Boots",
         "metadata": {},
         "node_id": "item:road_boots",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Layered Stone Back Guard",
+        "metadata": {},
+        "node_id": "item:stonehound_back_guard",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Resonance Guard Collar",
+        "metadata": {},
+        "node_id": "item:stonehound_guard_collar",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Greywake Oathstone",
+        "metadata": {},
+        "node_id": "item:stonehound_oath_charm",
         "node_type": "item",
         "source": "world_catalog",
         "visibility": "public"
@@ -5792,6 +6002,7 @@
           "public_description": "Torren sells tools and forged protection from the smithy's public counter.",
           "service_tags": [
             "equipment_sale",
+            "pet_equipment_sale",
             "material_purchase",
             "forging"
           ],
@@ -5858,6 +6069,63 @@
         "visibility": "public"
       },
       {
+        "label": "Zephyr Flight Band",
+        "metadata": {
+          "availability_tags": [
+            "pet_equipment",
+            "cloudowl",
+            "smithy_counter"
+          ],
+          "definition_id": "cloudowl_flight_band",
+          "item_id": "cloudowl_flight_band",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 75
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/cloudowl_flight_band",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Skyglass Talon Charm",
+        "metadata": {
+          "availability_tags": [
+            "pet_equipment",
+            "cloudowl",
+            "smithy_counter"
+          ],
+          "definition_id": "cloudowl_talon_charm",
+          "item_id": "cloudowl_talon_charm",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 110
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/cloudowl_talon_charm",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Cloudweave Wing Harness",
+        "metadata": {
+          "availability_tags": [
+            "pet_equipment",
+            "cloudowl",
+            "smithy_counter"
+          ],
+          "definition_id": "cloudowl_wing_harness",
+          "item_id": "cloudowl_wing_harness",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 150
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/cloudowl_wing_harness",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Field Pick",
         "metadata": {
           "availability_tags": [
@@ -5908,6 +6176,63 @@
           "unit_price": 18
         },
         "node_id": "shop_offer:stillpoint_blacksmith_equipment/iron_ore",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Layered Stone Back Guard",
+        "metadata": {
+          "availability_tags": [
+            "pet_equipment",
+            "stonehound",
+            "smithy_counter"
+          ],
+          "definition_id": "stonehound_back_guard",
+          "item_id": "stonehound_back_guard",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 190
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_back_guard",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Resonance Guard Collar",
+        "metadata": {
+          "availability_tags": [
+            "pet_equipment",
+            "stonehound",
+            "smithy_counter"
+          ],
+          "definition_id": "stonehound_guard_collar",
+          "item_id": "stonehound_guard_collar",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 90
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_guard_collar",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Greywake Oathstone",
+        "metadata": {
+          "availability_tags": [
+            "pet_equipment",
+            "stonehound",
+            "smithy_counter"
+          ],
+          "definition_id": "stonehound_oath_charm",
+          "item_id": "stonehound_oath_charm",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 135
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_oath_charm",
         "node_type": "shop_offer",
         "source": "world_catalog",
         "visibility": "public"

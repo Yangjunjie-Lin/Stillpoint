@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="PetCompanionDefinition" load_steps=20 format=3]
+[gd_resource type="Resource" script_class="PetCompanionDefinition" load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_companion_definition.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_species_definition.gd" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_lifestyle_definition.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_skill_definition.gd" id="6"]
 [ext_resource type="Script" path="res://scripts/pets/domain/pet_equipment_slot_definition.gd" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/pets/pet_companion_actor.tscn" id="8"]
 
 [sub_resource type="Resource" id="Species"]
 script = ExtResource("2")
@@ -136,6 +137,7 @@ id = &"collar"
 display_name = "Flight Band"
 accepted_item_tags = Array[StringName]([&"pet_collar"])
 allowed_species_tags = Array[StringName]([&"owl", &"avian", &"small_companion"])
+required_item_fit_tags = Array[StringName]([&"avian"])
 maximum_weight = 1.0
 
 [sub_resource type="Resource" id="BodySlot"]
@@ -144,6 +146,7 @@ id = &"body"
 display_name = "Wing Harness"
 accepted_item_tags = Array[StringName]([&"pet_armor"])
 allowed_species_tags = Array[StringName]([&"avian", &"small_companion"])
+required_item_fit_tags = Array[StringName]([&"avian"])
 maximum_weight = 2.0
 
 [sub_resource type="Resource" id="CharmSlot"]
@@ -152,6 +155,7 @@ id = &"charm"
 display_name = "Talon Charm"
 accepted_item_tags = Array[StringName]([&"pet_charm"])
 allowed_species_tags = Array[StringName]([&"owl", &"avian"])
+required_item_fit_tags = Array[StringName]([&"avian"])
 maximum_weight = 0.6
 
 [resource]
@@ -159,6 +163,7 @@ script = ExtResource("1")
 id = &"cloudowl"
 display_name = "Nimbus"
 biography = "A cloud owl that chose the player's company after observing their travels from Greywake's rooftops."
+scene = ExtResource("8")
 species = SubResource("Species")
 personality = SubResource("Personality")
 base_attributes = SubResource("Attributes")

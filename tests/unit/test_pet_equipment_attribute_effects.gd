@@ -5,7 +5,13 @@ func run() -> bool:
 	var definition := ResourceRegistry.get_pet_companion(&"mossfox")
 	var harness := ResourceRegistry.get_item(&"mossfox_harness")
 	var charm := ResourceRegistry.get_item(&"quiet_bell_charm")
-	var ok := definition != null and harness != null and charm != null
+	var stone_definition := ResourceRegistry.get_pet_companion(&"stonehound")
+	var owl_definition := ResourceRegistry.get_pet_companion(&"cloudowl")
+	var stone_guard := ResourceRegistry.get_item(&"stonehound_back_guard")
+	var stone_charm := ResourceRegistry.get_item(&"stonehound_oath_charm")
+	var ok := definition != null and harness != null and charm != null \
+		and stone_definition != null and owl_definition != null \
+		and stone_guard != null and stone_charm != null
 	if not ok:
 		push_error("pet equipment fixtures are missing")
 		return false
@@ -63,6 +69,41 @@ func run() -> bool:
 	ok = ok and is_zero_approx(
 		float(sanitized.get_equipment_effects().stamina_regen_bonus)
 	)
+
+	var stone_state := PetRuntimeState.new()
+	ok = ok and stone_state.initialize(
+		stone_definition, &"base:player/pet/stonehound_equipment", &"base:player/main"
+	)
+	ok = ok and stone_state.equip_item(
+		&"body", stone_guard.id, stone_guard.pet_tags, stone_guard.equipment_weight
+	)
+	# The hound charm is within Pip's weight limit, so this proves the authored
+	# species fit itself rejects the item rather than an unrelated weight check.
+	ok = ok and not equipped.equip_item(
+		&"charm", stone_charm.id, stone_charm.pet_tags, stone_charm.equipment_weight
+	)
+	# Callers cannot forge a catalog item's tags or weight to bypass the same fit.
+	ok = ok and not equipped.equip_item(
+		&"charm", stone_charm.id, [&"pet_charm", &"fox"], 0.0
+	)
+	var legacy_stone_data := stone_state.to_dict()
+	legacy_stone_data["section_version"] = 2
+	(legacy_stone_data.equipment as Dictionary)["collar"] = "mossfox_collar"
+	(legacy_stone_data.equipment as Dictionary)["body"] = "mossfox_harness"
+	(legacy_stone_data.equipment as Dictionary)["charm"] = "quiet_bell_charm"
+	var migrated_stone := PetRuntimeState.new()
+	ok = ok and migrated_stone.from_dict(legacy_stone_data, stone_definition)
+	ok = ok and migrated_stone.get_equipped_item(&"collar") == &"stonehound_guard_collar"
+	ok = ok and migrated_stone.get_equipped_item(&"body") == &"stonehound_back_guard"
+	ok = ok and migrated_stone.get_equipped_item(&"charm") == &"stonehound_oath_charm"
+	var legacy_owl_data := legacy_stone_data.duplicate(true)
+	legacy_owl_data["definition_id"] = "cloudowl"
+	legacy_owl_data["instance_id"] = "base:player/pet/cloudowl_v2"
+	var migrated_owl := PetRuntimeState.new()
+	ok = ok and migrated_owl.from_dict(legacy_owl_data, owl_definition)
+	ok = ok and migrated_owl.get_equipped_item(&"collar") == &"cloudowl_flight_band"
+	ok = ok and migrated_owl.get_equipped_item(&"body") == &"cloudowl_wing_harness"
+	ok = ok and migrated_owl.get_equipped_item(&"charm") == &"cloudowl_talon_charm"
 
 	if not ok:
 		push_error("pet equipment did not affect deterministic attributes or persistence")

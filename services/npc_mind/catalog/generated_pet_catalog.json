@@ -289,6 +289,9 @@
             "display_name": "Flight Band",
             "id": "collar",
             "maximum_weight": 1.0,
+            "required_item_fit_tags": [
+              "avian"
+            ],
             "visible_on_model": true
           },
           {
@@ -302,6 +305,9 @@
             "display_name": "Wing Harness",
             "id": "body",
             "maximum_weight": 2.0,
+            "required_item_fit_tags": [
+              "avian"
+            ],
             "visible_on_model": true
           },
           {
@@ -315,6 +321,9 @@
             "display_name": "Talon Charm",
             "id": "charm",
             "maximum_weight": 0.6,
+            "required_item_fit_tags": [
+              "avian"
+            ],
             "visible_on_model": true
           }
         ],
@@ -772,6 +781,9 @@
             "display_name": "Collar",
             "id": "collar",
             "maximum_weight": 2.0,
+            "required_item_fit_tags": [
+              "fox"
+            ],
             "visible_on_model": true
           },
           {
@@ -784,6 +796,9 @@
             "display_name": "Body Gear",
             "id": "body",
             "maximum_weight": 4.0,
+            "required_item_fit_tags": [
+              "fox"
+            ],
             "visible_on_model": true
           },
           {
@@ -794,6 +809,9 @@
             "display_name": "Charm",
             "id": "charm",
             "maximum_weight": 1.0,
+            "required_item_fit_tags": [
+              "fox"
+            ],
             "visible_on_model": true
           }
         ],
@@ -1252,6 +1270,9 @@
             "display_name": "Guardian Collar",
             "id": "collar",
             "maximum_weight": 3.5,
+            "required_item_fit_tags": [
+              "hound"
+            ],
             "visible_on_model": true
           },
           {
@@ -1265,6 +1286,9 @@
             "display_name": "Back Guard",
             "id": "body",
             "maximum_weight": 8.0,
+            "required_item_fit_tags": [
+              "hound"
+            ],
             "visible_on_model": true
           },
           {
@@ -1278,6 +1302,9 @@
             "display_name": "Oath Charm",
             "id": "charm",
             "maximum_weight": 1.5,
+            "required_item_fit_tags": [
+              "hound"
+            ],
             "visible_on_model": true
           }
         ],

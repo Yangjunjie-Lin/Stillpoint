@@ -8,3 +8,4 @@
 ^ERROR:\s+WorldSaveCoordinator: atomic replace failed for user://(saves/slot_01/(manifest|player|regions/base_(town|wilderness))\.json|stillpoint_test_world_atomic\.json) \(Can't create\)$
 ^ERROR:\s+WorldSaveCoordinator: v3 migration aborted: (player section write failed|region chunk write failed)$
 ^ERROR:\s+WorldSession: restore failed \(corrupt_player\); returning to the main menu without saving$
+^ERROR:\s+WorldSession: pet scene root is not PetController for invalid_scene_pet$

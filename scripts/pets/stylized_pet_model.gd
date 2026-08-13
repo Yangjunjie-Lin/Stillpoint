@@ -194,6 +194,7 @@ func _build_talon(prefix: String, position_: Vector3) -> Node3D:
 func get_visual_signature() -> Dictionary:
 	return {
 		"archetype": String(visual_archetype),
+		"equipment_style": _equipment_style_id(),
 		"articulated_legs": 4,
 		"has_independent_paws": true,
 		"motion_state": String(_motion_state),
@@ -210,15 +211,61 @@ func _build_leg(prefix: String, position_: Vector3, parent: Node3D) -> Node3D:
 
 
 func _build_equipment_visuals() -> void:
+	match visual_archetype:
+		&"stonehound":
+			_build_stonehound_equipment_visuals()
+		&"cloudowl":
+			_build_cloudowl_equipment_visuals()
+		_:
+			_build_mossfox_equipment_visuals()
+
+
+func _build_mossfox_equipment_visuals() -> void:
 	_collar_root = _pivot("CollarEquipment", Vector3.ZERO, _head_rig)
 	_torus("CollarBand", 0.025, 0.235, Vector3(0.0, -0.24, 0.03), accent_color, Vector3(90, 0, 0), _collar_root)
 	_box("CollarBuckle", Vector3(0.11, 0.09, 0.045), Vector3(0.0, -0.24, -0.225), Color("c6a04c"), Vector3.ZERO, _collar_root, 0.7)
 	_armor_root = _pivot("ArmorEquipment", Vector3.ZERO, _body_rig)
-	_box("BackHarness", Vector3(0.52, 0.09, 0.64), Vector3(0.0, 0.88, 0.08), accent_color.darkened(0.1), Vector3.ZERO, _armor_root)
-	_box("ChestGuard", Vector3(0.51, 0.38, 0.08), Vector3(0.0, 0.67, -0.29), accent_color, Vector3(22, 0, 0), _armor_root)
+	_box("SoftBackHarness", Vector3(0.52, 0.09, 0.64), Vector3(0.0, 0.88, 0.08), accent_color.darkened(0.1), Vector3.ZERO, _armor_root)
+	_box("ChestStrap", Vector3(0.51, 0.38, 0.08), Vector3(0.0, 0.67, -0.29), accent_color, Vector3(22, 0, 0), _armor_root)
 	_charm_root = _pivot("CharmEquipment", Vector3.ZERO, _head_rig)
 	_torus("CharmRing", 0.018, 0.07, Vector3(0.0, -0.34, -0.18), Color("d3a94d"), Vector3(90, 0, 0), _charm_root, 0.75)
 	_sphere("CharmStone", 0.055, Vector3(0.0, -0.42, -0.18), Color("65b5aa"), _charm_root, 0.25)
+
+
+func _build_stonehound_equipment_visuals() -> void:
+	_collar_root = _pivot("CollarEquipment", Vector3.ZERO, _head_rig)
+	_torus("ResonanceCollar", 0.045, 0.31, Vector3(0.0, -0.27, 0.04), accent_color.darkened(0.18), Vector3(90, 0, 0), _collar_root, 0.55)
+	_box("ResonanceBuckle", Vector3(0.17, 0.13, 0.07), Vector3(0.0, -0.28, -0.31), Color("a78e5d"), Vector3.ZERO, _collar_root, 0.8)
+	_armor_root = _pivot("ArmorEquipment", Vector3.ZERO, _body_rig)
+	_box("FrontShoulderPlate", Vector3(0.72, 0.13, 0.38), Vector3(0.0, 1.04, -0.24), accent_color.darkened(0.2), Vector3(-4, 0, 0), _armor_root, 0.45)
+	_box("CenterBackPlate", Vector3(0.68, 0.13, 0.4), Vector3(0.0, 1.07, 0.13), accent_color.darkened(0.12), Vector3.ZERO, _armor_root, 0.45)
+	_box("RearBackPlate", Vector3(0.62, 0.12, 0.3), Vector3(0.0, 1.02, 0.45), accent_color.darkened(0.25), Vector3(5, 0, 0), _armor_root, 0.45)
+	_charm_root = _pivot("CharmEquipment", Vector3.ZERO, _head_rig)
+	_torus("OathstoneRing", 0.024, 0.09, Vector3(0.0, -0.39, -0.25), Color("b89a61"), Vector3(90, 0, 0), _charm_root, 0.75)
+	_box("Oathstone", Vector3(0.12, 0.14, 0.07), Vector3(0.0, -0.5, -0.25), accent_color.lightened(0.18), Vector3(0, 0, 45), _charm_root, 0.3)
+
+
+func _build_cloudowl_equipment_visuals() -> void:
+	_collar_root = _pivot("CollarEquipment", Vector3.ZERO, _head_rig)
+	_torus("FlightBand", 0.018, 0.25, Vector3(0.0, -0.28, 0.08), accent_color, Vector3(90, 0, 0), _collar_root, 0.35)
+	_box("FlightBandClasp", Vector3(0.09, 0.075, 0.035), Vector3(0.0, -0.29, -0.24), Color("c6a04c"), Vector3.ZERO, _collar_root, 0.75)
+	_armor_root = _pivot("ArmorEquipment", Vector3.ZERO, _body_rig)
+	_box("BreastHarness", Vector3(0.34, 0.42, 0.055), Vector3(0.0, 0.72, -0.34), accent_color, Vector3(8, 0, 0), _armor_root)
+	_box("LeftWingRootBand", Vector3(0.14, 0.13, 0.5), Vector3(-0.31, 0.88, 0.03), accent_color.darkened(0.12), Vector3(0, 0, -18), _armor_root)
+	_box("RightWingRootBand", Vector3(0.14, 0.13, 0.5), Vector3(0.31, 0.88, 0.03), accent_color.darkened(0.12), Vector3(0, 0, 18), _armor_root)
+	_charm_root = _pivot("CharmEquipment", Vector3.ZERO, _body_rig)
+	_torus("TalonCharmRing", 0.014, 0.052, Vector3(-0.14, 0.18, -0.09), Color("d3a94d"), Vector3(90, 0, 0), _charm_root, 0.75)
+	_cone("TalonCharmDrop", 0.052, 0.012, 0.16, Vector3(-0.14, 0.08, -0.09), accent_color.lightened(0.18), Vector3.ZERO, _charm_root, 0.25)
+
+
+func _equipment_style_id() -> String:
+	match visual_archetype:
+		&"stonehound":
+			return "layered_guard"
+		&"cloudowl":
+			return "flight_rig"
+		_:
+			return "field_harness"
 
 
 func _update_motion() -> void:
@@ -284,13 +331,15 @@ func _apply_equipment_tint(root: Node3D, item_id: StringName, fallback: Color) -
 	if root == null or item_id == &"":
 		return
 	var definition := ResourceRegistry.get_item(item_id)
-	var color := definition.visual_primary_color if definition != null else fallback
-	for child in root.get_children():
-		if child is MeshInstance3D:
-			var mesh_instance := child as MeshInstance3D
-			var material := mesh_instance.get_active_material(0) as StandardMaterial3D
-			if material != null:
-				material.albedo_color = color
+	var primary := definition.visual_primary_color if definition != null else fallback
+	var secondary := definition.visual_secondary_color if definition != null \
+		else fallback.lightened(0.18)
+	var parts := root.find_children("*", "MeshInstance3D", true, false)
+	for index in parts.size():
+		var mesh_instance := parts[index] as MeshInstance3D
+		var material := mesh_instance.get_active_material(0) as StandardMaterial3D
+		if material != null:
+			material.albedo_color = primary if index % 2 == 0 else secondary
 
 
 func _pivot(name_: String, position_: Vector3, parent: Node3D) -> Node3D:
@@ -325,13 +374,13 @@ func _capsule(name_: String, radius: float, height: float, position_: Vector3, c
 	return _part(name_, mesh, position_, color, rotation_, parent)
 
 
-func _cone(name_: String, bottom_radius: float, top_radius: float, height: float, position_: Vector3, color: Color, rotation_: Vector3, parent: Node3D) -> MeshInstance3D:
+func _cone(name_: String, bottom_radius: float, top_radius: float, height: float, position_: Vector3, color: Color, rotation_: Vector3, parent: Node3D, metallic: float = 0.0) -> MeshInstance3D:
 	var mesh := CylinderMesh.new()
 	mesh.bottom_radius = bottom_radius
 	mesh.top_radius = top_radius
 	mesh.height = height
 	mesh.radial_segments = 14
-	return _part(name_, mesh, position_, color, rotation_, parent)
+	return _part(name_, mesh, position_, color, rotation_, parent, metallic)
 
 
 func _torus(name_: String, inner_radius: float, outer_radius: float, position_: Vector3, color: Color, rotation_: Vector3, parent: Node3D, metallic: float = 0.0) -> MeshInstance3D:

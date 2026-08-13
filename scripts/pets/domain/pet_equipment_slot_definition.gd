@@ -7,6 +7,9 @@ extends Resource
 @export var display_name: String = "Collar"
 @export var accepted_item_tags: Array[StringName] = []
 @export var allowed_species_tags: Array[StringName] = []
+## At least one of these authored fit tags must also be present on the item.
+## This separates item size/form from the species allowed to use the slot.
+@export var required_item_fit_tags: Array[StringName] = []
 @export_range(0.0, 1000.0, 0.1) var maximum_weight: float = 10.0
 @export var visible_on_model: bool = true
 
@@ -27,7 +30,13 @@ func accepts(
 		allowed_species_tags, species_tags
 	):
 		return false
-	return accepted_item_tags.is_empty() or _has_overlap(accepted_item_tags, item_tags)
+	if not required_item_fit_tags.is_empty() and not _has_overlap(
+		required_item_fit_tags, item_tags
+	):
+		return false
+	return accepted_item_tags.is_empty() or _has_overlap(
+		accepted_item_tags, item_tags
+	)
 
 
 func to_catalog_dict() -> Dictionary:
@@ -36,6 +45,7 @@ func to_catalog_dict() -> Dictionary:
 		"display_name": display_name,
 		"accepted_item_tags": _strings(accepted_item_tags),
 		"allowed_species_tags": _strings(allowed_species_tags),
+		"required_item_fit_tags": _strings(required_item_fit_tags),
 		"maximum_weight": maximum_weight,
 		"visible_on_model": visible_on_model,
 	}

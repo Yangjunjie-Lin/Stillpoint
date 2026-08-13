@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"cloudowl_wing_harness"
+display_name = "Cloudweave Wing Harness"
+item_type = 7
+max_stack = 1
+description = "A light breast harness that protects the wing roots without restricting their full stroke."
+buy_price = 150
+sell_price = 60
+rarity = &"rare"
+defense_bonus = 1.5
+move_speed_bonus = 0.25
+equipment_weight = 1.4
+pet_tags = Array[StringName]([&"pet_armor", &"owl", &"avian", &"small_companion"])
+visual_archetype = &"pet_wing_harness"
+visual_primary_color = Color(0.25, 0.42, 0.58, 1)
+visual_secondary_color = Color(0.66, 0.77, 0.82, 1)

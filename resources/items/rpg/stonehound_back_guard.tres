@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"stonehound_back_guard"
+display_name = "Layered Stone Back Guard"
+item_type = 7
+max_stack = 1
+description = "Articulated iron plates that protect a guardian's shoulders without locking its stride."
+buy_price = 190
+sell_price = 76
+rarity = &"rare"
+defense_bonus = 4.0
+equipment_weight = 7.2
+pet_tags = Array[StringName]([&"pet_armor", &"hound", &"medium_companion", &"stonehide"])
+visual_archetype = &"pet_back_guard"
+visual_primary_color = Color(0.29, 0.31, 0.32, 1)
+visual_secondary_color = Color(0.5, 0.45, 0.35, 1)

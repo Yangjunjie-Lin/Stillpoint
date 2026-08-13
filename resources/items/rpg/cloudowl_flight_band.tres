@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"cloudowl_flight_band"
+display_name = "Zephyr Flight Band"
+item_type = 7
+max_stack = 1
+description = "A feather-light neck band that stays secure in sudden highland gusts."
+buy_price = 75
+sell_price = 30
+rarity = &"uncommon"
+move_speed_bonus = 0.15
+equipment_weight = 0.35
+pet_tags = Array[StringName]([&"pet_collar", &"owl", &"avian", &"small_companion"])
+visual_archetype = &"pet_flight_band"
+visual_primary_color = Color(0.27, 0.48, 0.64, 1)
+visual_secondary_color = Color(0.78, 0.7, 0.42, 1)

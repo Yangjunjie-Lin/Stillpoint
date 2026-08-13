@@ -204,10 +204,21 @@ func _populate_equipment() -> void:
 		if stack == null or stack.is_empty():
 			continue
 		var item := ResourceRegistry.get_item(stack.item_id)
-		if item == null or not item.is_pet_equipment():
+		if item == null or not item.is_pet_equipment() \
+				or not _item_fits_any_slot(item):
 			continue
 		var row := equipment_list.add_item("%s  ·  %s" % [item.display_name, ", ".join(item.pet_tags)])
 		equipment_list.set_item_metadata(row, index)
+
+
+func _item_fits_any_slot(item: ItemDefinition) -> bool:
+	if item == null or _pet == null or _pet.pet_definition == null:
+		return false
+	var species_tags := _pet.pet_definition.species.species_tags
+	for slot: PetEquipmentSlotDefinition in _pet.pet_definition.equipment_slots:
+		if slot.accepts(item.pet_tags, item.equipment_weight, species_tags):
+			return true
+	return false
 
 
 func _toggle_mode() -> void:

@@ -23,15 +23,18 @@ profile without changing the controller.
    - enable or disable proactive dialogue for this companion;
    - speak freely to the selected companion through its own cognition profile.
 
-New Adventures grant the three initial Pip equipment items. `Trail Snack` and
-`Turnip` are suitable foods. Companion equipment and food remain ordinary backpack
-items until the player uses them from the companion sheet.
+New Adventures grant the three initial Pip equipment items. The Stillpoint smithy
+sells fitted guard equipment for Bastion and lightweight flight equipment for
+Nimbus. `Trail Snack` and `Turnip` are suitable foods. Companion equipment and food
+remain ordinary backpack items until the player uses them from the companion sheet.
 
 Pet gear modifiers are program-authoritative. The Mosswoven Harness reduces real
 incoming damage, the Quiet Bell Charm improves deterministic stamina recovery while
 resting, and any authored attack or movement bonuses are applied only by the pet
-controller. Equipment IDs persist in Save v4; modifier values are always resolved
-again from the trusted item catalog.
+controller. Equipment slots validate category, authored species fit, and weight;
+fox, hound, and avian gear cannot be interchanged just because it shares a generic
+collar/body/charm category. Equipment IDs persist in Save v4; modifier values are
+always resolved again from the trusted item catalog.
 
 ## Authority boundary
 
@@ -72,8 +75,10 @@ when the player returns to its stay region.
 
 Defeat, recovery, monster experience, life-skill proficiency, equipment, routine,
 condition, and dialogue preferences are persisted in the `companions` Save v4
-section. Legacy placeholder pet saves migrate into the new companion state without
-discarding follow mode or bond.
+section. Pet runtime state is currently section version 3; v2 saves migrate the
+old broadly-compatible starter gear into the fitted fox, hound, or avian item
+without discarding an equipped item. Legacy placeholder pet saves migrate into
+the new companion state without discarding follow mode or bond.
 
 ## Manual acceptance
 
@@ -85,19 +90,22 @@ Use a real Debug Build and the normal backend; do not substitute a fake gateway.
    change only by the authored values.
 3. Equip each starter item, confirm collar/body/charm appear on Pip, then unequip and
    confirm every item returns to the backpack.
-4. Toggle following off, select each lifestyle and stay location, leave and return,
+4. Buy Bastion and Nimbus gear from Torren. Confirm the stone hound uses layered
+   plates, the cloud owl uses a wing-root harness, and neither accepts another
+   species' fitted gear.
+5. Toggle following off, select each lifestyle and stay location, leave and return,
    and verify the selected routine is retained.
-5. Advance game time and verify needs and the lifestyle's life skill progress.
-6. Re-enable following and enter a hostile area. Verify Pip selects only actual
+6. Advance game time and verify needs and the lifestyle's life skill progress.
+7. Re-enable following and enter a hostile area. Verify Pip selects only actual
    hostile actors, spends stamina, can take damage, and gains pet experience only
    when credited with a defeat.
-7. Enable AI Dialogue and talk to Pip. Verify a non-empty structured reply uses Pip's
+8. Enable AI Dialogue and talk to Pip. Verify a non-empty structured reply uses Pip's
    tone and that an NPC dialogue in flight cannot consume the pet reply.
-8. Disable the per-pet proactive switch and verify Pip does not initiate dialogue;
+9. Disable the per-pet proactive switch and verify Pip does not initiate dialogue;
    re-enable it and verify any proactive line is presented as Pip's speech rather
    than stored as a player message.
-9. Save, exit, restart the backend and game, then Continue. Verify condition,
+10. Save, exit, restart the backend and game, then Continue. Verify condition,
    progression, equipment, routine, stay location, and pet-specific memory remain.
-10. Stop the backend and repeat care, equipment, movement, combat, save, and Continue.
+11. Stop the backend and repeat care, equipment, movement, combat, save, and Continue.
     Gameplay must remain available and free dialogue must return a safe fallback
     without writing invalid memory or state.

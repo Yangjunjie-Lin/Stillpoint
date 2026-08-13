@@ -34,6 +34,8 @@ func is_valid() -> bool:
 		or not base_attributes.is_valid()
 	):
 		return false
+	if scene != null and not scene.can_instantiate():
+		return false
 	if not lifestyles.is_empty() and get_lifestyle(default_lifestyle_id) == null:
 		return false
 	var seen: Dictionary = {}

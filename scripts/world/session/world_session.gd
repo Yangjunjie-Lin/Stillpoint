@@ -709,6 +709,20 @@ func _create_pet_actor(
 ) -> PetController:
 	if definition == null or not definition.is_valid() or instance_id == &"":
 		return null
+	if definition.scene != null:
+		if not definition.scene.can_instantiate():
+			push_error("WorldSession: pet scene cannot be instantiated for %s" % definition.id)
+			return null
+		var scene_root := definition.scene.instantiate()
+		var authored_pet := scene_root as PetController
+		if authored_pet == null:
+			push_error("WorldSession: pet scene root is not PetController for %s" % definition.id)
+			scene_root.free()
+			return null
+		if _configure_authored_pet_actor(authored_pet, definition, instance_id):
+			return authored_pet
+		authored_pet.free()
+		return null
 	var pet := PetController.new()
 	pet.name = "Pet_%s" % String(definition.id)
 	pet.pet_id = definition.id
@@ -753,6 +767,56 @@ func _create_pet_actor(
 	pet.position = Vector3(-1.0 + spawn_offset, 1.0, -1.0)
 	companion_root.add_child(pet)
 	return pet
+
+
+func _configure_authored_pet_actor(
+	pet: PetController,
+	definition: PetCompanionDefinition,
+	instance_id: StringName,
+) -> bool:
+	# A custom scene is accepted only when it exposes the same narrow runtime
+	# contract as the procedural fallback. Gameplay remains on PetController;
+	# the scene controls presentation and authored collision dimensions.
+	var identity := pet.get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
+	var collision := pet.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	var hurtbox := pet.get_node_or_null("PetHurtbox3D") as PetHurtbox3D
+	var hurt_collision := pet.get_node_or_null(
+		"PetHurtbox3D/CollisionShape3D"
+	) as CollisionShape3D
+	var model := pet.get_node_or_null("VisualRoot/PetModel") as StylizedPetModel
+	var interactable := pet.get_node_or_null("PetInteractable") as PetInteractable
+	if identity == null or collision == null or collision.shape == null \
+			or hurtbox == null \
+			or hurt_collision == null or hurt_collision.shape == null \
+			or model == null or interactable == null:
+		push_error("WorldSession: invalid authored pet scene contract for %s" % definition.id)
+		return false
+	if not pet.configure_definition(definition, instance_id):
+		push_error("WorldSession: authored pet scene could not configure %s" % definition.id)
+		return false
+	pet.name = "Pet_%s" % String(definition.id)
+	pet.region_id = RegionIdUtil.normalize(initial_region_id)
+	identity.persistent_id = instance_id
+	identity.definition_id = definition.id
+	identity.region_id = pet.region_id
+	identity.persistence_policy = WorldEntityIdentity.PersistencePolicy.GLOBAL
+	# Companion ownership is restored from companions.json, not regional actor
+	# snapshots. Marking it runtime-spawned would route it through ActorFactory.
+	identity.runtime_spawned = false
+	var scale_factor := definition.species.visual_scale
+	for shape_node in [collision, hurt_collision]:
+		if shape_node.shape is CapsuleShape3D:
+			var shape := (shape_node.shape as CapsuleShape3D).duplicate() as CapsuleShape3D
+			shape.radius *= scale_factor
+			shape.height *= scale_factor
+			shape_node.shape = shape
+			shape_node.position.y = shape.height * 0.32
+	interactable.pet_path = NodePath("..")
+	interactable.region_id = pet.region_id
+	var spawn_offset := float(get_owned_pets().size()) * 1.8
+	pet.position = Vector3(-1.0 + spawn_offset, 1.0, -1.0)
+	companion_root.add_child(pet)
+	return true
 
 
 func _register_pet_actor(pet: PetController) -> bool:

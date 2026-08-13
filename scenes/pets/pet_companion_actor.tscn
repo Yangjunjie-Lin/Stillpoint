@@ -1,0 +1,40 @@
+[gd_scene load_steps=7 format=3 uid="uid://petcompanionactor001"]
+
+[ext_resource type="Script" path="res://scripts/pets/pet_controller.gd" id="1_controller"]
+[ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="2_identity"]
+[ext_resource type="Script" path="res://scripts/pets/pet_hurtbox_3d.gd" id="3_hurtbox"]
+[ext_resource type="Script" path="res://scripts/pets/stylized_pet_model.gd" id="4_model"]
+[ext_resource type="Script" path="res://scripts/interaction/pet_interactable.gd" id="5_interactable"]
+
+[sub_resource type="CapsuleShape3D" id="Capsule_pet"]
+radius = 0.4
+height = 1.25
+
+[node name="PetCompanionActor" type="CharacterBody3D"]
+script = ExtResource("1_controller")
+
+[node name="WorldEntityIdentity" type="Node" parent="."]
+script = ExtResource("2_identity")
+persistence_policy = 3
+runtime_spawned = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.4, 0)
+shape = SubResource("Capsule_pet")
+
+[node name="PetHurtbox3D" type="Area3D" parent="."]
+script = ExtResource("3_hurtbox")
+team = &"player"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PetHurtbox3D"]
+position = Vector3(0, 0.4, 0)
+shape = SubResource("Capsule_pet")
+
+[node name="VisualRoot" type="Node3D" parent="."]
+
+[node name="PetModel" type="Node3D" parent="VisualRoot"]
+script = ExtResource("4_model")
+
+[node name="PetInteractable" type="Node3D" parent="."]
+script = ExtResource("5_interactable")
+pet_path = NodePath("..")

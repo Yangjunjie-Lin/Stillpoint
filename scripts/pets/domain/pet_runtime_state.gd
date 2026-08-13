@@ -14,7 +14,7 @@ enum FollowMode {
 	STAY,
 }
 
-const SECTION_VERSION := 2
+const SECTION_VERSION := 3
 const MIN_LEVEL := 1
 const MAX_LEVEL := 100
 const MAX_STATE_VALUE := 100.0
@@ -497,14 +497,17 @@ func practice_skill(skill_id: StringName, amount: float = -1.0) -> float:
 func equip_item(
 	slot_id: StringName,
 	item_id: StringName,
-	item_tags: Array[StringName] = [],
-	item_weight: float = 0.0,
+	_item_tags: Array[StringName] = [],
+	_item_weight: float = 0.0,
 ) -> bool:
-	if _definition == null or item_id == &"" or not is_finite(item_weight):
+	if _definition == null or item_id == &"":
+		return false
+	var item := ResourceRegistry.get_item(item_id)
+	if item == null or not item.is_pet_equipment():
 		return false
 	var slot := _definition.get_equipment_slot(slot_id)
 	if slot == null or not slot.accepts(
-		item_tags, item_weight, _definition.species.species_tags
+		item.pet_tags, item.equipment_weight, _definition.species.species_tags
 	):
 		return false
 	var key := String(slot_id)
@@ -691,7 +694,7 @@ func from_dict(data: Dictionary, definition: PetCompanionDefinition = null) -> b
 	if definition != null and (not definition.is_valid()):
 		return false
 	var candidate := _migrate_legacy(data, definition) if version == 0 \
-		else _read_versioned(data, definition)
+		else _read_versioned(data, definition, version)
 	if candidate.is_empty():
 		return false
 	var candidate_definition_id := StringName(str(candidate.get("definition_id", "")))
@@ -704,6 +707,7 @@ func from_dict(data: Dictionary, definition: PetCompanionDefinition = null) -> b
 func _read_versioned(
 	data: Dictionary,
 	definition: PetCompanionDefinition,
+	version: int,
 ) -> Dictionary:
 	var behavior_value: Variant = data.get("behavior", {})
 	var vitals_value: Variant = data.get("vitals", {})
@@ -747,7 +751,9 @@ func _read_versioned(
 		"defeated_monsters": maxi(0, int(vitals.get("defeated_monsters", 0))),
 		"attributes": _sanitize_attributes(attributes_value as Dictionary, definition),
 		"skill_progress": _sanitize_skills(skills_value as Dictionary, definition),
-		"equipment": _sanitize_equipment(equipment_value as Dictionary, definition),
+		"equipment": _sanitize_equipment(
+			equipment_value as Dictionary, definition, version
+		),
 		"last_simulated_day": maxi(1, int(data.get("last_simulated_day", 1))),
 		"revision": maxi(0, int(data.get("revision", 0))),
 	}
@@ -876,11 +882,16 @@ func _sanitize_skills(
 func _sanitize_equipment(
 	raw: Dictionary,
 	definition: PetCompanionDefinition,
+	source_version: int = SECTION_VERSION,
 ) -> Dictionary:
 	var result: Dictionary = {}
 	if definition != null:
 		for slot: PetEquipmentSlotDefinition in definition.equipment_slots:
 			var item_id := _safe_id(raw.get(String(slot.id), ""), 160)
+			if source_version < 3:
+				item_id = _migrate_legacy_equipment_id(
+					item_id, definition.id, slot.id
+				)
 			if item_id == &"":
 				result[String(slot.id)] = ""
 				continue
@@ -903,6 +914,39 @@ func _sanitize_equipment(
 		if slot_id != &"":
 			result[String(slot_id)] = String(_safe_id(raw.get(raw_key, ""), 160))
 	return result
+
+
+func _migrate_legacy_equipment_id(
+	item_id: StringName,
+	definition_id: StringName,
+	slot_id: StringName,
+) -> StringName:
+	# Save v2 treated the starter pet set as broadly compatible. Preserve those
+	# IDs for Pip and translate them to the authored fitted set for newer types;
+	# otherwise the stricter v3 fit validation would silently destroy an equipped
+	# item that had already been removed from the backpack.
+	if definition_id == &"mossfox":
+		return item_id
+	var migration := {
+		"stonehound": {
+			"collar": {"mossfox_collar": &"stonehound_guard_collar"},
+			"body": {"mossfox_harness": &"stonehound_back_guard"},
+			"charm": {"quiet_bell_charm": &"stonehound_oath_charm"},
+		},
+		"cloudowl": {
+			"collar": {"mossfox_collar": &"cloudowl_flight_band"},
+			"body": {"mossfox_harness": &"cloudowl_wing_harness"},
+			"charm": {"quiet_bell_charm": &"cloudowl_talon_charm"},
+		},
+	}
+	var by_definition: Variant = migration.get(String(definition_id), {})
+	if by_definition is Dictionary:
+		var by_slot: Variant = (by_definition as Dictionary).get(String(slot_id), {})
+		if by_slot is Dictionary:
+			var migrated: Variant = (by_slot as Dictionary).get(String(item_id), null)
+			if migrated is StringName:
+				return migrated as StringName
+	return item_id
 
 
 func _valid_lifestyle_id(

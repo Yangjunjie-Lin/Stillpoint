@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"stonehound_oath_charm"
+display_name = "Greywake Oathstone"
+item_type = 7
+max_stack = 1
+description = "A small ward-stone carried by Greywake sentinels to steady long watches and decisive charges."
+buy_price = 135
+sell_price = 54
+rarity = &"uncommon"
+attack_bonus = 2.0
+energy_regen_bonus = 0.75
+equipment_weight = 0.8
+pet_tags = Array[StringName]([&"pet_charm", &"hound", &"medium_companion", &"stonehide"])
+visual_archetype = &"pet_oath_charm"
+visual_primary_color = Color(0.33, 0.52, 0.6, 1)
+visual_secondary_color = Color(0.72, 0.68, 0.52, 1)
