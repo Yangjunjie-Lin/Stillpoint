@@ -57,7 +57,7 @@ def _format_context(lines: list[str], indexes: list[int]) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", default="godot", help="Godot executable")
-    parser.add_argument("--expected-tests", type=int, default=341)
+    parser.add_argument("--expected-tests", type=int, default=342)
     parser.add_argument("--max-objectdb-leaks", type=int, default=0)
     parser.add_argument("--max-resource-leaks", type=int, default=0)
     parser.add_argument("--log", default="artifacts/godot-test.log")

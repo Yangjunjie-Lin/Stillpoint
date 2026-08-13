@@ -15,7 +15,21 @@ func run() -> bool:
 		ok = ok and model.get_visual_signature().get("articulated_legs", 0) == 4
 		ok = ok and world.interaction_index.get_registered_count() > 0
 		ok = ok and world.player.inventory.count_item(&"mossfox_collar") == 1
-		ok = ok and world.open_pet_companion(pet) and menu.is_open()
+		# Exercise the same spatial target-resolution and interaction path used by
+		# the Debug Build's F key. Opening the menu directly would miss failures in
+		# pet registration, region scoping, priority, or the interaction adapter.
+		pet.global_position = world.player.global_position + Vector3(0.0, 0.0, -1.5)
+		var nearby := world.interaction_index.query_nearby(world.player, 3.0)
+		world.player.update_interaction_targets(nearby)
+		var prompt := world.player.get_interaction_prompt()
+		ok = ok and prompt.contains("Care for Pip")
+		var context := InteractionContext.new(world.player)
+		context.region_id = world.current_region_id
+		ok = ok and world.player.interaction.try_interact(world.player, context) \
+			and menu.is_open()
+		ok = ok and menu.name_label.text == "Pip"
+		ok = ok and menu.identity_label.text.contains("Moss Fox")
+		ok = ok and menu.proactive_check.button_pressed
 		ok = ok and not menu.show_reply({
 			"pet_instance_id": "base:player/pet/cloudowl_0001",
 			"reply_text": "This belongs to another companion.",
