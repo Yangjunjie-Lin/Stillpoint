@@ -801,30 +801,34 @@ func _rename_absolute(source: String, target: String) -> Error:
 
 
 func _read_json(path: String) -> Dictionary:
-	if not FileAccess.file_exists(path):
-		return {}
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		return {}
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	if typeof(parsed) != TYPE_DICTIONARY:
-		return {}
-	return parsed
+	var result := _read_json_result(path)
+	if bool(result.get("valid", false)):
+		return result.get("data", {}) as Dictionary
+	return {}
 
 
 func _read_json_with_backup(path: String) -> Dictionary:
-	var data := _read_json(path)
-	if not data.is_empty():
-		return data
-	var bak := ProjectSettings.globalize_path(path) + ".bak"
-	if FileAccess.file_exists(bak):
-		var file := FileAccess.open(bak, FileAccess.READ)
-		if file != null:
-			var parsed: Variant = JSON.parse_string(file.get_as_text())
-			if typeof(parsed) == TYPE_DICTIONARY:
-				push_warning("WorldSaveCoordinator: recovered %s from backup" % path)
-				return parsed
+	var primary := _read_json_result(path)
+	if bool(primary.get("valid", false)):
+		return primary.get("data", {}) as Dictionary
+	var backup := _read_json_result(path + ".bak")
+	if bool(backup.get("valid", false)):
+		push_warning("WorldSaveCoordinator: recovered %s from backup" % path)
+		return backup.get("data", {}) as Dictionary
 	return {}
+
+
+func _read_json_result(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		return {"valid": false, "data": {}}
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {"valid": false, "data": {}}
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	file.close()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {"valid": false, "data": {}}
+	return {"valid": true, "data": parsed}
 
 
 func _read_global_world_with_backup(manifest: Dictionary) -> Dictionary:
