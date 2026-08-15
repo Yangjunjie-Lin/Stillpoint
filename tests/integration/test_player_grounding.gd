@@ -14,7 +14,10 @@ func run() -> bool:
 		return false
 	var y0 := player.global_position.y
 	await tree.create_timer(0.2).timeout
-	for _i in 6:
+	# Allow the player body to complete its initial drop from the authored spawn
+	# marker before sampling floor contact. This keeps the grounding assertion
+	# deterministic on fast headless runners as well as interactive builds.
+	for _i in 30:
 		await tree.physics_frame
 	var y1 := player.global_position.y
 	var ok := y1 > -2.0 and absf(y1 - y0) < 1.5

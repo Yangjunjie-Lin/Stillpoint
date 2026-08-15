@@ -13,3 +13,4 @@ connected_region_ids = Array[StringName]([&"base:farmland"])
 portal_region_ids = Array[StringName]([&"base:town"])
 default_spawn_id = &"spawn"
 scene = ExtResource("2")
+tags = Array[StringName]([&"main_world", &"wilderness", &"outdoor", &"hazardous"])

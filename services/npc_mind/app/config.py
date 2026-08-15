@@ -32,6 +32,8 @@ class Settings:
     retrieval_token_budget: int = 2400
     player_rate_per_minute: int = 30
     npc_rate_per_minute: int = 20
+    pet_movement_player_rate_per_minute: int = 6
+    pet_movement_assessment_cooldown_seconds: int = 60
     daily_budget_usd: float = 1.0
     retrieval_vector_weight: float = 0.40
     retrieval_lexical_weight: float = 0.08
@@ -96,6 +98,12 @@ class Settings:
             retrieval_token_budget=integer("NPC_RETRIEVAL_TOKEN_BUDGET", 2400),
             player_rate_per_minute=integer("NPC_PLAYER_RATE_PER_MINUTE", 30),
             npc_rate_per_minute=integer("NPC_NPC_RATE_PER_MINUTE", 20),
+            pet_movement_player_rate_per_minute=integer(
+                "NPC_PET_MOVEMENT_PLAYER_RATE_PER_MINUTE", 6
+            ),
+            pet_movement_assessment_cooldown_seconds=integer(
+                "NPC_PET_MOVEMENT_ASSESSMENT_COOLDOWN_SECONDS", 60
+            ),
             daily_budget_usd=budget,
             retrieval_vector_weight=number("NPC_RETRIEVAL_VECTOR_WEIGHT", 0.40),
             retrieval_lexical_weight=number("NPC_RETRIEVAL_LEXICAL_WEIGHT", 0.08),

@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scripts/characters/npc_controller.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/npcs/mira.tres" id="2"]
@@ -31,6 +31,7 @@
 [ext_resource type="Resource" path="res://content/base/spawns/bank_clerk.tres" id="29"]
 [ext_resource type="Resource" path="res://content/base/spawns/blacksmith.tres" id="30"]
 [ext_resource type="Script" path="res://scripts/interaction/commerce_interactable_3d.gd" id="31"]
+[ext_resource type="Script" path="res://scripts/pets/pet_behavior_anchor_3d.gd" id="32_pet_anchor"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -106,6 +107,32 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.0, -3)
 
 [node name="town_square" type="Marker3D" parent="SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.0, -3)
+
+[node name="PetBehaviorAnchors" type="Node3D" parent="."]
+
+[node name="PlazaSocial" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(-3, 1, -2)
+script = ExtResource("32_pet_anchor")
+anchor_id = &"town_plaza_social"
+behavior_tags = Array[StringName]([&"social", &"play", &"owner_near"])
+
+[node name="MarketScent" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(-8, 1, 4)
+script = ExtResource("32_pet_anchor")
+anchor_id = &"town_market_scent"
+behavior_tags = Array[StringName]([&"scent", &"forage", &"explore"])
+
+[node name="WellGuard" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(1, 1, -2)
+script = ExtResource("32_pet_anchor")
+anchor_id = &"town_well_guard"
+behavior_tags = Array[StringName]([&"guard", &"patrol", &"observe"])
+
+[node name="QuietEave" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(7, 1, 5)
+script = ExtResource("32_pet_anchor")
+anchor_id = &"town_quiet_eave"
+behavior_tags = Array[StringName]([&"rest", &"sheltered", &"perch"])
 
 [node name="from_farmland" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(15, 1.2, 0)

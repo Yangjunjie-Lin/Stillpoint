@@ -23,6 +23,8 @@ var _session_context: WorldSessionContext
 var _pending_player_transform: Dictionary = {}
 var _skip_saved_player_transform: bool = false
 var pet_conversation_service: Node
+var pet_motion_assessment_service: PetMotionAssessmentService
+var pet_motion_gateway: NPCDialogueGateway
 
 @onready var persistent_root: Node3D = $PersistentRoot
 @onready var player_root: Node3D = $PersistentRoot/PlayerRoot
@@ -98,6 +100,14 @@ func _process(delta: float) -> void:
 		save_coordinator.mark_dirty(&"player")
 		save_coordinator.mark_dirty(&"global_world")
 		save_coordinator.save_dirty_sections()
+
+
+func _exit_tree() -> void:
+	# A background personality assessment may still own an HTTPRequest when a
+	# test, scene transition, or player exit frees the world. Shut it down without
+	# constructing a replacement transport in the exiting tree.
+	if pet_motion_gateway != null and is_instance_valid(pet_motion_gateway):
+		pet_motion_gateway.shutdown()
 
 
 func _physics_process(_delta: float) -> void:
@@ -504,6 +514,14 @@ func _setup_services() -> void:
 	if pet_conversation_service != null and pet_conversation_service.get_parent() == null:
 		pet_conversation_service.name = "PetConversationService"
 		world_services.add_child(pet_conversation_service)
+	if pet_motion_assessment_service == null:
+		pet_motion_assessment_service = PetMotionAssessmentService.new()
+		pet_motion_assessment_service.name = "PetMotionAssessmentService"
+		world_services.add_child(pet_motion_assessment_service)
+	if pet_motion_gateway == null:
+		pet_motion_gateway = NPCDialogueGateway.new()
+		pet_motion_gateway.name = "PetMotionGateway"
+		world_services.add_child(pet_motion_gateway)
 	actor_factory.setup(entity_repository)
 	region_service.setup(self, entity_repository, actor_factory, interaction_index)
 	dungeon_progression_service.setup(self, actor_factory)
@@ -520,6 +538,10 @@ func _setup_services() -> void:
 		QuestManager, world_flags,
 	)
 	cognition_service.setup(_session_context, event_bus, entity_repository)
+	# Movement assessment is low-priority and may wait on a provider. Give it an
+	# independent transport so a player-initiated NPC/pet conversation can never
+	# receive backend_busy because a background temperament refresh is in flight.
+	pet_motion_gateway.configure(SaveService.get_or_create_client_install_id())
 	if pet_conversation_service != null:
 		pet_conversation_service.call(
 			"setup",
@@ -530,6 +552,17 @@ func _setup_services() -> void:
 		)
 		if not pet_conversation_service.is_connected("reply_ready", _on_pet_reply_ready):
 			pet_conversation_service.connect("reply_ready", _on_pet_reply_ready)
+	pet_motion_assessment_service.setup(
+		pet_motion_gateway,
+		cognition_service.save_provider.backend_player_profile_id,
+		cognition_service.save_provider.world_save_id,
+	)
+	if not pet_motion_assessment_service.assessment_ready.is_connected(
+		_on_pet_motion_assessment_ready
+	):
+		pet_motion_assessment_service.assessment_ready.connect(
+			_on_pet_motion_assessment_ready
+		)
 	if not save_coordinator.register_save_provider(cognition_service.save_provider):
 		push_error("WorldSession: failed to register the shared cognition save provider")
 	dialogue_coordinator.setup(_session_context, cognition_service)
@@ -849,6 +882,12 @@ func _register_pet_actor(pet: PetController) -> bool:
 	)
 	if active_pet_instance_id == &"":
 		active_pet_instance_id = pet.runtime_state.get_pet_instance_id()
+	if not pet.motion_assessment_requested.is_connected(
+		_on_pet_motion_assessment_requested.bind(pet)
+	):
+		pet.motion_assessment_requested.connect(
+			_on_pet_motion_assessment_requested.bind(pet)
+		)
 	return true
 
 
@@ -914,6 +953,22 @@ func _on_pet_reply_ready(reply: Dictionary) -> void:
 		pet.get_display_name() if pet != null else "Companion",
 		str(reply.get("reply_text", "Your companion stays near.")),
 	)
+
+
+func _on_pet_motion_assessment_requested(context: Dictionary, pet: PetController) -> void:
+	if pet_motion_assessment_service != null:
+		pet_motion_assessment_service.request_assessment(pet, context)
+
+
+func _on_pet_motion_assessment_ready(
+	pet_instance_id: StringName,
+	assessment: Dictionary,
+) -> void:
+	if not bool(SaveService.settings.get("ai_dialogue_enabled", false)):
+		return
+	var pet := get_pet_by_instance_id(pet_instance_id)
+	if pet != null:
+		pet.apply_motion_assessment(assessment)
 
 
 func _on_pet_autonomous_dialogue_requested(

@@ -12,4 +12,4 @@ parent_world_id = &"base:world"
 connected_region_ids = Array[StringName]([&"base:farmland"])
 default_spawn_id = &"spawn"
 scene = ExtResource("2")
-tags = Array[StringName]([&"private", &"owner_scoped", &"home_storage"])
+tags = Array[StringName]([&"private", &"owner_scoped", &"home_storage", &"home", &"indoors", &"safe"])

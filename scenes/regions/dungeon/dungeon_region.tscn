@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/spawning/entity_spawn_marker.gd" id="2"]
@@ -17,6 +17,7 @@
 [ext_resource type="Resource" path="res://content/base/spawns/lantern_widow.tres" id="15"]
 [ext_resource type="Resource" path="res://content/base/spawns/fallen_star_warden.tres" id="16"]
 [ext_resource type="Script" path="res://scripts/world/encounter_exploration_zone.gd" id="17"]
+[ext_resource type="Script" path="res://scripts/pets/pet_behavior_anchor_3d.gd" id="18_pet_anchor"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -59,6 +60,33 @@ collision_mask = 0
 shape = SubResource("BoxShape3D_floor")
 
 [node name="Navigation" type="Node3D" parent="."]
+
+[node name="PetBehaviorAnchors" type="Node3D" parent="."]
+
+[node name="EntranceShelter" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(-3, 1.2, 12)
+script = ExtResource("18_pet_anchor")
+anchor_id = &"dungeon_entrance_shelter"
+behavior_tags = Array[StringName]([&"rest", &"sheltered", &"owner_near"])
+
+[node name="EchoObserve" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(3, 1.2, 10)
+script = ExtResource("18_pet_anchor")
+anchor_id = &"dungeon_echo_observe"
+behavior_tags = Array[StringName]([&"observe", &"perch", &"cautious"])
+
+[node name="NearPatrol" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(-5, 1.2, 8)
+script = ExtResource("18_pet_anchor")
+anchor_id = &"dungeon_near_patrol"
+behavior_tags = Array[StringName]([&"guard", &"patrol", &"cautious"])
+
+[node name="StarScent" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(5, 1.2, 6)
+script = ExtResource("18_pet_anchor")
+anchor_id = &"dungeon_star_scent"
+behavior_tags = Array[StringName]([&"scent", &"explore"])
+hazard = 0.35
 
 [node name="SpawnPoints" type="Node3D" parent="."]
 

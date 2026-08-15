@@ -49,9 +49,8 @@ func _exit_tree() -> void:
 	if gateway != null and is_instance_valid(gateway) \
 		and gateway.sync_completed.is_connected(_on_sync_completed):
 		gateway.sync_completed.disconnect(_on_sync_completed)
-	if gateway != null and is_instance_valid(gateway) and gateway.is_busy() \
-		and conversation_controller != null and is_instance_valid(conversation_controller):
-		conversation_controller.cancel()
+	if gateway != null and is_instance_valid(gateway):
+		gateway.shutdown()
 
 func _notification(what: int) -> void:
 	if what != NOTIFICATION_PREDELETE:

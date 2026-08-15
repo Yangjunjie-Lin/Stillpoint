@@ -73,6 +73,93 @@ foraging, guarding, exploring, and training. Game time advances needs and life-s
 practice. A pet assigned to another region is simulated off screen and appears again
 when the player returns to its stay region.
 
+### Context-aware autonomous movement
+
+Companion wandering is a weighted decision rather than a shared patrol loop. The
+program combines all of the following inputs for every pet:
+
+- authored species traits and habitat affinities;
+- the definition's authored personality traits;
+- a small, stable variation derived from the pet's persistent instance ID, so two
+  members of the same species need not move like clones;
+- the current mood band (`happy`, `content`, `anxious`, or `sad`);
+- program-owned scene semantics and safe behavior anchors in the active region;
+- the player's selected lifestyle while the pet is living independently.
+
+The result is deliberately recognizable without being perfectly repetitive. A moss
+fox tends toward curious exploration and playful loops, a stone hound tends toward
+following and cautious patrol, and a cloud owl tends toward perching and observation.
+A happy pet is more likely to play, socialize, and explore; an anxious pet favors its
+owner, patrol, or shelter; and a sad pet rests or remains near a trusted anchor more
+often. Town favors social behavior, farmland and wilderness favor exploration,
+dungeon semantics favor caution, and the player home favors sheltered rest. These
+are tendencies rather than forced scripts, and an individual pet's stable variation
+can visibly temper its species pattern.
+
+The planner selects only program-authored candidates from the current active region.
+Candidates are checked for finite coordinates, region ownership, hazard level, a
+walkable ground hit, and a clear short path before use. If a pet makes no useful
+progress for about 1.5 seconds, the route is discarded and planned again. A following
+pet that is near the player may sniff, play, observe, or rest at a safe anchor within
+the 5-metre owner leash; when the owner moves away, direct follow behavior takes
+priority. Downed state, survival needs, combat, and distant following always override
+soft autonomous wandering.
+
+The current plan, deterministic random sequence, and decision counter are saved, so
+Save/Continue does not reset every pet into the same first choice. Saved coordinates
+are not trusted as movement authority: after loading, destinations are resolved from
+the safe anchors in the current scene.
+
+### LLM movement assessment boundary
+
+When `AI Dialogue` is enabled, a dedicated low-priority gateway may call
+`POST /v1/pets/movement-assessments`. An assessment is requested when the pet first
+observes a movement context and when its mood crosses a mood-band boundary, its
+region/scene semantics change, or its selected lifestyle changes. Ordinary waypoint
+expiry is handled locally and does not call the provider again. Repeated equivalent
+contexts are deduplicated, and backend cooldown and rate limits prevent per-frame or
+per-waypoint provider traffic. The assessment gateway is separate from player-facing
+NPC and pet dialogue, so background movement evaluation cannot consume a dialogue
+reply.
+
+The server injects the authoritative pet profile. The model can suggest only weights
+for these allowlisted high-level motifs:
+
+`idle_near_anchor`, `follow_owner`, `curious_explore`, `playful_loop`,
+`social_approach`, `cautious_patrol`, `perch_observe`, and `rest_sheltered`.
+
+It may also suggest normalized `pace`, `roam`, and `confidence` values. Valid advice
+can influence the program's existing weights by at most 25%, scaled down further by
+confidence and degraded status. The model cannot supply coordinates, destinations,
+paths, speeds, targets, attacks, teleports, equipment changes, schedules, or other
+gameplay actions. Godot remains the sole authority for coordinates, route candidate
+selection, navigation, collision checks, combat, and every emitted movement intent.
+Unknown or extra fields, including nested motif keys, are rejected independently at
+the HTTP gateway, assessment adapter, and final planner boundary.
+
+When AI is disabled, the backend is unavailable, the provider times out, or an
+assessment is invalid or rate-limited, pets continue moving with the deterministic
+local species/personality/mood/scene/lifestyle policy. Provider failure therefore
+cannot stop companion gameplay, create an unsafe destination, or bypass combat and
+survival priorities.
+
+For SiliconFlow/Qwen and other compatible providers configured with
+`OPENAI_RESPONSE_FORMAT=text`, the assessment response is intentionally a strict one-line
+protocol rather than free-form JSON:
+
+```text
+动作=守候|跟随|探索|玩耍|亲近|巡逻|观察|休息;节奏=慢|中|快;范围=近|中|远
+```
+
+An actual response uses one value for each field, for example
+`动作=观察;节奏=中;范围=近。`. Only one trailing Chinese full stop is tolerated. Any
+additional prose or field, including coordinates, targets, attacks, or teleport requests,
+is rejected. The backend permits one corrective retry, then falls back to the local policy;
+both calls count toward the usage budget. The three fields are translated into bounded
+allowlisted motif/pace/roam preferences and cannot directly select a destination or move a
+pet. This keeps Qwen-compatible text generation useful while preserving the program-owned
+movement boundary.
+
 Defeat, recovery, monster experience, life-skill proficiency, equipment, routine,
 condition, and dialogue preferences are persisted in the `companions` Save v4
 section. Pet runtime state is currently section version 3; v2 saves migrate the
@@ -109,3 +196,41 @@ Use a real Debug Build and the normal backend; do not substitute a fake gateway.
 11. Stop the backend and repeat care, equipment, movement, combat, save, and Continue.
     Gameplay must remain available and free dialogue must return a safe fallback
     without writing invalid memory or state.
+
+### Motion observation checklist
+
+Use normal gameplay controls and the companion sheet; do not edit save data or inject
+coordinates. Keep the backend console visible when checking provider request timing.
+
+1. In Town, enable `AI Dialogue`, set Pip, Bastion, and Nimbus to follow, and remain
+   near them for several planning cycles. Confirm their routes are not a synchronized
+   loop: Pip should show more sniffing/exploration, Bastion more owner-oriented patrol,
+   and Nimbus more observation/perch choices. Exact destinations are intentionally not
+   asserted.
+2. Walk far enough away to trigger direct following, then stop near several behavior
+   anchors. Confirm each pet catches up and may resume bounded local motion without
+   roaming outside the owner leash.
+3. Turn following off and assign contrasting lifestyles such as home companion,
+   guardian, and forager/explorer. Observe at least two plan changes for each pet and
+   confirm the selected lifestyle changes the kinds of anchors it favors.
+4. Visit Town, Farmland or Wilderness, the Dungeon, and Player Home. Confirm movement
+   changes with the scene: social near town anchors, exploratory outdoors, cautious in
+   the dungeon, and sheltered at home. A pet must never select an anchor from the
+   unloaded region, walk through a blocking collider, or move to an ungrounded point.
+5. Change mood through ordinary care, hunger, rest, and game-time mechanics until the
+   companion sheet crosses a mood band. Confirm the current soft route is reconsidered:
+   happy behavior becomes more active/social, while anxious or sad behavior becomes
+   more owner-oriented, cautious, idle, or sheltered as appropriate.
+6. Watch the backend access log during steps 3-5. Expect a request to
+   `/v1/pets/movement-assessments` for a new context revision, but no request on every
+   frame or ordinary waypoint. Repeating an unchanged context should be deduplicated.
+   Do not log provider credentials or authorization headers.
+7. Let a pet encounter a blocked route and confirm it abandons the stalled plan after
+   roughly 1.5 seconds instead of pushing forever. In a hostile area, confirm combat,
+   critical recovery, and distant owner following override the random route.
+8. Save and Continue in the same scene. Confirm the companions retain distinct motion
+   sequences and valid plans without trusting an obsolete or cross-region destination.
+9. Stop the backend, then repeat follow, independent lifestyle, scene travel, and
+   combat observations. All movement must continue under the local policy. Start the
+   backend again and change mood, scene, or lifestyle; valid advisory behavior may
+   resume without disrupting dialogue or taking control of navigation.

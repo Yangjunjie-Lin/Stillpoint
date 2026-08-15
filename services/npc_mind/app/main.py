@@ -7,6 +7,7 @@ from .schemas import (
     ConversationRequest,
     MemoryQuery,
     NpcGenerationRequest,
+    PetMovementAssessmentRequest,
     SessionTokenRequest,
     SyncRequest,
 )
@@ -114,6 +115,21 @@ def create_app(service: NpcCognitionService | None = None) -> FastAPI:
         except ValueError as error:
             raise HTTPException(status_code=409, detail=str(error)) from error
         return session.to_dict()
+
+    @app.post("/v1/pets/movement-assessments")
+    async def assess_pet_movement(
+        request: PetMovementAssessmentRequest,
+        claims: SessionClaims = Depends(authenticate),
+    ) -> dict:
+        require_scope(claims, request.player_profile_id, request.world_save_id)
+        try:
+            return (await cognition.assess_pet_movement(request)).model_dump(
+                mode="json", exclude_none=True
+            )
+        except ValueError as error:
+            code = str(error)
+            status = 404 if code == "unknown_npc_definition" else 409
+            raise HTTPException(status_code=status, detail=code) from error
 
     @app.post("/v1/conversations/{session_id:path}/turns")
     async def create_turn(

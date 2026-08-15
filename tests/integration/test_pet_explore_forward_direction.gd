@@ -20,14 +20,23 @@ func run() -> bool:
 		var start := pet.global_position
 		var initial_forward := -pet.global_basis.z.normalized()
 		var context := pet._build_world_context()
-		var explore_target: Vector3 = context.get(
+		var authored_fallback: Vector3 = context.get(
 			"activity_targets", {}
 		).get("explore", start)
-		var target_direction := (explore_target - start).normalized()
-		var target_is_forward := initial_forward.dot(target_direction) > 0.99
 		for _frame in 8:
 			await tree.physics_frame
 		var horizontal_velocity := Vector3(pet.velocity.x, 0.0, pet.velocity.z)
+		var active_plan := pet.get_motion_planner().get_current_plan()
+		var explore_target: Vector3 = active_plan.get(
+			"destination", authored_fallback
+		)
+		var target_delta := explore_target - start
+		target_delta.y = 0.0
+		var target_direction := target_delta.normalized()
+		# The planner may deliberately choose any safe scene anchor. This test
+		# protects movement/visual agreement, not the old single forward waypoint.
+		var target_is_valid := explore_target.is_finite() \
+			and str(active_plan.get("candidate_id", "")) != ""
 		var model := pet.get_node_or_null("VisualRoot/PetModel") as StylizedPetModel
 		var activity_is_explore := pet.behavior_runtime.current_activity \
 			== PetBehaviorRuntime.ACTIVITY_EXPLORE
@@ -35,17 +44,20 @@ func run() -> bool:
 		var velocity_to_target := horizontal_velocity.normalized().dot(
 			target_direction
 		) if has_velocity else -1.0
-		var model_to_velocity := (-model.global_basis.z).normalized().dot(
+		var model_forward := -model.global_basis.z if model != null else Vector3.ZERO
+		model_forward.y = 0.0
+		var model_to_velocity := model_forward.normalized().dot(
 			horizontal_velocity.normalized()
 		) if model != null and has_velocity else -1.0
-		var pet_ok := target_is_forward and activity_is_explore and has_velocity \
+		var pet_ok := target_is_valid and activity_is_explore and has_velocity \
 			and velocity_to_target > 0.9 and model_to_velocity > 0.9
 		if not pet_ok:
 			print("PET_DIRECTION_DIAGNOSTIC ", {
 				"id": String(pet.pet_definition.id),
 				"lifestyle": String(pet.runtime_state.get_lifestyle_id()),
 				"activity": String(pet.behavior_runtime.current_activity),
-				"target_forward": initial_forward.dot(target_direction),
+				"initial_forward": initial_forward.dot(target_direction),
+				"plan": active_plan,
 				"speed": horizontal_velocity.length(),
 				"velocity_target": velocity_to_target,
 				"model_velocity": model_to_velocity,

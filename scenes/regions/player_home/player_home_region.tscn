@@ -1,8 +1,9 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/interaction/private_house_door_3d.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/interaction/property_storage_interactable_3d.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/farming/farm_rest_spot.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/pets/pet_behavior_anchor_3d.gd" id="4_pet_anchor"]
 
 [sub_resource type="BoxMesh" id="FloorMesh"]
 size = Vector3(14, 0.2, 12)
@@ -116,6 +117,32 @@ surface_material_override/0 = SubResource("WallMaterial")
 shape = SubResource("WallSideShape")
 
 [node name="Navigation" type="Node3D" parent="."]
+
+[node name="PetBehaviorAnchors" type="Node3D" parent="."]
+
+[node name="HearthRest" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(3.8, 1.2, -2.4)
+script = ExtResource("4_pet_anchor")
+anchor_id = &"home_hearth_rest"
+behavior_tags = Array[StringName]([&"rest", &"sheltered", &"owner_near"])
+
+[node name="DoorGuard" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(0, 1.2, 3)
+script = ExtResource("4_pet_anchor")
+anchor_id = &"home_door_guard"
+behavior_tags = Array[StringName]([&"guard", &"patrol"])
+
+[node name="WindowObserve" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(-4, 1.2, -2)
+script = ExtResource("4_pet_anchor")
+anchor_id = &"home_window_observe"
+behavior_tags = Array[StringName]([&"observe", &"perch", &"quiet"])
+
+[node name="RugPlay" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(0, 1.2, 0)
+script = ExtResource("4_pet_anchor")
+anchor_id = &"home_rug_play"
+behavior_tags = Array[StringName]([&"play", &"social", &"owner_near"])
 
 [node name="SpawnPoints" type="Node3D" parent="."]
 

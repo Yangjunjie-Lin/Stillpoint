@@ -14,3 +14,4 @@ dungeon_id = &"returning_stars_hollow"
 portal_region_ids = Array[StringName]([&"base:wilderness"])
 default_spawn_id = &"spawn"
 scene = ExtResource("2")
+tags = Array[StringName]([&"dungeon", &"interior", &"hazardous", &"echoing"])

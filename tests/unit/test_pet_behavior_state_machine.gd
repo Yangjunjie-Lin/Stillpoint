@@ -28,6 +28,10 @@ func run() -> bool:
 	ok = ok and bool(follow.should_move)
 	ok = ok and (follow.destination as Vector3).distance_to(owner.global_position) < 4.0
 
+	# Needs may choose local care anchors only after a following pet is back inside
+	# its hard follow radius. The dedicated leash regression covers needy pets that
+	# are still far from the owner.
+	owner.global_position = Vector3(1.0, 0.0, 0.0)
 	state.hunger_ratio = 0.95
 	var forage := runtime.decide({
 		"activity_targets": {&"forage": Vector3(3.0, 0.0, 2.0)},

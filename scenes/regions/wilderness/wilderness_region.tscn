@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/transition_portal.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/interaction/pickup_interactable_3d.gd" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/world/spawning/entity_spawn_marker.gd" id="6"]
 [ext_resource type="Resource" path="res://content/base/spawns/dungeon_warden.tres" id="7"]
 [ext_resource type="Script" path="res://scripts/world/encounter_exploration_zone.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/pets/pet_behavior_anchor_3d.gd" id="9_pet_anchor"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -67,6 +68,32 @@ collision_mask = 0
 shape = SubResource("BoxShape3D_floor")
 
 [node name="Navigation" type="Node3D" parent="."]
+
+[node name="PetBehaviorAnchors" type="Node3D" parent="."]
+
+[node name="MoonleafScent" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(-5, 1.2, 4)
+script = ExtResource("9_pet_anchor")
+anchor_id = &"wild_moonleaf_scent"
+behavior_tags = Array[StringName]([&"scent", &"forage", &"explore"])
+
+[node name="RidgeObserve" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(5, 1.2, 6)
+script = ExtResource("9_pet_anchor")
+anchor_id = &"wild_ridge_observe"
+behavior_tags = Array[StringName]([&"observe", &"perch", &"explore"])
+
+[node name="TrailPatrol" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(6, 1.2, -4)
+script = ExtResource("9_pet_anchor")
+anchor_id = &"wild_trail_patrol"
+behavior_tags = Array[StringName]([&"guard", &"patrol"])
+
+[node name="TreeShelter" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(-4, 1.2, -6)
+script = ExtResource("9_pet_anchor")
+anchor_id = &"wild_tree_shelter"
+behavior_tags = Array[StringName]([&"rest", &"sheltered", &"owner_near"])
 
 [node name="SpawnPoints" type="Node3D" parent="."]
 

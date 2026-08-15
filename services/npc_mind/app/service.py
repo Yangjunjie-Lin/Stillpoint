@@ -21,6 +21,17 @@ from .providers import (
     OpenAIEmbeddingProvider,
     OpenAILlmProvider,
 )
+from .pet_movement import (
+    FakePetMovementAssessmentProvider,
+    OpenAIPetMovementAssessmentProvider,
+    PetMovementAssessmentProvider,
+    PetMovementProviderError,
+    PetMovementProviderOutcome,
+    assessment_id,
+    deterministic_pet_movement_result,
+    estimated_pet_movement_usage,
+    movement_context_signature,
+)
 from .repository import (
     CognitionRepository,
     ConversationSession,
@@ -33,6 +44,10 @@ from .schemas import (
     GraphUpdateCandidate,
     NpcGenerationRequest,
     NpcGenerationResult,
+    PetMovementAssessmentRequest,
+    PetMovementAssessmentResponse,
+    PetMovementProviderRequest,
+    PetMovementProviderResult,
     SyncRequest,
     SyncResponse,
 )
@@ -104,6 +119,7 @@ class NpcCognitionService:
         llm: LlmProvider | None = None,
         embeddings: EmbeddingProvider | None = None,
         catalog: NpcCatalogRepository | None = None,
+        pet_movement_provider: PetMovementAssessmentProvider | None = None,
     ) -> None:
         self.settings = settings or Settings.from_env()
         self.settings.validate_embedding_configuration()
@@ -125,11 +141,336 @@ class NpcCognitionService:
             else FakeEmbeddingProvider()
         )
         self.catalog = catalog or NpcCatalogRepository()
+        self.pet_movement_provider = pet_movement_provider or (
+            OpenAIPetMovementAssessmentProvider(self.settings)
+            if self.settings.llm_provider == "openai"
+            else FakePetMovementAssessmentProvider()
+        )
         self.rate_limiter = RateLimiter()
+        self._pet_movement_last_provider_call: dict[tuple[str, str, str], float] = {}
+        self._pet_movement_provider_lock = asyncio.Lock()
+        self._pet_movement_fallback_cache: dict[
+            str, tuple[float, PetMovementAssessmentResponse]
+        ] = {}
         self.metrics: dict[str, int] = {}
+
+    async def assess_pet_movement(
+        self, request: PetMovementAssessmentRequest
+    ) -> PetMovementAssessmentResponse:
+        """Return advisory semantic weights without creating any cognition records."""
+
+        movement_scope = scope_key(
+            request.player_profile_id,
+            request.world_save_id,
+            request.pet_persistent_id,
+        )
+        profile = self.catalog.get_profile(request.pet_definition_id)
+        if profile.entity_kind != "pet":
+            raise ValueError("entity_kind_mismatch")
+        deployed_definition = self.repository.resolve_npc_definition_id(
+            request.player_profile_id,
+            request.world_save_id,
+            request.pet_persistent_id,
+        )
+        if deployed_definition is not None and deployed_definition != request.pet_definition_id:
+            raise ValueError("pet_definition_scope_mismatch")
+        trusted_values = request.model_dump(mode="python")
+        trusted_values["region_tags"] = sorted(set(request.region_tags))
+        trusted = PetMovementProviderRequest(
+            **trusted_values,
+            # Any client attempt to supply a profile is rejected by the public schema;
+            # the provider receives only this server-owned catalog record.
+            pet_profile=profile.payload,
+        )
+        context_signature = movement_context_signature(trusted, profile.catalog_revision)
+        cache_request_id = f"server:pet-motion:{context_signature}"
+        cached = self._cached_pet_movement_response(trusted, cache_request_id)
+        if cached is not None:
+            return cached
+        recent_fallback = self._cached_pet_movement_fallback(trusted, context_signature)
+        if recent_fallback is not None:
+            return recent_fallback
+
+        # Serialize paid assessments for a player. Besides coalescing same-pet races,
+        # this prevents multiple pets from passing the same daily-budget check at once.
+        async with self._pet_movement_provider_lock:
+            cached = self._cached_pet_movement_response(trusted, cache_request_id)
+            if cached is not None:
+                return cached
+            recent_fallback = self._cached_pet_movement_fallback(
+                trusted, context_signature
+            )
+            if recent_fallback is not None:
+                return recent_fallback
+            now = time.time()
+            self._prune_pet_movement_runtime_state(now)
+            if not self.rate_limiter.allow(
+                f"pet-motion-player:{request.player_profile_id}",
+                self.settings.pet_movement_player_rate_per_minute,
+                now,
+            ):
+                return self._local_pet_movement_response(
+                    trusted,
+                    context_signature,
+                    "assessment_rate_limited",
+                    cache_at=now,
+                )
+            previous = self._pet_movement_last_provider_call.get(movement_scope)
+            if previous is not None and (
+                now - previous < self.settings.pet_movement_assessment_cooldown_seconds
+            ):
+                return self._local_pet_movement_response(
+                    trusted, context_signature, "assessment_cooldown", cache_at=now
+                )
+            text_movement_provider = (
+                self.settings.openai_response_format == "text"
+                and isinstance(
+                    self.pet_movement_provider, OpenAIPetMovementAssessmentProvider
+                )
+            )
+            maximum_usage = estimated_pet_movement_usage(
+                trusted,
+                maximum_output_tokens=min(
+                    self.settings.max_output_tokens,
+                    120 if text_movement_provider else 300,
+                ),
+            )
+            if text_movement_provider:
+                maximum_usage = {
+                    key: min(10_000_000, value * 2)
+                    for key, value in maximum_usage.items()
+                }
+            if not self._pet_movement_budget_allows(
+                request.player_profile_id, maximum_usage
+            ):
+                return self._local_pet_movement_response(
+                    trusted,
+                    context_signature,
+                    "daily_budget_exceeded",
+                    cache_at=now,
+                )
+
+            # Failed calls also consume the cooldown: an unavailable provider must not
+            # become a tight retry loop. No provider exception or payload is exposed.
+            self._pet_movement_last_provider_call[movement_scope] = now
+            try:
+                raw_outcome = await self.pet_movement_provider.assess_pet_movement(trusted)
+                if isinstance(raw_outcome, PetMovementProviderOutcome):
+                    result = PetMovementProviderResult.model_validate(raw_outcome.result)
+                    usage = dict(raw_outcome.usage)
+                else:
+                    result = PetMovementProviderResult.model_validate(raw_outcome)
+                    usage = estimated_pet_movement_usage(trusted, result)
+            except Exception as error:
+                self.metrics["pet_movement_provider_error"] = self.metrics.get(
+                    "pet_movement_provider_error", 0
+                ) + 1
+                logger.warning(
+                    "Pet movement provider failed type=%s code=%s",
+                    type(error).__name__,
+                    _safe_provider_error_code(error),
+                )
+                # An upstream failure can still be billable (for example, valid HTTP
+                # output which fails our strict schema). Charge the conservative
+                # envelope so repeated bad output eventually reaches the daily cap.
+                failure_usage = (
+                    error.usage
+                    if isinstance(error, PetMovementProviderError) and error.usage
+                    else maximum_usage
+                )
+                failure_usage = {
+                    key: max(
+                        maximum_usage[key]
+                        if not isinstance(error, PetMovementProviderError)
+                        else 0,
+                        self._valid_usage_count(failure_usage.get(key)),
+                    )
+                    for key in ("input_tokens", "output_tokens")
+                }
+                self._record_pet_movement_usage(
+                    trusted,
+                    f"server:pet-motion-attempt:{context_signature}:{uuid.uuid4().hex}",
+                    failure_usage,
+                )
+                return self._local_pet_movement_response(
+                    trusted,
+                    context_signature,
+                    "provider_unavailable",
+                    cache_at=now,
+                )
+
+            conservative_usage = estimated_pet_movement_usage(trusted, result)
+            usage = {
+                key: max(
+                    conservative_usage[key],
+                    self._valid_usage_count(usage.get(key)),
+                )
+                for key in ("input_tokens", "output_tokens")
+            }
+
+            response = self._pet_movement_response(
+                trusted, context_signature, result, degraded=False, reason=None
+            )
+            self.repository.store_idempotent_response(
+                request.player_profile_id,
+                request.world_save_id,
+                request.pet_persistent_id,
+                cache_request_id,
+                response.model_dump(mode="json"),
+            )
+            self._record_pet_movement_usage(
+                trusted,
+                cache_request_id,
+                usage,
+            )
+            return response
+
+    def _cached_pet_movement_response(
+        self, request: PetMovementProviderRequest, cache_request_id: str
+    ) -> PetMovementAssessmentResponse | None:
+        cached = self.repository.get_idempotent_response(
+            request.player_profile_id,
+            request.world_save_id,
+            request.pet_persistent_id,
+            cache_request_id,
+        )
+        if cached is None:
+            return None
+        # The advisory is context-idempotent, while these two envelope fields must
+        # acknowledge the caller's latest request without affecting cache identity.
+        return PetMovementAssessmentResponse.model_validate(cached).model_copy(
+            update={
+                "request_id": request.request_id,
+                "context_revision": request.context_revision,
+            }
+        )
+
+    def _pet_movement_response(
+        self,
+        request: PetMovementProviderRequest,
+        context_signature: str,
+        result: PetMovementProviderResult,
+        *,
+        degraded: bool,
+        reason: str | None,
+    ) -> PetMovementAssessmentResponse:
+        return PetMovementAssessmentResponse(
+            assessment_id=assessment_id(context_signature),
+            request_id=request.request_id,
+            context_revision=request.context_revision,
+            motif_weights=result.motif_weights,
+            pace=result.pace,
+            roam=result.roam,
+            confidence=result.confidence,
+            degraded=degraded,
+            reason=reason,
+        )
+
+    def _cached_pet_movement_fallback(
+        self, request: PetMovementProviderRequest, context_signature: str
+    ) -> PetMovementAssessmentResponse | None:
+        cached = self._pet_movement_fallback_cache.get(context_signature)
+        if cached is None:
+            return None
+        created_at, response = cached
+        if (
+            time.time() - created_at
+            >= self.settings.pet_movement_assessment_cooldown_seconds
+        ):
+            self._pet_movement_fallback_cache.pop(context_signature, None)
+            return None
+        return response.model_copy(
+            update={
+                "request_id": request.request_id,
+                "context_revision": request.context_revision,
+            }
+        )
+
+    def _prune_pet_movement_runtime_state(self, now: float) -> None:
+        cutoff = now - self.settings.pet_movement_assessment_cooldown_seconds
+        self._pet_movement_last_provider_call = {
+            scope: stamp
+            for scope, stamp in self._pet_movement_last_provider_call.items()
+            if stamp > cutoff
+        }
+        self._pet_movement_fallback_cache = {
+            signature: cached
+            for signature, cached in self._pet_movement_fallback_cache.items()
+            if cached[0] > cutoff
+        }
+
+    def _local_pet_movement_response(
+        self,
+        request: PetMovementProviderRequest,
+        context_signature: str,
+        reason: str,
+        *,
+        cache_at: float | None = None,
+    ) -> PetMovementAssessmentResponse:
+        result = deterministic_pet_movement_result(request).model_copy(
+            update={"confidence": 0.45}
+        )
+        response = self._pet_movement_response(
+            request,
+            context_signature,
+            result,
+            degraded=True,
+            reason=reason,
+        )
+        if cache_at is not None:
+            self._pet_movement_fallback_cache[context_signature] = (
+                cache_at,
+                response,
+            )
+        return response
+
+    @staticmethod
+    def _valid_usage_count(value: object) -> int:
+        if isinstance(value, bool) or not isinstance(value, int):
+            return 0
+        return value if 0 <= value <= 10_000_000 else 0
+
+    def _record_pet_movement_usage(
+        self,
+        request: PetMovementProviderRequest,
+        usage_request_id: str,
+        usage: dict[str, int],
+    ) -> None:
+        if isinstance(self.pet_movement_provider, FakePetMovementAssessmentProvider):
+            return
+        bounded_usage = {
+            key: self._valid_usage_count(usage.get(key))
+            for key in ("input_tokens", "output_tokens")
+        }
+        cost = (
+            sum(bounded_usage.values()) / 1000.0
+        ) * self.settings.estimated_cost_per_1k_tokens_usd
+        self.repository.record_usage(
+            request.player_profile_id,
+            request.world_save_id,
+            request.pet_persistent_id,
+            usage_request_id,
+            bounded_usage,
+            cost,
+        )
+
+    def _pet_movement_budget_allows(
+        self, player: str, maximum_usage: dict[str, int]
+    ) -> bool:
+        if isinstance(self.pet_movement_provider, FakePetMovementAssessmentProvider):
+            return True
+        estimated_cost = (
+            sum(max(0, int(value)) for value in maximum_usage.values()) / 1000.0
+        ) * self.settings.estimated_cost_per_1k_tokens_usd
+        return (
+            self.repository.daily_cost(player) + estimated_cost
+            <= self.settings.daily_budget_usd
+        )
 
     async def handle_turn(self, request: NpcGenerationRequest) -> ConversationResponse:
         scope_key(request.player_profile_id, request.world_save_id, request.npc_persistent_id)
+        if request.request_id.startswith("server:pet-motion:"):
+            raise ValueError("reserved_request_id")
         if len(request.text) > self.settings.max_input_length:
             raise ValueError("input_too_long")
         profile = self.catalog.get_profile(request.npc_definition_id)

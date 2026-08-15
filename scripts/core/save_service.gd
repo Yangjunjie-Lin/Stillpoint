@@ -1,6 +1,8 @@
 extends Node
 ## JSON persistence under user:// with atomic writes, migration, and validation.
 
+signal settings_changed
+
 const SAVE_VERSION: int = 2
 const RUN_PATH := "user://run_save.json"
 const SETTINGS_PATH := "user://settings.json"
@@ -208,6 +210,10 @@ func save_settings() -> bool:
 	payload["version"] = SAVE_VERSION
 	var ok := _write_json(SETTINGS_PATH, payload)
 	_apply_settings()
+	# Runtime consumers must react even while the scene tree is paused. Emit after
+	# applying the in-memory values regardless of persistence success; `ok` still
+	# tells the caller whether those values reached disk.
+	settings_changed.emit()
 	return ok
 
 

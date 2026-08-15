@@ -46,3 +46,28 @@ the same Pydantic and gameplay-boundary validation. For compatible models that d
 emit the structured contract (for example SiliconFlow Qwen 7B), `text` mode asks the provider
 for only the spoken reply and fills safe server-owned defaults for emotion and candidate arrays;
 it never accepts model-authored memory, graph, or gameplay intents.
+
+Pet movement personality assessment is a low-frequency advisory use of the configured text
+provider. The server caches it by Player/Save/persistent pet plus normalized mood, region,
+lifestyle, individual traits, and the server-owned catalog profile revision. Client request IDs
+and context revisions cannot force another paid call. `NPC_PET_MOVEMENT_ASSESSMENT_COOLDOWN_SECONDS`
+defaults to 60 seconds per pet, and `NPC_PET_MOVEMENT_PLAYER_RATE_PER_MINUTE` defaults to 6. The
+shared `NPC_DAILY_BUDGET_USD` is checked before every paid assessment; successful or failed
+provider attempts are conservatively recorded in the usage ledger. A denied, timed-out, or
+invalid assessment falls back to deterministic local movement weights and never writes a
+conversation, memory, graph edge, gameplay intent, or outbox event.
+
+For SiliconFlow and other OpenAI-compatible models that are more reliable in plain text than
+JSON mode, movement assessment uses a deliberately tiny, strict one-line protocol. The model
+must return exactly one line in this form (an optional final Chinese full stop is accepted):
+
+```text
+动作=守候|跟随|探索|玩耍|亲近|巡逻|观察|休息;节奏=慢|中|快;范围=近|中|远
+```
+
+For example: `动作=观察;节奏=中;范围=近。`. The service maps those three fields to its
+allowlisted movement motifs and bounded pace/roam preference. It rejects extra prose, unknown
+fields, coordinates, targets, attacks, teleports, and duplicate separators. One corrective
+provider retry is allowed for malformed output; a second failure uses the local deterministic
+policy. This protocol is advisory only: Godot still owns anchors, navigation, collision,
+coordinates, and all movement execution.

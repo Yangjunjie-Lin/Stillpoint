@@ -135,6 +135,84 @@ class DialogueContext(BaseModel):
     proactive_dialogue_enabled: bool = False
 
 
+class PetIndividualTraits(BaseModel):
+    """Bounded, save-owned variation layered over the authored pet profile."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    curiosity: float = Field(ge=0.0, le=1.0)
+    playfulness: float = Field(ge=0.0, le=1.0)
+    sociability: float = Field(ge=0.0, le=1.0)
+    independence: float = Field(ge=0.0, le=1.0)
+    courage: float = Field(ge=0.0, le=1.0)
+    patience: float = Field(ge=0.0, le=1.0)
+    energy: float = Field(ge=0.0, le=1.0)
+
+
+class PetMovementAssessmentRequest(BaseModel):
+    """Read-only personality/context input; it carries no movement authority."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    request_id: str = Field(min_length=1, max_length=200)
+    player_profile_id: str = Field(min_length=1, max_length=200)
+    world_save_id: str = Field(min_length=1, max_length=200)
+    pet_definition_id: str = Field(min_length=1, max_length=200)
+    pet_persistent_id: str = Field(min_length=1, max_length=240)
+    individual_traits: PetIndividualTraits
+    mood_band: Literal["sad", "anxious", "content", "happy"]
+    region_type: OntologyId
+    region_tags: list[OntologyId] = Field(default_factory=list, max_length=16)
+    lifestyle_id: OntologyId
+    context_revision: int = Field(ge=0, le=2_147_483_647)
+
+
+class PetMovementMotifWeights(BaseModel):
+    """Finite semantic hints which the game may safely blend into local planning."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    idle_near_anchor: float = Field(default=0.0, ge=0.0, le=1.0)
+    follow_owner: float = Field(default=0.0, ge=0.0, le=1.0)
+    curious_explore: float = Field(default=0.0, ge=0.0, le=1.0)
+    playful_loop: float = Field(default=0.0, ge=0.0, le=1.0)
+    social_approach: float = Field(default=0.0, ge=0.0, le=1.0)
+    cautious_patrol: float = Field(default=0.0, ge=0.0, le=1.0)
+    perch_observe: float = Field(default=0.0, ge=0.0, le=1.0)
+    rest_sheltered: float = Field(default=0.0, ge=0.0, le=1.0)
+
+
+class PetMovementProviderRequest(PetMovementAssessmentRequest):
+    """Internal trusted request after the server injects the catalog profile."""
+
+    pet_profile: dict[str, Any]
+
+
+class PetMovementProviderResult(BaseModel):
+    """The complete authority available to a movement-assessment provider."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    motif_weights: PetMovementMotifWeights
+    pace: float = Field(ge=0.0, le=1.0)
+    roam: float = Field(ge=0.0, le=1.0)
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
+class PetMovementAssessmentResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    assessment_id: str = Field(min_length=1, max_length=240)
+    request_id: str = Field(min_length=1, max_length=200)
+    context_revision: int = Field(ge=0, le=2_147_483_647)
+    motif_weights: PetMovementMotifWeights
+    pace: float = Field(ge=0.0, le=1.0)
+    roam: float = Field(ge=0.0, le=1.0)
+    confidence: float = Field(ge=0.0, le=1.0)
+    degraded: bool = False
+    reason: str | None = Field(default=None, min_length=1, max_length=80)
+
+
 class MemoryCandidate(BaseModel):
     model_config = ConfigDict(extra="ignore")
 

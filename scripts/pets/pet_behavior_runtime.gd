@@ -50,6 +50,7 @@ var _dialogue_cooldown_remaining: float = 0.0
 var _attack_cooldown_remaining: float = 0.0
 var _stay_candidate: StringName = &""
 var _stay_elapsed: float = 0.0
+var _motion_planner := PetMotionPlanner.new()
 
 
 func setup(actor: Node3D, owner: Node3D, state: Variant, definition: Variant = null) -> void:
@@ -65,6 +66,7 @@ func setup(actor: Node3D, owner: Node3D, state: Variant, definition: Variant = n
 		],
 		preferred_stay_location,
 	)))
+	_motion_planner.setup(_definition, _pet_id())
 
 
 func set_companion_owner(owner: Node3D) -> void:
@@ -82,6 +84,8 @@ func tick(delta: float, world_context: Dictionary = {}) -> Dictionary:
 	var safe_delta := maxf(0.0, delta)
 	_dialogue_cooldown_remaining = maxf(0.0, _dialogue_cooldown_remaining - safe_delta)
 	_attack_cooldown_remaining = maxf(0.0, _attack_cooldown_remaining - safe_delta)
+	_motion_planner.advance(safe_delta)
+	_motion_planner.observe_context(_motion_mood_value(), world_context)
 	_update_preferred_stay_location(safe_delta, world_context)
 
 	var decision := decide(world_context)
@@ -118,11 +122,16 @@ func decide(world_context: Dictionary = {}) -> Dictionary:
 		base.activity = ACTIVITY_REST
 		base.reason = &"recover_vitals"
 		return _with_activity_destination(base, ACTIVITY_REST, world_context)
-
 	var candidates: Array = _variant_array(world_context.get("hostiles", []))
 	var target: Variant = select_combat_target(candidates, world_context)
 	if target != null and _should_engage(target, world_context, health_ratio, stamina_ratio):
 		return _combat_decision(base, target, world_context)
+
+	# A following pet that has fallen outside the hard follow radius catches the
+	# owner before considering ordinary hunger, fatigue, or soft wandering.
+	# Downed/critical recovery and combat remain higher safety priorities.
+	if mode == MODE_FOLLOW and _owner_is_beyond_follow_start():
+		return _follow_decision(base, world_context)
 
 	if (mode == MODE_FOLLOW or _lifestyle_permits_action(ACTIVITY_FORAGE)) and (
 		hunger_ratio >= starving_ratio or (
@@ -197,6 +206,7 @@ func capture_runtime_state() -> Dictionary:
 		"preferred_stay_location": String(preferred_stay_location),
 		"dialogue_cooldown_remaining": _dialogue_cooldown_remaining,
 		"attack_cooldown_remaining": _attack_cooldown_remaining,
+		"motion_planner": _motion_planner.capture_state(),
 	}
 
 
@@ -211,6 +221,25 @@ func restore_runtime_state(data: Dictionary) -> void:
 	_attack_cooldown_remaining = maxf(
 		0.0, float(data.get("attack_cooldown_remaining", 0.0))
 	)
+	var planner_state: Variant = data.get("motion_planner", {})
+	if planner_state is Dictionary:
+		_motion_planner.restore_state(planner_state)
+
+
+func get_motion_planner() -> PetMotionPlanner:
+	return _motion_planner
+
+
+func apply_motion_advisory(payload: Dictionary) -> bool:
+	return _motion_planner.apply_advisory(payload)
+
+
+func clear_motion_advisory() -> void:
+	_motion_planner.clear_advisory()
+
+
+func invalidate_motion_plan() -> void:
+	_motion_planner.invalidate_plan()
 
 
 func _base_decision(
@@ -248,8 +277,55 @@ func _follow_decision(base: Dictionary, world_context: Dictionary) -> Dictionary
 		base.destination = destination
 		base.speed_scale = 1.15 if owner_distance > follow_start_distance * 2.0 else 1.0
 	else:
+		# A following companion is not a rigid satellite. While inside the hard
+		# leash, let the same species/personality/mood planner choose a nearby
+		# program-authored anchor (sniff, watch, play, or rest). The controller
+		# filters candidates physically and this layer enforces owner distance.
+		var nearby_candidates := _follow_leash_candidates(world_context)
+		if not nearby_candidates.is_empty():
+			var motion_plan := _motion_planner.plan(
+				ACTIVITY_IDLE,
+				nearby_candidates,
+				_actor_position(),
+				_motion_mood_value(),
+				world_context,
+			)
+			var micro_destination: Variant = motion_plan.get("destination")
+			if micro_destination is Vector3 \
+					and _actor_position().distance_to(micro_destination) > 0.6:
+				base.activity = ACTIVITY_IDLE
+				base.reason = &"near_owner_autonomy"
+				base.should_move = true
+				base.destination = micro_destination
+				base.speed_scale = clampf(
+					float(motion_plan.get("speed_scale", 0.75)) * 0.78,
+					0.35,
+					0.9,
+				)
+				base.motion_plan_id = str(motion_plan.get("candidate_id", ""))
+				base.motion_motif = str(motion_plan.get("motif", ""))
+				return base
 		base.reason = &"near_owner"
 	return base
+
+
+func _owner_is_beyond_follow_start() -> bool:
+	return _owner != null and is_instance_valid(_owner) \
+		and _actor_position().distance_to(_owner.global_position) > follow_start_distance
+
+
+func _follow_leash_candidates(world_context: Dictionary) -> Array:
+	if _owner == null or not is_instance_valid(_owner):
+		return []
+	var leash := clampf(float(world_context.get("owner_motion_leash", 5.0)), 1.5, 8.0)
+	var result: Array = []
+	for candidate in _variant_array(world_context.get("motion_candidates", [])):
+		if not candidate is Dictionary:
+			continue
+		var position: Variant = candidate.get("position")
+		if position is Vector3 and _owner.global_position.distance_to(position) <= leash:
+			result.append(candidate)
+	return result
 
 
 func _combat_decision(
@@ -312,12 +388,54 @@ func _with_activity_destination(
 	activity: StringName,
 	world_context: Dictionary,
 ) -> Dictionary:
-	var destination: Variant = _activity_destination(activity, world_context)
+	var motion_plan := _motion_planner.plan(
+		activity,
+		_motion_candidates_for(activity, world_context),
+		_actor_position(),
+		_motion_mood_value(),
+		world_context,
+	)
+	var destination: Variant = motion_plan.get(
+		"destination", _activity_destination(activity, world_context)
+	)
 	if destination != null:
 		base.destination = destination
 		base.should_move = _actor_position().distance_to(destination) > 0.6
-	base.speed_scale = 0.7 if activity in [ACTIVITY_FORAGE, ACTIVITY_EXPLORE] else 1.0
+	var default_speed := 0.7 if activity in [ACTIVITY_FORAGE, ACTIVITY_EXPLORE] else 1.0
+	base.speed_scale = clampf(
+		default_speed * float(motion_plan.get("speed_scale", 1.0)), 0.35, 1.5
+	)
+	if not motion_plan.is_empty():
+		base.motion_plan_id = str(motion_plan.get("candidate_id", ""))
+		base.motion_motif = str(motion_plan.get("motif", ""))
 	return base
+
+
+func _motion_candidates_for(
+	activity: StringName,
+	world_context: Dictionary,
+) -> Array:
+	var candidates: Array = _variant_array(world_context.get("motion_candidates", []))
+	if not candidates.is_empty():
+		return candidates
+	# Compatibility bridge for existing program-authored Vector3 destinations.
+	# These are still client/program-owned facts; no generated coordinate enters
+	# the planner through this path.
+	var destination: Variant = _activity_destination(activity, world_context)
+	if not destination is Vector3:
+		return []
+	return [{
+		"id": "legacy:%s" % String(activity),
+		"position": destination,
+		"tags": [activity],
+		"reachable": true,
+		"hazard": 0.0,
+		"region_id": str(world_context.get("current_region_id", "")),
+	}]
+
+
+func _motion_mood_value() -> Variant:
+	return _state_value([&"mood", &"mood_id"], &"content")
 
 
 func _activity_destination(activity: StringName, world_context: Dictionary) -> Variant:

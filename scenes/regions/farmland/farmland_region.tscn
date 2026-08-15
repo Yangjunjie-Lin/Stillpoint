@@ -1,10 +1,11 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/rpg_region_visuals.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/road_transition_3d.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/farming/farmstead_builder.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/farming/farm_rest_spot.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/interaction/private_house_door_3d.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/pets/pet_behavior_anchor_3d.gd" id="7_pet_anchor"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(40, 0.2, 40)
@@ -35,6 +36,32 @@ collision_mask = 0
 shape = SubResource("BoxShape3D_floor")
 
 [node name="Navigation" type="Node3D" parent="."]
+
+[node name="PetBehaviorAnchors" type="Node3D" parent="."]
+
+[node name="CropScent" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(-5, 1.2, 4)
+script = ExtResource("7_pet_anchor")
+anchor_id = &"farm_crop_scent"
+behavior_tags = Array[StringName]([&"scent", &"forage", &"explore"])
+
+[node name="FarmyardPlay" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(2, 1.2, 2)
+script = ExtResource("7_pet_anchor")
+anchor_id = &"farmyard_play"
+behavior_tags = Array[StringName]([&"play", &"social", &"owner_near"])
+
+[node name="FencePatrol" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(8, 1.2, -5)
+script = ExtResource("7_pet_anchor")
+anchor_id = &"farm_fence_patrol"
+behavior_tags = Array[StringName]([&"guard", &"patrol", &"observe"])
+
+[node name="BarnShade" type="Marker3D" parent="PetBehaviorAnchors"]
+position = Vector3(9, 1.2, 7)
+script = ExtResource("7_pet_anchor")
+anchor_id = &"farm_barn_shade"
+behavior_tags = Array[StringName]([&"rest", &"sheltered", &"perch"])
 
 [node name="SpawnPoints" type="Node3D" parent="."]
 

@@ -4,6 +4,7 @@ extends CharacterBody3D
 
 signal state_changed(reason: StringName)
 signal autonomous_dialogue_requested(context: Dictionary)
+signal motion_assessment_requested(context: Dictionary)
 signal downed(source: Node)
 signal recovered_from_downed()
 
@@ -34,6 +35,16 @@ var _downed_game_hours: float = 0.0
 var _life_skill_game_hours: float = 0.0
 var _last_world_time_minutes: int = -1
 var _present_in_current_region: bool = true
+var _last_motion_context_revision: int = -1
+var _motion_ai_was_enabled: bool = false
+var _stuck_elapsed: float = 0.0
+var _last_motion_position := Vector3.ZERO
+
+const MOTION_STUCK_SECONDS := 1.5
+const MOTION_PROGRESS_EPSILON := 0.01
+const MOTION_OWNER_LEASH := 5.0
+const MOTION_GROUND_RAY_HEIGHT := 2.5
+const MOTION_GROUND_RAY_DEPTH := 6.0
 
 
 func _ready() -> void:
@@ -62,9 +73,18 @@ func _ready() -> void:
 	behavior_runtime.attack_intent_requested.connect(_on_attack_intent)
 	behavior_runtime.autonomous_dialogue_suggested.connect(_on_autonomous_dialogue)
 	runtime_state.state_changed.connect(_on_runtime_state_changed)
+	if not SaveService.settings_changed.is_connected(sync_motion_ai_setting):
+		SaveService.settings_changed.connect(sync_motion_ai_setting)
+	sync_motion_ai_setting()
 	_last_world_time_minutes = WorldTimeService.get_total_minutes()
 	_sync_species_visual()
 	_sync_equipment_visuals()
+	_last_motion_position = global_position
+
+
+func _exit_tree() -> void:
+	if SaveService.settings_changed.is_connected(sync_motion_ai_setting):
+		SaveService.settings_changed.disconnect(sync_motion_ai_setting)
 
 
 func configure_definition(
@@ -94,6 +114,10 @@ func _physics_process(delta: float) -> void:
 	_sync_runtime_from_legacy()
 	if not _present_in_current_region or not visible or process_mode == Node.PROCESS_MODE_DISABLED:
 		return
+	# A direct settings mutation is also observed here, before policy evaluation.
+	# The SaveService signal handles the same transition synchronously while the
+	# tree is paused, when physics callbacks do not run.
+	sync_motion_ai_setting()
 	_recent_owner_interaction = maxf(0.0, _recent_owner_interaction - delta * 0.08)
 	if _motion_override_remaining > 0.0:
 		_motion_override_remaining = maxf(0.0, _motion_override_remaining - delta)
@@ -110,6 +134,7 @@ func _physics_process(delta: float) -> void:
 	_should_move = false
 	if behavior_runtime != null:
 		behavior_runtime.tick(delta, world_context)
+	_maybe_request_motion_assessment(world_context)
 	if _should_move:
 		var direction := _desired_destination - global_position
 		direction.y = 0.0
@@ -130,6 +155,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, move_speed * delta * 5.0)
 		velocity.z = move_toward(velocity.z, 0.0, move_speed * delta * 5.0)
 	move_and_slide()
+	_update_motion_progress(delta)
 	_update_presentation()
 
 
@@ -320,6 +346,33 @@ func get_display_name() -> String:
 	return nickname if not nickname.is_empty() else pet_definition.display_name
 
 
+func get_motion_planner() -> PetMotionPlanner:
+	return behavior_runtime.get_motion_planner() if behavior_runtime != null else null
+
+
+func apply_motion_assessment(assessment: Dictionary) -> bool:
+	if behavior_runtime == null \
+			or not bool(SaveService.settings.get("ai_dialogue_enabled", false)):
+		return false
+	_motion_ai_was_enabled = true
+	return behavior_runtime.apply_motion_advisory(assessment)
+
+
+func sync_motion_ai_setting() -> bool:
+	## Synchronize the optional provider advisory with the authoritative setting.
+	## This method is signal-safe and may run while the SceneTree is paused.
+	var enabled := bool(SaveService.settings.get("ai_dialogue_enabled", false))
+	var changed := enabled != _motion_ai_was_enabled
+	if not enabled:
+		if behavior_runtime != null:
+			behavior_runtime.clear_motion_advisory()
+		# A later enable must request the current context again, even if its mood and
+		# scene revision did not change while AI was disabled.
+		_last_motion_context_revision = -1
+	_motion_ai_was_enabled = enabled
+	return changed
+
+
 func get_persistence_key() -> StringName:
 	return &"pet"
 
@@ -397,6 +450,11 @@ func from_dict(data: Dictionary) -> void:
 func _build_world_context() -> Dictionary:
 	var hostiles: Array = []
 	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
+	var normalized_region := RegionIdUtil.normalize(region_id)
+	var definition := ResourceRegistry.get_region(normalized_region)
+	var region_type := definition.region_type if definition != null else &"outdoor"
+	var region_tags: Array[StringName] = definition.tags.duplicate() if definition != null else []
+	var motion_candidates := _collect_motion_candidates(normalized_region)
 	if world != null and world.entity_repository != null:
 		for entity in world.entity_repository.get_loaded_entities_in_region(region_id):
 			if entity == self or entity == _owner or not entity is NPCController:
@@ -422,6 +480,7 @@ func _build_world_context() -> Dictionary:
 		"hostiles": hostiles,
 		"combat_enabled": true,
 		"owner_position": _owner.global_position if _owner != null else global_position,
+		"owner_motion_leash": MOTION_OWNER_LEASH,
 		"owner_busy": _owner == null or not _owner.state.input_enabled,
 		"dialogue_available": bool(SaveService.settings.get("ai_dialogue_enabled", false)),
 		"dialogue_opportunity": _recent_owner_interaction > 0.7,
@@ -430,7 +489,17 @@ func _build_world_context() -> Dictionary:
 		# Keeping it here prevents a long stay from rewriting `farmyard` into a
 		# synthetic `region:base:farmland` location.
 		"current_location_id": runtime_state.get_stay_location_id(),
-		"current_region_id": region_id,
+		"current_region_id": normalized_region,
+		"region_type": region_type,
+		"region_tags": region_tags,
+		"lifestyle_id": runtime_state.get_lifestyle_id(),
+		"scene_signature": PetMotionPlanner.scene_signature_for({
+			"current_region_id": normalized_region,
+			"region_type": region_type,
+			"region_tags": region_tags,
+			"lifestyle_id": runtime_state.get_lifestyle_id(),
+		}),
+		"motion_candidates": motion_candidates,
 		"activity_targets": {
 			"rest": global_position,
 			"forage": global_position + global_transform.basis.x * 2.0,
@@ -440,6 +509,89 @@ func _build_world_context() -> Dictionary:
 			"train": global_position + global_transform.basis.x * -2.0,
 		},
 	}
+
+
+func _collect_motion_candidates(current_region: StringName) -> Array:
+	var result: Array = []
+	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
+	for node in get_tree().get_nodes_in_group("pet_behavior_anchors"):
+		var anchor := node as PetBehaviorAnchor3D
+		if anchor == null or not anchor.is_inside_tree() or not anchor.enabled:
+			continue
+		if world != null and world.active_region_slot != null \
+				and not world.active_region_slot.is_ancestor_of(anchor):
+			continue
+		var candidate: Dictionary = anchor.to_motion_candidate(current_region)
+		var grounded: Variant = _ground_motion_candidate(candidate.position)
+		if grounded == null:
+			candidate.reachable = false
+		else:
+			candidate.position = grounded
+			candidate.reachable = _short_path_is_clear(grounded)
+		result.append(candidate)
+	return result
+
+
+func _ground_motion_candidate(point: Vector3) -> Variant:
+	var world_3d := get_world_3d()
+	if world_3d == null:
+		return null
+	var query := PhysicsRayQueryParameters3D.create(
+		point + Vector3.UP * MOTION_GROUND_RAY_HEIGHT,
+		point + Vector3.DOWN * MOTION_GROUND_RAY_DEPTH,
+		1,
+	)
+	query.exclude = [get_rid()]
+	var hit := world_3d.direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return null
+	return (hit.position as Vector3) + Vector3.UP * 0.08
+
+
+func _short_path_is_clear(destination: Vector3) -> bool:
+	var world_3d := get_world_3d()
+	if world_3d == null:
+		return false
+	var from := global_position + Vector3.UP * 0.45
+	# Keep the obstacle probe horizontal. A diagonal ray down to the grounded
+	# waypoint would hit the walkable floor itself and reject every candidate.
+	var to := Vector3(destination.x, from.y, destination.z)
+	var query := PhysicsRayQueryParameters3D.create(from, to, 1)
+	query.exclude = [get_rid()]
+	return world_3d.direct_space_state.intersect_ray(query).is_empty()
+
+
+func _maybe_request_motion_assessment(context: Dictionary) -> void:
+	var ai_enabled := bool(SaveService.settings.get("ai_dialogue_enabled", false))
+	if not ai_enabled:
+		return
+	var planner := get_motion_planner()
+	if planner == null:
+		return
+	var revision := planner.get_context_revision()
+	if revision <= 0 or revision == _last_motion_context_revision:
+		return
+	_last_motion_context_revision = revision
+	motion_assessment_requested.emit(context.duplicate(true))
+
+
+func _update_motion_progress(delta: float) -> void:
+	var horizontal_progress := Vector2(
+		global_position.x - _last_motion_position.x,
+		global_position.z - _last_motion_position.z
+	).length()
+	if _should_move and global_position.distance_to(_desired_destination) > 0.8 \
+			and horizontal_progress < MOTION_PROGRESS_EPSILON:
+		_stuck_elapsed += maxf(0.0, delta)
+	else:
+		_stuck_elapsed = 0.0
+	_last_motion_position = global_position
+	if _stuck_elapsed < MOTION_STUCK_SECONDS:
+		return
+	_stuck_elapsed = 0.0
+	_should_move = false
+	if behavior_runtime != null:
+		behavior_runtime.invalidate_motion_plan()
 
 
 func _on_movement_intent(destination: Vector3, speed_scale: float, _reason: StringName) -> void:
