@@ -31,7 +31,7 @@ discovery, backend service/migrations, CI, launch tooling, and legacy paths.
 | Dungeon/exploration | Level gate, authored dungeon, loot caches, boss tracking/respawn, hidden encounter slices | Dungeon/encounter services, repository, Save | Implemented vertical slice |
 | Time/simulation | Authoritative clock, day/hour signals, physical/virtual mode query | `WorldTimeService`, placeholder `WorldSimulationService` | Time implemented; general abstract/regional/strategic simulation planned |
 | Content/data | `.tres` catalogs for actors, minds, factions, origins, professions, skills, items, houses, shops, regions, dungeon, encounters, containers, loot, and spawns | `ResourceRegistry` treats definitions as authored data | Data-driven foundation; broader content pipeline planned |
-| Tooling/tests | 350 Godot unit/integration scripts, backend unit/PostgreSQL tests, cross-process E2E, exporters, hygiene/secret scans, Windows launcher | CI/tool scripts | Strong automated foundation; manual acceptance remains required |
+| Tooling/tests | 351 Godot unit/integration scripts, backend unit/PostgreSQL tests, cross-process E2E, exporters, hygiene/secret scans, Windows launcher | CI/tool scripts | Strong automated foundation; manual acceptance remains required |
 | Legacy survival | Separate 2D shooter scene/controller/hitbox/bullet/save path | Legacy mode only | Preserved compatibility; must not influence living-world domain design |
 
 ## Static definition versus runtime state
@@ -96,15 +96,18 @@ property, territory, spawn/destruction, teleport, or world flags.
 1. Canonical mutators are distributed across components, interactables, Effects,
    and services; source policy is not yet uniformly expressed as intents.
 2. Player finances are coupled to property/banking and cannot be reused for NPCs
-   without decomposition and Save migration planning.
+   without decomposition and Save migration planning. Owner: 0.11.0 shared
+   actor wallet/inventory/equipment/job work.
 3. NPCs lack per-instance inventory, equipment, wallet, profession progression,
-   job, workplace, and work result state.
+   job, workplace, and work result state. Owner: 0.11.0.
 4. Factions have definitions but no runtime treasury, leader, offices, policy,
-   territory, or diplomacy state.
-5. General virtual simulation and bounded catch-up are placeholders.
+   territory, or diplomacy state. Owner: 0.13.0 faction runtime/governance.
+5. General virtual simulation and bounded catch-up are placeholders. Owner:
+   0.14.0 simulation LOD.
 6. Several global autoload stores remain convenient singletons; future
    multi-world/test isolation may require session scoping.
-7. Intent proposal IDs are provenance, not yet a persisted idempotency ledger;
-   transactional economic/governance intents must add replay protection.
+7. Intent proposal IDs have a session-local consumed guard but are not a
+   persisted idempotency ledger; transactional economic/work/equipment intents
+   must add durable replay protection in 0.11.0.
 8. Current fixed-price commerce and investment yield use prototype sources and
-   sinks, not a closed living economy.
+   sinks, not a closed living economy. Owner: 0.12.0 production economy.

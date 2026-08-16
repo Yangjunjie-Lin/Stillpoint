@@ -56,25 +56,7 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 		actor_id,
 		intent,
 	)
-	# Preflight before authored Effects, then let the executor validate current
-	# state again immediately before it starts dialogue and emits the fact.
-	var preflight := _session.validate_intent(proposal)
-	if not preflight.is_valid:
-		if not preflight.message.is_empty():
-			EventBus.notice_requested.emit(preflight.message)
-		return
-	var session_ctx := _session.get_session_context()
-	for cond in conditions:
-		if cond != null and not cond.evaluate(session_ctx):
-			return
-	var effect_ctx := WorldEffectContext.new(session_ctx)
-	effect_ctx.source_entity_id = actor_id
-	effect_ctx.target_entity_id = target_id
-	var effect_result := WorldEffect.apply_sequence(effects, effect_ctx)
-	if not effect_result.success:
-		EventBus.notice_requested.emit("Interaction effect failed: %s" % effect_result.message)
-		return
-	var result := _session.submit_intent(proposal)
+	var result := _session.submit_interaction_intent(proposal, conditions, effects)
 	if not result.is_valid and not result.message.is_empty():
 		EventBus.notice_requested.emit(result.message)
 

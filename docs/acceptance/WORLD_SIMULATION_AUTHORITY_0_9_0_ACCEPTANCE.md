@@ -13,7 +13,7 @@
 Completed locally on Godot 4.7.1:
 
 ```text
-Godot unit/integration: 350 passed, 0 failed
+Godot unit/integration: 351 passed, 0 failed
 Unexpected SCRIPT ERROR: 0
 Unexpected ERROR: 0
 ObjectDB leaks: 0
@@ -30,18 +30,23 @@ The Godot suite includes existing coverage for authored/free-form dialogue,
 offline fallback, pet autonomy and advisory authority, farming Save/Continue,
 commerce/property/banking, dungeon progression/loot, combat, regions, quests,
 relationships, runtime entities, Save v4 recovery, and the legacy survival mode.
+It also verifies that Combat Lab diagnostics render runtime values without
+formatting errors in a Debug Build.
 
 New authority tests prove:
 
 - intent/proposal objects have no `apply` or `execute` behavior;
-- an LLM-attributed `TalkIntent` is rejected without dialogue, event, or money
-  changes;
-- an unsupported purchase-like intent is rejected without money changes;
-- verified player-input talk starts dialogue and emits one attributed
-  `NPC_TALKED` fact;
-- an out-of-range talk is rejected;
-- preflight rejection occurs before authored interaction Effects, so an invalid
-  interaction cannot set a world flag.
+- LLM, deterministic-AI, system, impersonated, unloaded, cross-region,
+  unavailable, out-of-range, and unsupported proposals cannot run an authored
+  Effect, open dialogue, or emit `NPC_TALKED`;
+- Conditions and validation form one final authorization boundary before Effects;
+- an Effect may move the actor out of range after authorization without causing
+  the old post-Effect revalidation/partial-rejection bug;
+- required Effect failure and dialogue-start failure emit no `NPC_TALKED`;
+- existing `WorldEffect.apply_sequence()` no-rollback semantics are explicit;
+- a consumed session-local proposal ID cannot replay Effects or money changes;
+- successful player-input talk opens exactly once and emits exactly one event
+  with proposal/source/actor/target provenance.
 
 ## Interactive reviewer checklist
 

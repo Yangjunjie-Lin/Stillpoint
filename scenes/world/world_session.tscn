@@ -224,6 +224,8 @@ text = "Quest: --"
 
 [node name="PetCompanionMenu" parent="WorldUI" instance=ExtResource("32")]
 
+[node name="HotbarBar" parent="WorldUI" instance=ExtResource("24")]
+
 [node name="DialoguePanel" type="PanelContainer" parent="WorldUI"]
 visible = false
 z_index = 20
@@ -332,8 +334,6 @@ unique_name_in_owner = true
 theme_override_colors/font_color = Color(0.52, 0.72, 0.7, 1)
 theme_override_font_sizes/font_size = 12
 text = ""
-
-[node name="HotbarBar" parent="WorldUI" instance=ExtResource("24")]
 
 [node name="InventoryMenu" parent="WorldUI" instance=ExtResource("25")]
 

@@ -507,12 +507,16 @@ func get_session_context() -> WorldSessionContext:
 	return _session_context
 
 
-func validate_intent(proposal: IntentProposal) -> IntentValidationResult:
-	return intent_validator.validate(proposal)
-
-
 func submit_intent(proposal: IntentProposal) -> IntentValidationResult:
 	return intent_executor.execute(proposal)
+
+
+func submit_interaction_intent(
+	proposal: IntentProposal,
+	conditions: Array[WorldCondition],
+	effects: Array[WorldEffect],
+) -> IntentValidationResult:
+	return intent_executor.execute_interaction(proposal, conditions, effects)
 
 
 func _setup_services() -> void:

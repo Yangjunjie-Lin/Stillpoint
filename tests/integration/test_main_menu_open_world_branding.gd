@@ -19,6 +19,7 @@ func run() -> bool:
 	) as Node3D
 	var title := menu.get_node_or_null("Center/VBox/Title") as Label
 	var world_line := menu.get_node_or_null("Center/VBox/WorldLine") as Label
+	var version_label := menu.get_node_or_null("WorldStatus/Margin/VBox/VersionLabel") as Label
 	var leaderboard_button := menu.get_node_or_null("LeaderboardButton") as Button
 	var leaderboard_panel := menu.get_node_or_null("LeaderboardPanel") as Control
 	var leaderboard_list := menu.get_node_or_null("LeaderboardPanel/Panel/LeaderboardList") as ItemList
@@ -50,6 +51,8 @@ func run() -> bool:
 		and title.text == "STILLPOINT"
 		and world_line != null
 		and "EXPLORE" in world_line.text
+		and version_label != null
+		and version_label.text == "0.9.0  ·  SAVE v4"
 		and explore != null
 		and explore.text.begins_with("  EXPLORE")
 		and build != null

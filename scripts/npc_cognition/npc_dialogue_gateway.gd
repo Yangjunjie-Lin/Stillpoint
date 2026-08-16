@@ -452,8 +452,11 @@ func _publish_finish(result: Dictionary) -> void:
 
 func _defer_transport_step(next_phase: String) -> void:
 	# Starting auth/request/retry directly inside HTTPRequest's completion signal
-	# is rejected as `HTTPRequest is processing a request`. Scope the deferred
-	# continuation so a cancellation or replacement cannot revive stale work.
+	# is rejected as `HTTPRequest is processing a request`. On Windows, the
+	# completed transport can remain internally busy even after one deferred
+	# callback, so retire it now and continue on a fresh HTTPRequest. Scope the
+	# deferred continuation so a cancellation cannot revive stale work.
+	_replace_http_transport()
 	call_deferred(
 		"_resume_transport_step",
 		_active_kind,

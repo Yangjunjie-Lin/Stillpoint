@@ -118,7 +118,7 @@ python tools/python/run_godot_tests.py
 python tools/python/validate_repo.py
 ```
 
-The automated Godot gate discovers 350 unit/integration scripts and rejects
+The automated Godot gate discovers 351 unit/integration scripts and rejects
 unexpected script errors, runtime errors, ObjectDB leaks, and resource leaks.
 Backend tests cover the in-memory service and PostgreSQL/pgvector integration.
 
