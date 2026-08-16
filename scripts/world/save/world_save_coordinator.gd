@@ -3,6 +3,7 @@ extends Node
 ## Orchestrates Save v4 chunked world persistence with dirty tracking.
 
 const WORLD_SAVE_VERSION: int = 4
+const GAME_VERSION_SETTING := "application/config/version"
 const SLOT_PATH := "user://saves/slot_01/"
 const LEGACY_PATH := "user://world_save.json"
 const LEGACY_BACKUP := "user://world_save_v3_imported.bak"
@@ -588,7 +589,7 @@ func _write_manifest_data(
 	var world: Dictionary = raw.get("world", {}) if not raw.is_empty() else WorldTimeService.to_dict()
 	return _write_json(SLOT_PATH + "manifest.json", {
 		"save_version": WORLD_SAVE_VERSION,
-		"game_version": "0.8.0",
+		"game_version": str(ProjectSettings.get_setting(GAME_VERSION_SETTING, "0.9.0")),
 		"slot_id": "slot_01",
 		"created_at": int(Time.get_unix_time_from_system()),
 		"updated_at": int(Time.get_unix_time_from_system()),
@@ -611,7 +612,7 @@ func _write_manifest() -> bool:
 	var world_time := WorldTimeService.to_dict()
 	return _write_json(SLOT_PATH + "manifest.json", {
 		"save_version": WORLD_SAVE_VERSION,
-		"game_version": "0.8.0",
+		"game_version": str(ProjectSettings.get_setting(GAME_VERSION_SETTING, "0.9.0")),
 		"slot_id": "slot_01",
 		"created_at": int(Time.get_unix_time_from_system()),
 		"updated_at": int(Time.get_unix_time_from_system()),

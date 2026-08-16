@@ -63,6 +63,37 @@ func run() -> bool:
 		and not gateway.is_busy()
 	gateway.request_completed.disconnect(startup_callback)
 
+	# A completed request can remain internally busy on Windows after its signal
+	# callback. A deferred 401 -> auth transition must retire that transport
+	# immediately, while retaining the request scope for the queued continuation.
+	gateway._session_token = "expired-token"
+	gateway._session_player_profile_id = "player-a"
+	gateway._session_world_save_id = "save-a"
+	gateway._active_kind = "turn"
+	gateway._active_request_id = "reauth-request"
+	gateway._active_payload = {
+		"player_profile_id": "player-a",
+		"world_save_id": "save-a",
+		"session_id": "session-a",
+	}
+	gateway._phase = "request"
+	var completed_transport := gateway._http
+	gateway._on_http_completed(
+		HTTPRequest.RESULT_SUCCESS, 401, PackedStringArray(), PackedByteArray()
+	)
+	var deferred_transport_replaced := gateway._http != null \
+		and gateway._http != completed_transport \
+		and not completed_transport.request_completed.is_connected(
+			gateway._on_http_completed
+		) \
+		and gateway.is_busy() and gateway._auth_retry_used \
+		and gateway._session_token.is_empty()
+	# Cancel before the queued auth step so this unit test remains transport-free;
+	# the scope guard must prevent that stale continuation from starting later.
+	gateway.cancel()
+	await tree.process_frame
+	var deferred_transition_cancelled := not gateway.is_busy()
+
 	# A successful HTTP exchange can still fail while parsing the body. The
 	# emitted failure must retain the active request scope so the owning strict
 	# NPC/pet adapter does not ignore it and remain pending forever.
@@ -178,7 +209,9 @@ func run() -> bool:
 		and malformed_results.size() == shutdown_result_count
 	var ok := same_scope and not changed_scope and install_change_cleared \
 		and transport_replaced and old_disconnected and empty_scope_ignored \
-		and startup_transport_replaced and startup_failure_scoped and malformed_scoped \
+		and startup_transport_replaced and startup_failure_scoped \
+		and deferred_transport_replaced and deferred_transition_cancelled \
+		and malformed_scoped \
 		and malformed_deferred and schema_deferred and schema_failure_routed \
 		and completion_kept_busy and completion_reuse_started \
 		and shutdown_disposed_immediately and shutdown_stayed_terminal

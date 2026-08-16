@@ -43,6 +43,7 @@ KB: %s
 		PhysicsSettingsService.get_physics_ticks_per_second(),
 		str(PhysicsSettingsService.is_physics_interpolation_enabled()),
 		CombatComponent.CombatState.keys()[combat.combat_state] if combat else "?",
+		str(combat.is_attacking if combat else false),
 		str(combat.hitbox_active if combat else false),
 		str(combat.combo_window_open if combat else false),
 		str(kb.external_velocity if kb else Vector3.ZERO),

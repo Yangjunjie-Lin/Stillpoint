@@ -579,20 +579,22 @@ func _capture_default_keys() -> void:
 
 
 func _register_dir(dir_path: String, registrar: Callable, recursive: bool = false) -> void:
-	var dir := DirAccess.open(dir_path)
-	if dir == null:
-		return
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if recursive and dir.current_is_dir() and not file_name.begins_with("."):
-			_register_dir(dir_path.path_join(file_name), registrar, true)
-		elif not dir.current_is_dir() and file_name.ends_with(".tres"):
-			var res: Resource = load(dir_path.path_join(file_name))
+	# ResourceLoader preserves original resource names when exported text
+	# resources are remapped to binary files. DirAccess exposes the remapped
+	# package entries instead, so filtering its listing for `.tres` leaves the
+	# packaged definition registry empty.
+	for raw_entry in ResourceLoader.list_directory(dir_path):
+		var entry := String(raw_entry)
+		var is_directory := entry.ends_with("/")
+		var clean_entry := entry.trim_suffix("/")
+		var entry_path := clean_entry if clean_entry.begins_with("res://") \
+			else dir_path.path_join(clean_entry)
+		if recursive and is_directory and not clean_entry.get_file().begins_with("."):
+			_register_dir(entry_path + "/", registrar, true)
+		elif not is_directory and clean_entry.ends_with(".tres"):
+			var res: Resource = load(entry_path)
 			if res != null:
 				registrar.call(res)
-		file_name = dir.get_next()
-	dir.list_dir_end()
 
 
 func _register_content_resource(res: Resource) -> void:
