@@ -50,37 +50,47 @@ New authority tests prove:
 
 ## Interactive reviewer checklist
 
-This checklist is intentionally not marked complete by the headless automated
-run. Complete it in a Debug Build before merging to `develop`:
+Completed in a real Windows Debug Build using isolated Save v4 application data:
 
-1. Start **New Adventure** and confirm movement, interaction prompts, HUD, and
-   region visuals load without errors.
-2. Talk to a spawned service NPC (bank clerk or blacksmith). Confirm dialogue
-   opens, the actor pauses, choices work, and closing restores control.
-3. With AI disabled, confirm deterministic dialogue still works. With a local
-   backend enabled, confirm free-form NPC dialogue works and a backend failure
-   falls back without blocking gameplay.
-4. Confirm pet follow/stay/explore behavior, pet menu/equipment, and optional AI
-   advice failure do not stop local autonomy.
-5. Travel to farmland; till, plant, water, rest, and harvest a crop.
-6. Buy/sell/forge an item and use bank/home storage or funds. Confirm balances
-   and items change exactly once.
-7. Enter the dungeon through its gate, fight, receive loot/progression, and
-   return to the wilderness.
-8. Open Combat Lab and confirm combo, guard, skill/hit, knockback, and pause
-   return behavior.
-9. Save, exit to the main menu, Continue, and confirm player build, inventory,
-   equipment, finances/property, farm/region state, quests/relationships, pet
-   state, cognition cache, and dungeon state persist.
-10. Confirm the README's Implemented / Experimental / Planned labels match what
-    was observed. Do not begin 0.10.0 until this checklist is signed off.
+1. **PASS** — New Adventure, movement, interaction prompts, HUD, and region
+   visuals loaded correctly (`artifacts/manual-acceptance-step1-world.png`).
+2. **PASS** — Service-NPC dialogue opened, choices worked, and control was
+   restored on close (`artifacts/manual-acceptance-step2-bank-dialogue.png`).
+3. **PASS** — Authored dialogue worked with AI disabled, backend free-form
+   dialogue worked online, and offline fallback preserved gameplay
+   (`artifacts/manual-acceptance-step3-backend-reply.png`,
+   `artifacts/manual-acceptance-step3-offline-fallback2.png`).
+4. **PASS** — Pet menu/equipment, follow/stay/explore, and unavailable-AI
+   fallback preserved local autonomy (`artifacts/manual-acceptance-step4-explore.png`).
+5. **PASS** — Farmland till, plant, water, rest/day advance, and harvest all
+   completed (`artifacts/manual-acceptance-step5-harvested.png`).
+6. **PASS** — Buy, sell, bank deposit, ore purchase, and forge each changed
+   items/balances exactly once (`artifacts/manual-acceptance-step6-forged-once.png`).
+7. **PASS** — Dungeon gate, combat, loot/progression, and return portal worked
+   (`artifacts/manual-acceptance-step7-loot-progression.png`).
+8. **PASS** — Combat Lab combo, guard, active skill/hit, knockback, and
+   pause/return worked; diagnostics showed runtime values without formatting
+   placeholders (`artifacts/manual-acceptance-step8-fixed-debug.png`,
+   `artifacts/manual-acceptance-step8-fixed-bandit-hit.png`).
+9. **PASS** — Save, exit, Continue restored build, inventory, equipment,
+   finances/property, farm/region, quests/relationships, pet state, cognition
+   cache, and dungeon state (`artifacts/manual-acceptance-step9-fixed-restored.png`).
+10. **PASS** — README Implemented / Experimental / Planned labels matched the
+    observed Debug Build behavior.
 
 ## Gate status
 
 Automated gate: **passed**.
 
-Interactive reviewer gate: **pending review**.
+Interactive reviewer gate: **10/10 PASS**.
 
-Promotion to `develop`, release stabilization, and 0.10.0 work remain blocked
-on that explicit interactive acceptance rather than being inferred from the
-headless test result.
+Tested commit: `139628ba7a5f0796107e937342e83a8574a74850`
+
+Test date/time: `2026-08-17 02:46:09 +08:00`
+
+Godot: `4.7.1.stable.official.a13da4feb`
+
+Evidence: non-sensitive local screenshots under `artifacts/manual-acceptance-*.png`.
+
+The interactive acceptance is complete. Promotion still requires the exact
+feature Head to pass GitHub Actions and final review before merge to `develop`.
