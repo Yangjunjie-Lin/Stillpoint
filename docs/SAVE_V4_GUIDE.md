@@ -69,6 +69,9 @@ Restore consumes the exact manifest/player primary-or-backup source selected by 
 
 On Continue, if `user://world_save.json` exists it is migrated to `user://saves/slot_01/` and renamed to `world_save_v3_imported.bak`. Legacy NPC data becomes `components.character` with nested health/state fields (including `is_downed` and `is_permanently_dead`); Chest and Pickup data become `components.chest` and `components.pickup`. A second Continue does not migrate again.
 
-## Deferred
+## Modular providers
 
-`SaveSectionProvider` is reserved for 0.8.0 modular providers. Save v4 currently uses coordinator section writers.
+Save v4 retains coordinator-owned core/region writers and also supports
+registered `SaveSectionProvider` modules. `NPCCognitionSaveProvider` uses that
+boundary for the optional, independently versioned `npc_cognition` section;
+missing data restores as an empty cognition cache.

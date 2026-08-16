@@ -25,6 +25,8 @@ var _skip_saved_player_transform: bool = false
 var pet_conversation_service: Node
 var pet_motion_assessment_service: PetMotionAssessmentService
 var pet_motion_gateway: NPCDialogueGateway
+var intent_validator := WorldIntentValidator.new()
+var intent_executor := WorldIntentExecutor.new()
 
 @onready var persistent_root: Node3D = $PersistentRoot
 @onready var player_root: Node3D = $PersistentRoot/PlayerRoot
@@ -505,6 +507,14 @@ func get_session_context() -> WorldSessionContext:
 	return _session_context
 
 
+func validate_intent(proposal: IntentProposal) -> IntentValidationResult:
+	return intent_validator.validate(proposal)
+
+
+func submit_intent(proposal: IntentProposal) -> IntentValidationResult:
+	return intent_executor.execute(proposal)
+
+
 func _setup_services() -> void:
 	if pet_conversation_service == null:
 		var script: GDScript = load(
@@ -537,6 +547,8 @@ func _setup_services() -> void:
 		self, null, entity_repository, region_service,
 		QuestManager, world_flags,
 	)
+	intent_validator.setup(_session_context)
+	intent_executor.setup(_session_context, intent_validator)
 	cognition_service.setup(_session_context, event_bus, entity_repository)
 	# Movement assessment is low-priority and may wait on a provider. Give it an
 	# independent transport so a player-initiated NPC/pet conversation can never

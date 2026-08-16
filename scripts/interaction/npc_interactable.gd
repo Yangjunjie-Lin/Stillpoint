@@ -48,25 +48,35 @@ func interact(actor: CharacterController, _context: InteractionContext) -> void:
 		_session = _find_session()
 	if _session == null or _npc == null:
 		return
+	var actor_id := _get_actor_persistent_id(actor)
+	var target_id := _get_npc_persistent_id()
+	var intent := TalkIntent.new(actor_id, target_id)
+	var proposal := IntentProposal.from_player_input(
+		StringName("talk-%d" % Time.get_ticks_usec()),
+		actor_id,
+		intent,
+	)
+	# Preflight before authored Effects, then let the executor validate current
+	# state again immediately before it starts dialogue and emits the fact.
+	var preflight := _session.validate_intent(proposal)
+	if not preflight.is_valid:
+		if not preflight.message.is_empty():
+			EventBus.notice_requested.emit(preflight.message)
+		return
 	var session_ctx := _session.get_session_context()
 	for cond in conditions:
 		if cond != null and not cond.evaluate(session_ctx):
 			return
 	var effect_ctx := WorldEffectContext.new(session_ctx)
+	effect_ctx.source_entity_id = actor_id
+	effect_ctx.target_entity_id = target_id
 	var effect_result := WorldEffect.apply_sequence(effects, effect_ctx)
 	if not effect_result.success:
 		EventBus.notice_requested.emit("Interaction effect failed: %s" % effect_result.message)
 		return
-	if not _session.start_dialogue(_npc):
-		return
-	var ev := GameplayEvent.make(
-		GameplayEventTypes.NPC_TALKED,
-		&"base:player/main",
-		_get_npc_persistent_id(),
-		_npc.character_id,
-		region_id,
-	)
-	_session.event_bus.emit_event(ev)
+	var result := _session.submit_intent(proposal)
+	if not result.is_valid and not result.message.is_empty():
+		EventBus.notice_requested.emit(result.message)
 
 
 func _get_npc_persistent_id() -> StringName:
@@ -74,6 +84,13 @@ func _get_npc_persistent_id() -> StringName:
 		if child is WorldEntityIdentity:
 			return (child as WorldEntityIdentity).persistent_id
 	return &""
+
+
+func _get_actor_persistent_id(actor: Node) -> StringName:
+	if actor == null:
+		return &""
+	var actor_identity := actor.get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
+	return actor_identity.persistent_id if actor_identity != null else &""
 
 
 func _find_session() -> WorldSession:

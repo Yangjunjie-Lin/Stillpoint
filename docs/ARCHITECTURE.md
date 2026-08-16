@@ -1,6 +1,14 @@
-# Architecture (Godot 0.7.1)
+# Architecture (Godot 0.9.0)
 
-Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [docs/WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the 0.7 world service split, Save v4, and region dynamic loading. Version 0.7.1 contains runtime and test-harness hygiene fixes only; the WorldSession, Region, Quest, Dialogue, ActorFactory, and Save v4 architecture is unchanged.
+Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the world service split, Save v4, and region dynamic loading. Version 0.9.0 retains those systems and adds the product/domain language and typed-intent authority boundary documented in [SIMULATION_AUTHORITY.md](SIMULATION_AUTHORITY.md).
+
+## Simulation Authority
+
+`WorldSession` owns a `WorldIntentValidator` and `WorldIntentExecutor`. Intents
+are data only. The 0.9.0 `TalkIntent` pilot accepts verified player input after
+identity, target, region, distance, and policy checks; the executor starts
+dialogue and emits the completed `NPC_TALKED` fact. LLM-attributed proposals
+are rejected and provider intent arrays remain unexecuted.
 
 ## Jolt Physics Foundation
 

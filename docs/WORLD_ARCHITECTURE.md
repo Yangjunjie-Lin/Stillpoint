@@ -1,6 +1,6 @@
-# World Architecture (Stillpoint 0.8.0)
+# World Architecture (Stillpoint 0.9.0)
 
-Stillpoint 0.8.0 retains the dedicated **World Session** and **World Services** architecture while adding connected overworld travel, guarded dungeon entry, private housing, banking, equipment commerce, and forging.
+Stillpoint 0.9.0 retains the dedicated **World Session** and **World Services** architecture, connected overworld travel, guarded dungeon entry, private housing, banking, equipment commerce, forging, and 0.8 cognition. It adds a session-owned typed-intent boundary without adding major gameplay.
 
 ## WorldSession
 
@@ -35,6 +35,11 @@ WorldSession
 | `WorldFlagService` | Namespaced world flags |
 | `DungeonProgressionService` | Guarded dungeon entry, depth levels, rewards, and timed boss returns |
 | `PropertyBankService` | Wallet, bank, home cash, managed capital, deeds, and custodial storage |
+
+`WorldSession` also owns the non-Node `WorldIntentValidator` and
+`WorldIntentExecutor`. The first pilot routes `NPCInteractable` player input
+through `TalkIntent`; proposals cannot mutate state and only a successful
+executor call emits `NPC_TALKED`. See `docs/SIMULATION_AUTHORITY.md`.
 
 `WorldSessionContext` does not cache the region selected at construction. `get_current_region_id()` resolves the live `RegionRuntimeService` value (or the session fallback) on every read. `RegionCondition` uses that world location; `EventMatchCondition` deliberately uses the immutable region recorded on its `GameplayEvent`.
 
