@@ -32,7 +32,8 @@ func set_active(value: bool) -> void:
 	if value:
 		_hit_targets.clear()
 		if source is CharacterController and (source as CharacterController).combat != null:
-			var atk := (source as CharacterController).combat.attack
+			var owner_combat := (source as CharacterController).combat
+			var atk := owner_combat.get_current_attack_definition()
 			if atk != null:
 				damage = atk.damage
 				attack_id = atk.id
@@ -65,6 +66,12 @@ func _on_area_entered(area: Area3D) -> void:
 		"direction": -global_transform.basis.z if source is Node3D else Vector3.FORWARD,
 		"blockable": true,
 	}
+	if source is CharacterController and (source as CharacterController).combat != null:
+		var atk := (source as CharacterController).combat.get_current_attack_definition()
+		context["attack_definition"] = atk
+		context["parryable"] = atk.parryable if atk != null else true
+		context["poise_damage"] = atk.poise_damage if atk != null else 0.0
+		context["ignore_dodge_iframe"] = atk.ignores_dodge_iframe if atk != null else false
 	var dealt := hurt.receive_damage(damage, source, context)
 	if dealt > 0.0:
 		hit_landed.emit(hurt.get_parent(), dealt)

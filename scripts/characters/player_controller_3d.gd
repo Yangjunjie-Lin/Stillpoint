@@ -14,6 +14,7 @@ var inventory: InventoryComponent
 var equipment: EquipmentComponent
 var experience: ExperienceComponent
 var skill_loadout: SkillLoadoutComponent
+var targeting: TargetingComponent3D
 var current_region_id: StringName = &"town"
 var origin_id: StringName = GameManager.DEFAULT_ORIGIN_ID
 var selected_faction_id: StringName = GameManager.DEFAULT_FACTION_ID
@@ -49,6 +50,9 @@ func _ready() -> void:
 	equipment = get_node_or_null("EquipmentComponent") as EquipmentComponent
 	experience = get_node_or_null("ExperienceComponent") as ExperienceComponent
 	skill_loadout = get_node_or_null("SkillLoadoutComponent") as SkillLoadoutComponent
+	targeting = get_node_or_null("TargetingComponent3D") as TargetingComponent3D
+	if targeting != null and not targeting.target_changed.is_connected(_on_target_changed):
+		targeting.target_changed.connect(_on_target_changed)
 	_appearance_controller = get_node_or_null(
 		"VisualRoot/CharacterModel"
 	) as PlayerAppearanceController
@@ -116,7 +120,9 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 	game_time += delta
-	if state.can_move():
+	if combat != null and combat.is_dodging():
+		_handle_dodge_movement(delta)
+	elif state.can_move():
 		_handle_movement(delta, knockback)
 	else:
 		velocity.y -= _gravity * delta
@@ -129,6 +135,15 @@ func _physics_process(delta: float) -> void:
 	var anim := get_node_or_null("CombatAnimationController") as CombatAnimationController
 	if anim != null:
 		anim.set_locomotion(velocity, is_on_floor(), state.is_crouching)
+		var move_input := MovementMotor.get_input_direction()
+		anim.set_locomotion_parameters(
+			move_input.x,
+			-move_input.y,
+			Vector2(velocity.x, velocity.z).length(),
+			is_on_floor(),
+			state.is_crouching,
+			targeting != null and targeting.locked_target != null,
+		)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -149,7 +164,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_stand()
 	elif event.is_action_pressed(&"normal_attack"):
 		if combat != null and state.can_attack():
+			_face_combat_direction()
 			combat.request_attack(&"attack_light_1")
+	elif event.is_action_pressed(&"heavy_attack"):
+		if combat != null and state.can_attack():
+			_face_combat_direction()
+			combat.request_heavy_attack()
+	elif event.is_action_pressed(&"dodge"):
+		_try_dodge()
+	elif event.is_action_pressed(&"toggle_target_lock"):
+		_toggle_target_lock()
+	elif event.is_action_pressed(&"guard"):
+		if combat != null:
+			combat.set_guarding(true)
+		get_viewport().set_input_as_handled()
+		return
+	elif event.is_action_released(&"guard"):
+		if combat != null:
+			combat.set_guarding(false)
+		get_viewport().set_input_as_handled()
+		return
 	elif _try_activate_skill_input(event):
 		pass
 	elif event.is_action_pressed(&"interact"):
@@ -166,8 +200,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				hotbar.select_index(index)
 				break
 
-	if combat != null:
-		combat.set_guarding(Input.is_action_pressed(&"guard") and state.can_attack())
+	if combat != null and Input.is_action_pressed(&"guard") and not combat.is_guarding:
+		combat.set_guarding(true)
 
 
 func _handle_movement(delta: float, knockback: KnockbackComponent = null) -> void:
@@ -191,9 +225,108 @@ func _handle_movement(delta: float, knockback: KnockbackComponent = null) -> voi
 		knockback.tick(delta)
 	if input_dir.length_squared() > 0.001:
 		var look := Vector3(velocity.x, 0.0, velocity.z).normalized()
+		if targeting != null and targeting.locked_target != null and targeting.is_lockable_target(targeting.locked_target):
+			look = (targeting.locked_target.global_position - global_position)
+			look.y = 0.0
+			look = look.normalized()
+		else:
+			var rig := _camera_rig()
+			if rig != null and rig.get_perspective() == CameraController3D.PerspectiveMode.FIRST_PERSON:
+				look = -Vector3(camera_basis.z.x, 0.0, camera_basis.z.z).normalized()
 		if look.length_squared() > 0.001:
 			look_at(global_position + look, Vector3.UP)
 	move_and_slide()
+
+
+func _handle_dodge_movement(delta: float) -> void:
+	if not is_on_floor():
+		velocity.y -= _gravity * delta
+	else:
+		velocity.y = 0.0
+	velocity.x = combat.get_dodge_velocity().x
+	velocity.z = combat.get_dodge_velocity().z
+	move_and_slide()
+
+
+func _try_dodge() -> bool:
+	if combat == null:
+		return false
+	var input_dir := MovementMotor.get_input_direction()
+	var direction := Vector3.ZERO
+	if input_dir.length_squared() > 0.001:
+		var basis := _camera.global_transform.basis if _camera != null else global_transform.basis
+		direction = MovementMotor.direction_from_camera(basis, input_dir)
+	return combat.request_dodge(direction)
+
+
+func _toggle_target_lock() -> void:
+	if targeting == null:
+		return
+	if targeting.locked_target != null:
+		targeting.unlock_target()
+		return
+	var rig := _camera_rig()
+	var origin := rig.get_aim_origin() if rig != null else global_position + Vector3.UP
+	var direction := rig.get_aim_direction() if rig != null else -global_transform.basis.z
+	targeting.lock_best_target(origin, direction)
+
+
+func _on_target_changed(target: CharacterController) -> void:
+	var rig := _camera_rig()
+	if rig != null:
+		rig.set_combat_target(target)
+
+
+func _face_combat_direction() -> void:
+	var direction := Vector3.ZERO
+	if targeting != null and targeting.locked_target != null and targeting.is_lockable_target(targeting.locked_target):
+		direction = targeting.locked_target.global_position - global_position
+	else:
+		var aim := get_aim_direction()
+		direction = Vector3(aim.x, 0.0, aim.z)
+	direction.y = 0.0
+	if direction.length_squared() > 0.001:
+		look_at(global_position + direction.normalized(), Vector3.UP)
+
+
+func get_aim_origin() -> Vector3:
+	var rig := _camera_rig()
+	return rig.get_aim_origin() if rig != null else global_position + Vector3.UP
+
+
+func get_aim_direction() -> Vector3:
+	var rig := _camera_rig()
+	return rig.get_aim_direction() if rig != null else -global_transform.basis.z
+
+
+func get_aim_point(max_distance: float = 1000.0) -> Vector3:
+	var rig := _camera_rig()
+	return rig.get_aim_point(max_distance) if rig != null else global_position + get_aim_direction() * max_distance
+
+
+func get_camera_controller() -> CameraController3D:
+	return _camera_rig()
+
+
+func set_input_enabled(enabled: bool) -> void:
+	super.set_input_enabled(enabled)
+	var rig := _camera_rig()
+	if rig != null:
+		rig.set_input_enabled(enabled)
+
+
+func _camera_rig() -> CameraController3D:
+	if camera_rig_path != NodePath():
+		var direct := get_node_or_null(camera_rig_path) as CameraController3D
+		if direct != null:
+			return direct
+	var ancestor := get_parent()
+	while ancestor != null:
+		var found := ancestor.find_child("CameraRig", true, false) as CameraController3D
+		if found != null:
+			return found
+		ancestor = ancestor.get_parent()
+	return null
 
 
 func _try_jump() -> void:
@@ -740,7 +873,7 @@ func _resolve_camera() -> void:
 	if camera_rig_path != NodePath():
 		var rig := get_node_or_null(camera_rig_path)
 		if rig != null:
-			_camera = rig.get_node_or_null("Camera3D") as Camera3D
+			_camera = rig.find_child("Camera3D", true, false) as Camera3D
 	if _camera == null:
 		_camera = get_viewport().get_camera_3d()
 

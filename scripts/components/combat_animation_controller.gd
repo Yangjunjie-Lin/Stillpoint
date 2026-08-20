@@ -17,6 +17,14 @@ var _locomotion_state: StringName = &"idle"
 var _context_motion: StringName = &""
 var _visual_action_serial: int = 0
 var _visual_action_locked: bool = false
+var locomotion_parameters: Dictionary = {
+	"move_x": 0.0,
+	"move_y": 0.0,
+	"speed": 0.0,
+	"grounded": true,
+	"crouching": false,
+	"combat_locked": false,
+}
 
 
 func _ready() -> void:
@@ -34,6 +42,7 @@ func _ready() -> void:
 		_ensure_placeholder_library()
 		if not _player.animation_finished.is_connected(_on_animation_finished):
 			_player.animation_finished.connect(_on_animation_finished)
+	_ensure_animation_tree_foundation()
 
 
 func request_attack(attack: AttackDefinition) -> bool:
@@ -81,6 +90,24 @@ func request_guard(active: bool) -> void:
 			_player.play("combat/guard_exit")
 
 
+func request_parry_start() -> void:
+	_visual_action_serial += 1
+	_visual_action_locked = true
+	_set_visual_motion(&"parry_start")
+	if _player != null and _player.has_animation(_clip_name("parry_start")):
+		_player.play(_clip_name("parry_start"))
+
+
+func request_parry_success() -> void:
+	_visual_action_serial += 1
+	_visual_action_locked = true
+	var serial := _visual_action_serial
+	_set_visual_motion(&"parry_success")
+	_restore_visual_after.call_deferred(0.28, serial)
+	if _player != null and _player.has_animation(_clip_name("parry_success")):
+		_player.play(_clip_name("parry_success"))
+
+
 func request_hit_reaction(direction: Vector3, severity: float) -> void:
 	var anim := _pick_hit_animation(direction, severity)
 	_visual_action_serial += 1
@@ -90,6 +117,24 @@ func request_hit_reaction(direction: Vector3, severity: float) -> void:
 	_restore_visual_after.call_deferred(0.36, serial)
 	if _player != null and _player.has_animation(_clip_name(anim)):
 		_player.play(_clip_name(anim))
+
+
+func request_dodge(direction: Vector3) -> void:
+	_visual_action_serial += 1
+	_visual_action_locked = true
+	_set_visual_motion(&"dodge")
+	if _player != null and _player.has_animation(_clip_name("dodge")):
+		_player.play(_clip_name("dodge"))
+
+
+func request_stagger() -> void:
+	_visual_action_serial += 1
+	_visual_action_locked = true
+	var serial := _visual_action_serial
+	_set_visual_motion(&"stagger")
+	_restore_visual_after.call_deferred(0.55, serial)
+	if _player != null and _player.has_animation(_clip_name("stagger")):
+		_player.play(_clip_name("stagger"))
 
 
 func request_downed() -> void:
@@ -127,6 +172,30 @@ func set_locomotion(velocity: Vector3, grounded: bool, crouching: bool) -> void:
 		_set_visual_motion(next)
 	if changed and _player != null and _player.has_animation(_clip_name(String(next))):
 		_player.play(_clip_name(String(next)))
+
+
+func set_locomotion_parameters(
+	move_x: float,
+	move_y: float,
+	speed: float,
+	grounded: bool,
+	crouching: bool,
+	combat_locked: bool,
+) -> void:
+	locomotion_parameters = {
+		"move_x": clampf(move_x, -1.0, 1.0),
+		"move_y": clampf(move_y, -1.0, 1.0),
+		"speed": maxf(0.0, speed),
+		"grounded": grounded,
+		"crouching": crouching,
+		"combat_locked": combat_locked,
+	}
+	if _tree == null or not _tree.active:
+		return
+	for key in ["move_x", "move_y", "speed", "grounded", "crouching", "combat_locked"]:
+		var parameter := "parameters/locomotion/%s" % key
+		if _tree.has_method("set"):
+			_tree.set(parameter, locomotion_parameters[key])
 
 
 func set_context_motion(state: StringName) -> void:
@@ -266,6 +335,7 @@ func _ensure_placeholder_library() -> void:
 	for anim_name in [
 		"idle", "walk", "run", "crouch_idle", "crouch_walk", "jump_loop", "fall",
 		"guard_loop", "guard_exit", "attack_light_1", "attack_light_2", "attack_light_3",
+		"attack_heavy_1", "dodge", "parry_start", "parry_success", "stagger",
 		"hit_front_light", "hit_back_light", "hit_left_light", "hit_right_light",
 		"hit_heavy", "downed", "death",
 	]:
@@ -273,17 +343,44 @@ func _ensure_placeholder_library() -> void:
 	_player.add_animation_library(LIB_NAME, lib)
 
 
+func _ensure_animation_tree_foundation() -> void:
+	if _tree == null or _tree.tree_root != null:
+		return
+	_tree.anim_player = NodePath("../AnimationPlayer")
+	var state_machine := AnimationNodeStateMachine.new()
+	var states := {
+		&"locomotion": &"combat/idle",
+		&"combat_action": &"combat/attack_light_1",
+		&"guard": &"combat/guard_loop",
+		&"dodge": &"combat/dodge",
+		&"hit_reaction": &"combat/hit_front_light",
+		&"stagger": &"combat/stagger",
+		&"downed": &"combat/downed",
+		&"death": &"combat/death",
+	}
+	var index := 0
+	for state_name: StringName in states:
+		var animation_node := AnimationNodeAnimation.new()
+		animation_node.animation = states[state_name]
+		state_machine.add_node(state_name, animation_node, Vector2(index % 4, index / 4) * Vector2(220.0, 130.0))
+		index += 1
+	_tree.tree_root = state_machine
+
+
 func _make_attack_placeholder(anim_name: String) -> Animation:
 	var anim := Animation.new()
 	anim.length = 0.6
-	if anim_name.begins_with("attack_light"):
-		anim.length = 0.55
+	if anim_name.begins_with("attack_light") or anim_name == "attack_heavy_1":
+		anim.length = 0.55 if anim_name.begins_with("attack_light") else 0.98
+		var active_start := 0.12 if anim_name.begins_with("attack_light") else 0.34
+		var active_end := 0.28 if anim_name.begins_with("attack_light") else 0.52
 		_add_method_key(anim, 0.0, "attack_started")
-		_add_method_key(anim, 0.12, "attack_window_open")
-		_add_method_key(anim, 0.28, "attack_window_close")
-		_add_method_key(anim, 0.32, "combo_window_open")
-		_add_method_key(anim, 0.45, "combo_window_close")
-		_add_method_key(anim, 0.55, "attack_finished")
+		_add_method_key(anim, active_start, "attack_window_open")
+		_add_method_key(anim, active_end, "attack_window_close")
+		if anim_name.begins_with("attack_light"):
+			_add_method_key(anim, 0.32, "combo_window_open")
+			_add_method_key(anim, 0.45, "combo_window_close")
+		_add_method_key(anim, anim.length, "attack_finished")
 	elif anim_name == "idle":
 		anim.length = 1.0
 		anim.loop_mode = Animation.LOOP_LINEAR

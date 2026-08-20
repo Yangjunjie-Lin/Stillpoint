@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AttackDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/attack_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"attack_heavy_1"
+display_name = "Heavy Strike"
+animation_name = &"attack_heavy_1"
+animation_speed = 0.86
+damage = 28.0
+energy_cost = 16.0
+poise_damage = 28.0
+guard_damage = 22.0
+knockback_distance = 3.8
+knockback_duration = 0.22
+hitstun_duration = 0.38
+blockstun_duration = 0.24
+hit_stop_duration = 0.09
+windup = 0.34
+active = 0.18
+recovery = 0.46
+parryable = true
+maximum_targets = 2
+tags = Array[StringName]([&"heavy", &"melee"])

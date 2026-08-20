@@ -200,7 +200,7 @@ horizontal_alignment = 2
 [node name="VersionLabel" type="Label" parent="WorldStatus/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.82, 0.78, 1)
-text = "0.9.0  ·  SAVE v4"
+text = "0.10.0  ·  SAVE v4"
 horizontal_alignment = 2
 
 [node name="LeaderboardButton" type="Button" parent="."]
@@ -440,7 +440,7 @@ theme_override_constants/separation = 24
 [node name="GeneralColumn" type="VBoxContainer" parent="SettingsPanel/Panel/SettingsColumns"]
 custom_minimum_size = Vector2(370, 0)
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 2
 
 [node name="MasterLabel" type="Label" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn"]
 layout_mode = 2
@@ -502,6 +502,77 @@ text = "Allow Memory Personalization"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Pet May Start Conversations"
+
+[node name="CameraSectionLabel" type="Label" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn"]
+layout_mode = 2
+text = "ACTION CAMERA"
+
+[node name="CameraSettingsGrid" type="GridContainer" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn"]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="SensitivityLabel" type="Label" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn/CameraSettingsGrid"]
+layout_mode = 2
+text = "Look sensitivity"
+
+[node name="CameraSensitivitySlider" type="HSlider" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn/CameraSettingsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(175, 0)
+layout_mode = 2
+min_value = 0.01
+max_value = 2.0
+step = 0.01
+value = 0.12
+
+[node name="ThirdPersonFovLabel" type="Label" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn/CameraSettingsGrid"]
+layout_mode = 2
+text = "Third-person FOV"
+
+[node name="ThirdPersonFovSlider" type="HSlider" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn/CameraSettingsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(175, 0)
+layout_mode = 2
+min_value = 40.0
+max_value = 110.0
+step = 1.0
+value = 68.0
+
+[node name="FirstPersonFovLabel" type="Label" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn/CameraSettingsGrid"]
+layout_mode = 2
+text = "First-person FOV"
+
+[node name="FirstPersonFovSlider" type="HSlider" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn/CameraSettingsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(175, 0)
+layout_mode = 2
+min_value = 40.0
+max_value = 110.0
+step = 1.0
+value = 78.0
+
+[node name="CameraSmoothingLabel" type="Label" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn/CameraSettingsGrid"]
+layout_mode = 2
+text = "Camera smoothing"
+
+[node name="CameraSmoothingSlider" type="HSlider" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn/CameraSettingsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(175, 0)
+layout_mode = 2
+max_value = 30.0
+step = 0.5
+value = 14.0
+
+[node name="InvertVerticalCheck" type="CheckBox" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Invert vertical look"
+
+[node name="DefaultPerspectiveOption" type="OptionButton" parent="SettingsPanel/Panel/SettingsColumns/GeneralColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Default perspective for newly opened gameplay sessions"
 
 [node name="ColumnDivider" type="VSeparator" parent="SettingsPanel/Panel/SettingsColumns"]
 layout_mode = 2

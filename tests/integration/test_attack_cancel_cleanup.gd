@@ -6,6 +6,8 @@ func run() -> bool:
 	combat.attack = load("res://resources/attacks/attack_light_1.tres") as AttackDefinition
 	var hitbox := Hitbox3D.new()
 	combat.hitbox = hitbox
+	combat.is_attacking = true
+	combat._current_attack = combat.attack
 	combat.open_attack_window()
 	var ok := hitbox.active
 	combat.cancel_attack(&"cleanup")

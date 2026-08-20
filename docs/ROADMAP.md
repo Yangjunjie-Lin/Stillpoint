@@ -49,11 +49,10 @@ This branch implements only 0.9.0:
 6. risks in [SYSTEM_INVENTORY.md](SYSTEM_INVENTORY.md) have owners or explicit
    deferral.
 
-## Recommended 0.10.0 entry work
+## 0.10.0 implementation notes
 
-Start from accepted `develop`. First inventory existing `CameraController3D`,
-`PlayerController3D`, combat state, animation events, loadout/equipment, Save v4,
-and input rebinding. Preserve one player controller and one damage pipeline.
-Define perspective-independent movement/combat state before adding camera modes;
-then add camera, targeting, heavy/dodge/parry, and animation layers in vertical
-increments with Save and input-regression tests.
+The feature branch starts from accepted `develop` and preserves one player
+controller and one damage pipeline. The audit and runtime design are recorded
+in [ACTION_CAMERA_COMBAT_0_10_0.md](design/ACTION_CAMERA_COMBAT_0_10_0.md).
+Manual Debug Build acceptance remains a release gate; see
+[ACTION_CAMERA_COMBAT_0_10_0_ACCEPTANCE.md](acceptance/ACTION_CAMERA_COMBAT_0_10_0_ACCEPTANCE.md).

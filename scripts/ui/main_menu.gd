@@ -16,6 +16,12 @@ extends Control
 @onready var conversation_storage_check: CheckBox = %ConversationStorageCheck
 @onready var memory_personalization_check: CheckBox = %MemoryPersonalizationCheck
 @onready var pet_proactive_dialogue_check: CheckBox = %PetProactiveDialogueCheck
+@onready var camera_sensitivity_slider: HSlider = %CameraSensitivitySlider
+@onready var third_person_fov_slider: HSlider = %ThirdPersonFovSlider
+@onready var first_person_fov_slider: HSlider = %FirstPersonFovSlider
+@onready var camera_smoothing_slider: HSlider = %CameraSmoothingSlider
+@onready var invert_vertical_check: CheckBox = %InvertVerticalCheck
+@onready var default_perspective_option: OptionButton = %DefaultPerspectiveOption
 @onready var start_button: Button = $Center/VBox/StartButton
 @onready var survival_button: Button = $Center/VBox/SurvivalButton
 @onready var combat_lab_button: Button = $Center/VBox/CombatLabButton
@@ -29,6 +35,9 @@ func _ready() -> void:
 	confirm_panel.visible = false
 	settings_panel.visible = false
 	leaderboard_panel.visible = false
+	if default_perspective_option.item_count == 0:
+		default_perspective_option.add_item("Third Person", CameraController3D.PerspectiveMode.THIRD_PERSON)
+		default_perspective_option.add_item("First Person", CameraController3D.PerspectiveMode.FIRST_PERSON)
 	name_edit.text = GameManager.player_name
 	_load_settings_widgets()
 	_refresh_leaderboard()
@@ -82,7 +91,7 @@ func _apply_open_world_theme() -> void:
 	for checkbox in [
 		fullscreen_check, ai_dialogue_check,
 		conversation_storage_check, memory_personalization_check,
-		pet_proactive_dialogue_check,
+		pet_proactive_dialogue_check, invert_vertical_check,
 	]:
 		checkbox.add_theme_color_override("font_color", Color("d7dece"))
 
@@ -164,6 +173,16 @@ func _load_settings_widgets() -> void:
 	pet_proactive_dialogue_check.button_pressed = bool(
 		SaveService.settings.get("pet_proactive_dialogue_enabled", true)
 	)
+	camera_sensitivity_slider.value = float(SaveService.settings.get("camera_sensitivity", 0.12))
+	third_person_fov_slider.value = float(SaveService.settings.get("camera_third_person_fov", 68.0))
+	first_person_fov_slider.value = float(SaveService.settings.get("camera_first_person_fov", 78.0))
+	camera_smoothing_slider.value = float(SaveService.settings.get("camera_smoothing", 14.0))
+	invert_vertical_check.button_pressed = bool(SaveService.settings.get("camera_invert_vertical", false))
+	var perspective := int(SaveService.settings.get("camera_default_perspective", CameraController3D.PerspectiveMode.THIRD_PERSON))
+	for index in default_perspective_option.item_count:
+		if default_perspective_option.get_item_id(index) == perspective:
+			default_perspective_option.select(index)
+			break
 
 
 func _on_continue_pressed() -> void:
@@ -291,6 +310,12 @@ func _on_settings_close() -> void:
 	SaveService.settings["allow_conversation_storage"] = conversation_storage_check.button_pressed
 	SaveService.settings["allow_memory_personalization"] = memory_personalization_check.button_pressed
 	SaveService.settings["pet_proactive_dialogue_enabled"] = pet_proactive_dialogue_check.button_pressed
+	SaveService.settings["camera_sensitivity"] = camera_sensitivity_slider.value
+	SaveService.settings["camera_third_person_fov"] = third_person_fov_slider.value
+	SaveService.settings["camera_first_person_fov"] = first_person_fov_slider.value
+	SaveService.settings["camera_smoothing"] = camera_smoothing_slider.value
+	SaveService.settings["camera_invert_vertical"] = invert_vertical_check.button_pressed
+	SaveService.settings["camera_default_perspective"] = default_perspective_option.get_selected_id()
 	SaveService.save_settings()
 	settings_panel.visible = false
 

@@ -21,6 +21,8 @@ extends Resource
 
 @export var blockable: bool = true
 @export var parryable: bool = true
+## Explicit opt-in for attacks that can hit through dodge invulnerability.
+@export var ignores_dodge_iframe: bool = false
 @export var causes_knockdown: bool = false
 
 @export var maximum_targets: int = 1

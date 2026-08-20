@@ -2,7 +2,7 @@ extends SceneTree
 
 const OUTPUT_PATH := "res://services/npc_mind/catalog/generated_npc_catalog.json"
 const PET_OUTPUT_PATH := "res://services/npc_mind/catalog/generated_pet_catalog.json"
-const GAME_VERSION := "0.9.0"
+const GAME_VERSION := "0.10.0"
 
 func _initialize() -> void:
 	call_deferred("_export_catalog")
