@@ -172,6 +172,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			combat.request_heavy_attack()
 	elif event.is_action_pressed(&"dodge"):
 		_try_dodge()
+	elif event.is_action_pressed(&"cycle_target_left"):
+		_cycle_target(-1)
+	elif event.is_action_pressed(&"cycle_target_right"):
+		_cycle_target(1)
 	elif event.is_action_pressed(&"toggle_target_lock"):
 		_toggle_target_lock()
 	elif event.is_action_pressed(&"guard"):
@@ -269,6 +273,15 @@ func _toggle_target_lock() -> void:
 	var origin := rig.get_aim_origin() if rig != null else global_position + Vector3.UP
 	var direction := rig.get_aim_direction() if rig != null else -global_transform.basis.z
 	targeting.lock_best_target(origin, direction)
+
+
+func _cycle_target(step: int) -> void:
+	if targeting == null:
+		return
+	var rig := _camera_rig()
+	var origin := rig.get_aim_origin() if rig != null else global_position + Vector3.UP
+	var direction := rig.get_aim_direction() if rig != null else -global_transform.basis.z
+	targeting.cycle_target(step, origin, direction)
 
 
 func _on_target_changed(target: CharacterController) -> void:

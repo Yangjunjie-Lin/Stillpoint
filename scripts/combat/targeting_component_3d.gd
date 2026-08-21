@@ -39,7 +39,11 @@ func _physics_process(_delta: float) -> void:
 		_last_occluded_time = -1.0
 
 
-func find_candidates(origin: Vector3 = Vector3.ZERO, direction: Vector3 = Vector3.ZERO) -> Array[CharacterController]:
+func find_candidates(
+	origin: Vector3 = Vector3.ZERO,
+	direction: Vector3 = Vector3.ZERO,
+	favor_locked_target: bool = true,
+) -> Array[CharacterController]:
 	if owner_character == null:
 		owner_character = get_parent() as CharacterController
 	if origin == Vector3.ZERO and owner_character != null:
@@ -76,8 +80,8 @@ func find_candidates(origin: Vector3 = Vector3.ZERO, direction: Vector3 = Vector
 			continue
 		candidates.append(candidate)
 	candidates.sort_custom(func(a: CharacterController, b: CharacterController) -> bool:
-		var score_a := _score(a, origin, direction)
-		var score_b := _score(b, origin, direction)
+		var score_a := _score(a, origin, direction, favor_locked_target)
+		var score_b := _score(b, origin, direction, favor_locked_target)
 		if not is_equal_approx(score_a, score_b):
 			return score_a > score_b
 		return _stable_target_key(a) < _stable_target_key(b)
@@ -123,7 +127,9 @@ func unlock_target() -> void:
 
 
 func cycle_target(step: int = 1, origin: Vector3 = Vector3.ZERO, direction: Vector3 = Vector3.ZERO) -> CharacterController:
-	var candidates := find_candidates(origin, direction)
+	# Cycling must use a stable order. Favoring the current target here would
+	# reorder the list after every selection and could bounce between two actors.
+	var candidates := find_candidates(origin, direction, false)
 	if candidates.is_empty():
 		unlock_target()
 		return null
@@ -186,11 +192,16 @@ func _find_active_region_root() -> Node:
 	return null
 
 
-func _score(candidate: CharacterController, origin: Vector3, direction: Vector3) -> float:
+func _score(
+	candidate: CharacterController,
+	origin: Vector3,
+	direction: Vector3,
+	favor_locked_target: bool = true,
+) -> float:
 	var offset := candidate.global_position + Vector3.UP - origin
 	var distance := offset.length()
 	var angle := 1.0 - clampf(direction.normalized().dot(offset.normalized()), -1.0, 1.0)
-	var continuity := 0.25 if candidate == locked_target else 0.0
+	var continuity := 0.25 if favor_locked_target and candidate == locked_target else 0.0
 	return continuity + (1.0 - distance / maxf(lock_range, 0.01)) * 0.35 - angle * 0.65
 
 

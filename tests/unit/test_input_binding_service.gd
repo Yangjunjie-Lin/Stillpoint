@@ -6,6 +6,10 @@ func run() -> bool:
 		if not InputMap.has_action(action):
 			push_error("Missing action: %s" % String(action))
 			return false
+	for action in [&"cycle_target_left", &"cycle_target_right"]:
+		if InputBindingService.get_action_events(action).is_empty():
+			push_error("Missing default binding: %s" % String(action))
+			return false
 	var before := InputBindingService.get_display_text(&"interact")
 	var event := InputEventKey.new()
 	event.physical_keycode = KEY_G

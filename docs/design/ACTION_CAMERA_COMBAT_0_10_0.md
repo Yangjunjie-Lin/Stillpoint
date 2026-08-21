@@ -38,7 +38,9 @@ and the light combo were wired into runtime behavior.
 
 - `TargetingComponent3D` filters living, loaded, same-region, in-range,
   view-cone, line-of-sight candidates and provides deterministic best-target,
-  lock, cycle, unlock, invalidation, and aim-point APIs.
+  lock, cycle, unlock, invalidation, and aim-point APIs. Rebindable `[` and `]`
+  inputs expose deterministic left/right cycling while preserving `R` as the
+  explicit lock/unlock action.
 - `PoiseComponent` supplies max/current poise, delayed regeneration, and a
   poise-break signal. Guarded hits apply reduced authored poise damage; a break
   enters stagger without overriding downed/death.
@@ -60,6 +62,6 @@ camera look; closing UI restores capture when gameplay resumes.
 ## Deliberately deferred
 
 - Ranged/projectile combat, production mocap, authored root-motion displacement,
-  advanced controller UX, target cycling UI, NPC combat AI intents, economy,
+  advanced controller UX, target cycling indicators, NPC combat AI intents, economy,
   factions, territory, governance, simulation LOD, multiplayer, and open-world
   streaming remain later work. No LLM proposal can execute player combat.

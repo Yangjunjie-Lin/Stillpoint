@@ -100,6 +100,7 @@ quests, teleport actors, or set world flags. See
 | Guard | Shift |
 | Dodge | B |
 | Target lock | R |
+| Cycle locked target left / right | [ / ] |
 | Toggle first/third person | V |
 | Shoulder swap | C |
 | Jump | K |

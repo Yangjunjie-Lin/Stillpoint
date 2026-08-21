@@ -64,18 +64,23 @@ func run() -> bool:
 	alpha.region_id = &"base:town"
 	alpha.add_to_group("combat_target")
 	tree.root.add_child(alpha)
-	alpha.global_position = Vector3(-1.0, 0.0, -5.0)
+	alpha.global_position = Vector3(0.0, 0.0, -5.0)
 	var beta := CharacterTestFactory.create("BetaTarget010")
 	beta.region_id = &"base:town"
 	beta.add_to_group("combat_target")
 	tree.root.add_child(beta)
-	beta.global_position = Vector3(1.0, 0.0, -5.0)
+	beta.global_position = Vector3(0.0, 0.0, -5.0)
+	var gamma := CharacterTestFactory.create("GammaTarget010")
+	gamma.region_id = &"base:town"
+	gamma.add_to_group("combat_target")
+	tree.root.add_child(gamma)
+	gamma.global_position = Vector3(0.0, 0.0, -5.0)
 	await tree.process_frame
 	var tied := targeting.find_candidates(
 		owner.global_position + Vector3.UP,
 		Vector3(0.0, 0.0, -1.0),
 	)
-	ok = ok and tied.size() == 2 and tied[0] == alpha and tied[1] == beta
+	ok = ok and tied.size() == 3 and tied[0] == alpha and tied[1] == beta and tied[2] == gamma
 	targeting.lock_target(alpha)
 	ok = ok and targeting.cycle_target(
 		1,
@@ -83,12 +88,41 @@ func run() -> bool:
 		Vector3(0.0, 0.0, -1.0),
 	) == beta
 	ok = ok and targeting.cycle_target(
-		-1,
+		1,
+		owner.global_position + Vector3.UP,
+		Vector3(0.0, 0.0, -1.0),
+	) == gamma
+	ok = ok and targeting.cycle_target(
+		1,
 		owner.global_position + Vector3.UP,
 		Vector3(0.0, 0.0, -1.0),
 	) == alpha
+	ok = ok and targeting.cycle_target(
+		-1,
+		owner.global_position + Vector3.UP,
+		Vector3(0.0, 0.0, -1.0),
+	) == gamma
+	targeting.lock_target(alpha)
+	var player_scene := load("res://scenes/characters/player_3d.tscn") as PackedScene
+	var player_input := player_scene.instantiate() as PlayerController3D
+	tree.root.add_child(player_input)
+	await tree.process_frame
+	player_input.targeting = targeting
+	player_input.global_position = owner.global_position
+	var cycle_right := InputEventAction.new()
+	cycle_right.action = &"cycle_target_right"
+	cycle_right.pressed = true
+	player_input._unhandled_input(cycle_right)
+	ok = ok and targeting.locked_target == beta
+	var cycle_left := InputEventAction.new()
+	cycle_left.action = &"cycle_target_left"
+	cycle_left.pressed = true
+	player_input._unhandled_input(cycle_left)
+	ok = ok and targeting.locked_target == alpha
+	player_input.queue_free()
 
 	alpha.free()
+	gamma.queue_free()
 	targeting._physics_process(0.1)
 	ok = ok and targeting.locked_target == null
 	targeting.lock_target(beta)

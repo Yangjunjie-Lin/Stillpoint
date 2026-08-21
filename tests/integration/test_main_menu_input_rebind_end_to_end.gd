@@ -22,7 +22,7 @@ func run() -> bool:
 		settings_focused
 		and settings_pressed[0] == 1
 		and settings_panel.visible
-		and rows.get_child_count() == 24
+		and rows.get_child_count() == 26
 	)
 	if not ok:
 		push_error("Settings did not expose the complete keybinding UI")
