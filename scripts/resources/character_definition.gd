@@ -14,6 +14,13 @@ extends Resource
 @export var crouch_speed: float = 2.5
 @export var jump_velocity: float = 6.5
 @export var skills: Array[SkillDefinition] = []
+## Shared authored starting attributes. Runtime values live on the actor.
+@export var actor_attributes: Dictionary = {
+	"strength": 10.0,
+	"vitality": 10.0,
+	"dexterity": 10.0,
+	"intelligence": 10.0,
+}
 @export var default_dialogue: DialogueDefinition
 @export var schedule: ScheduleDefinition
 @export var can_be_attacked: bool = true

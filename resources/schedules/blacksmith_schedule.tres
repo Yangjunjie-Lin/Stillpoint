@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ScheduleDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/schedule_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/schedule_entry.gd" id="2"]
+
+[sub_resource type="Resource" id="BlacksmithWorkShift"]
+script = ExtResource("2")
+start_hour = 8
+end_hour = 19
+region_id = &"base:town"
+target_marker_id = &"TownSmithyWorkMarker"
+activity_id = &"work"
+priority = 1
+
+[resource]
+script = ExtResource("1")
+id = &"blacksmith_schedule"
+entries = Array[ScheduleEntry]([SubResource("BlacksmithWorkShift")])

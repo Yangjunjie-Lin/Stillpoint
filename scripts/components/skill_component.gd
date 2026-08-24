@@ -240,6 +240,22 @@ func to_dict() -> Dictionary:
 	}
 
 
+func get_persistence_key() -> StringName:
+	return &"skills"
+
+
+func capture_state() -> Dictionary:
+	return to_dict()
+
+
+func restore_state(data: Dictionary) -> void:
+	from_dict(data)
+
+
+func get_state_version() -> int:
+	return PROFICIENCY_SCHEMA_VERSION
+
+
 func from_dict(data: Dictionary) -> void:
 	_cooldowns = _safe_dictionary(data.get("cooldowns", {}))
 	_proficiencies.clear()

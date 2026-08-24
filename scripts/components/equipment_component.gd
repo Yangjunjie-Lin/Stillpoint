@@ -1,6 +1,6 @@
 class_name EquipmentComponent
 extends Node
-## Owns the player's deterministic equipment slots. Runtime bonuses are read
+## Owns an actor's deterministic equipment slots. Runtime bonuses are read
 ## from ItemDefinition resources; this component stores only stable item IDs.
 
 signal equipment_changed
@@ -317,6 +317,22 @@ func clear() -> void:
 		equipment_changed.emit()
 	if mode_was_changed:
 		presentation_mode_changed.emit(_presentation_mode)
+
+
+func get_persistence_key() -> StringName:
+	return &"equipment"
+
+
+func capture_state() -> Dictionary:
+	return to_dict()
+
+
+func restore_state(data: Dictionary) -> void:
+	from_dict(data)
+
+
+func get_state_version() -> int:
+	return SECTION_VERSION
 
 
 func _duplicate_inventory(inventory: InventoryComponent) -> InventoryComponent:

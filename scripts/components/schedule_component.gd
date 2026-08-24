@@ -13,6 +13,7 @@ func tick() -> void:
 	var entry := schedule.get_active_entry(WorldTimeService.hour, WorldTimeService.minute)
 	if entry == null:
 		current_activity = &"idle"
+		current_marker_id = &""
 		return
 	current_activity = entry.activity_id
 	current_marker_id = entry.target_marker_id

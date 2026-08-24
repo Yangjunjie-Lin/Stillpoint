@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WorkSiteDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/worksite_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"worksite:town_smithy"
+display_name = "Town Smithy"
+worksite_type = &"smithy"
+region_id = &"base:town"
+allowed_job_ids = Array[StringName]([&"job:blacksmith"])
+work_marker_id = &"TownSmithyWorkMarker"
+capacity = 2
+workplace_efficiency = 1.1
+initial_payroll_funds = 500

@@ -47,6 +47,7 @@ var intent_executor := WorldIntentExecutor.new()
 @onready var dungeon_progression_service: DungeonProgressionService = $WorldServices/DungeonProgressionService
 @onready var property_bank_service: PropertyBankService = $WorldServices/PropertyBankService
 @onready var hidden_encounter_service: HiddenEncounterService = $WorldServices/HiddenEncounterService
+@onready var actor_economy_service: ActorEconomyService = $WorldServices/ActorEconomyService
 
 # Compatibility aliases for tests and legacy code paths.
 var regions_root: Node3D
@@ -261,6 +262,7 @@ func cancel_active_dialogue() -> void:
 func capture_player_data() -> Dictionary:
 	var inventory_data := player.inventory.to_dict() if player.inventory else {}
 	var equipment_data := player.equipment.to_dict() if player.equipment else {}
+	var wallet_data := player.wallet.to_dict() if player.wallet else {}
 	var player_data := player.to_dict()
 	player_data.erase("inventory")
 	player_data.erase("equipment")
@@ -269,6 +271,7 @@ func capture_player_data() -> Dictionary:
 		"player": player_data,
 		"inventory": inventory_data,
 		"equipment": equipment_data,
+		"wallet": wallet_data,
 	}
 
 
@@ -285,6 +288,9 @@ func restore_player_data(data: Dictionary) -> void:
 		player.inventory.from_dict(data.get("inventory", {}))
 	if player.equipment != null:
 		player.equipment.from_dict(data.get("equipment", {}))
+	if player.wallet != null and data.get("wallet", {}) is Dictionary \
+			and not (data.get("wallet", {}) as Dictionary).is_empty():
+		player.wallet.from_dict(data.get("wallet", {}) as Dictionary)
 	player.apply_equipment_bonuses()
 
 
@@ -317,6 +323,8 @@ func capture_global_world_data() -> Dictionary:
 			if property_bank_service != null else {},
 		"hidden_encounters": hidden_encounter_service.capture_save_data()
 			if hidden_encounter_service != null else {},
+		"actor_economy": actor_economy_service.capture_save_data()
+			if actor_economy_service != null else {},
 	}
 
 
@@ -337,6 +345,11 @@ func restore_global_world_data(data: Dictionary) -> void:
 		hidden_encounter_service.restore_save_data(
 			data.get("hidden_encounters", {}) as Dictionary
 			if data.get("hidden_encounters", {}) is Dictionary else {}
+		)
+	if actor_economy_service != null:
+		actor_economy_service.restore_save_data(
+			data.get("actor_economy", {}) as Dictionary
+			if data.get("actor_economy", {}) is Dictionary else {}
 		)
 
 
@@ -541,11 +554,14 @@ func _setup_services() -> void:
 	dungeon_progression_service.setup(self, actor_factory)
 	property_bank_service.setup(self)
 	hidden_encounter_service.setup(self, event_bus)
+	actor_economy_service.setup(self, entity_repository)
 	# Resolved from WorldSession root via RegionRuntimeService._get_slot().
 	region_service.active_region_slot_path = NodePath("ActiveRegionSlot")
 	save_coordinator.setup(self, entity_repository, region_service, world_flags)
 	if not property_bank_service.property_state_changed.is_connected(_on_property_state_changed):
 		property_bank_service.property_state_changed.connect(_on_property_state_changed)
+	if not actor_economy_service.economic_state_changed.is_connected(_on_actor_economic_state_changed):
+		actor_economy_service.economic_state_changed.connect(_on_actor_economic_state_changed)
 	simulation_service.setup(entity_repository)
 	_session_context = WorldSessionContext.new(
 		self, null, entity_repository, region_service,
@@ -591,6 +607,7 @@ func _spawn_player() -> void:
 		return
 	player = player_scene.instantiate() as PlayerController3D
 	player_root.add_child(player)
+	property_bank_service.bind_wallet(player.wallet)
 	player.add_to_group("player")
 	var identity := WorldEntityIdentity.new()
 	identity.name = "WorldEntityIdentity"
@@ -952,6 +969,11 @@ func _on_world_hour_changed(_day: int, _hour: int) -> void:
 func _on_pet_state_changed(_reason: StringName) -> void:
 	if save_coordinator != null:
 		save_coordinator.mark_dirty(&"companions")
+
+
+func _on_actor_economic_state_changed(_actor_id: StringName, worksite_changed: bool) -> void:
+	if save_coordinator != null and worksite_changed:
+		save_coordinator.mark_dirty(&"global_world")
 
 
 func _on_pet_reply_ready(reply: Dictionary) -> void:

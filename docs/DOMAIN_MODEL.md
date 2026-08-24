@@ -13,23 +13,23 @@
 
 ## Core domains
 
-| Domain | Definition / identity | Runtime owner | 0.9.0 status |
+| Domain | Definition / identity | Runtime owner | 0.11.0 status |
 | --- | --- | --- | --- |
 | Actor | Persistent entity with character/pet definition | Controller, components, `WorldEntityIdentity`, `EntitySnapshot` | Implemented foundation |
 | Player | `CharacterDefinition` plus origin/faction/profession choices | `PlayerController3D`, shared components, Save v4 player section | Implemented |
-| NPC | `NPCDefinition` and optional `NPCMindDefinition` | `NPCController`, components, relationship service, cognition scope | Implemented physical actor; no general economic agency |
+| NPC | `NPCDefinition` and optional `NPCMindDefinition` | `NPCController`, shared components, relationship service, cognition scope | Persistent embodied actor; blacksmith economic vertical implemented |
 | Pet | `PetCompanionDefinition`, species/personality/lifestyle/skills | `PetRuntimeState`, `PetController`, Save companions | Implemented vertical slice |
 | Faction | `FactionDefinition` | Player/NPC faction component only | Static relations/reputation implemented; runtime polity planned |
 | Territory | Future definition and runtime state | Future strategic simulation | Planned 0.13.0 |
 | Settlement | Region/building content is present; formal definition absent | Future regional state | Planned 0.13.0 |
-| Profession | `ProfessionDefinition` | Player `profession_id` | Player build/starter kit implemented; NPC career model planned |
+| Profession | `ProfessionDefinition` | Player `profession_id` | Long-term build/class identity; distinct from employment |
 | Skill | `SkillDefinition`; cognitive skills are deliberately separate | `SkillComponent` / pet skill state | Implemented proficiency and combat skills |
-| Job | Future `JobDefinition`/contract | Future per-actor employment state | Planned 0.11.0 |
-| WorkSite | Authored buildings/markers exist; formal definition absent | Future shifts/assignments/production | Planned 0.11.0 |
+| Job | `JobDefinition` | Per-actor `EmploymentContract` / `EmploymentComponent` | Implemented economic employment role |
+| WorkSite | `WorkSiteDefinition` | `WorkSiteRuntimeState` in `ActorEconomyService` | Finite payroll and abstract work units implemented |
 | Business | `ShopDefinition`, offers, forge recipes, authored buildings | Fixed-price services; no business account/stock ledger | Partial |
-| Wallet | No shared definition | `PropertyBankService` owns player balances | Partial; extract shared actor wallet in 0.11.0 |
-| Inventory | `ItemDefinition` describes items | `InventoryComponent` per owning node/saved container | Implemented capability; persistent NPC use planned |
-| Equipment | Item equip metadata | `EquipmentComponent`; pet runtime equipment | Implemented player/pet capability; NPC use planned |
+| Wallet | Personal carried integer currency | Per-actor `WalletComponent`; bank/property accounts remain separate | Shared player/NPC capability implemented |
+| Inventory | `ItemDefinition` describes items | Per-actor/container `InventoryComponent` | Shared actor capability with entity snapshot persistence |
+| Equipment | Item equip/work metadata | Per-actor `EquipmentComponent`; pet runtime equipment | Shared player/NPC rules and effects implemented |
 | Property | `HouseDefinition` | `PropertyBankService` deed/cash/storage state | Implemented player slice |
 | Dungeon | `DungeonDefinition`, NPC/loot definitions | `DungeonProgressionService`, repository snapshots, Save v4 | Implemented vertical slice |
 | WorldEvent | `WorldEventDefinition` for authored events | `GameplayEvent` is the completed canonical fact | Implemented event foundation |
@@ -58,14 +58,24 @@ source, not by a separate economy.
 
 | Static definition | Per-instance runtime state |
 | --- | --- |
-| `NPCDefinition.display_name`, role, home, mind profile | Health, region, schedule activity, death, future wallet/inventory/job |
-| `ItemDefinition` stats and equip slots | Owning inventory, quantity, equipped slot, future durability |
+| `NPCDefinition.display_name`, role, home, economic initialization IDs | Health, region, wallet, inventory, equipment, employment, skill, sequence |
+| `JobDefinition` skill/tags/wage/output policy | Actor contract, last result, sequence, income |
+| `WorkSiteDefinition` type/marker/efficiency/initial payroll | Current payroll, workers, lifetime abstract units |
+| `ItemDefinition` stats, equip slots, work tags/efficiency | Owning inventory, quantity, equipped slot, future durability |
 | `FactionDefinition` name, colors, authored relations | Future treasury, leader actor ID, territory, diplomacy, policies |
 | `HouseDefinition` plan, value, capacity | Owner principal, deed status, cash, stored items |
 | `PetCompanionDefinition` species/personality defaults | Nickname, needs, bond, equipment, skills, routine, region |
 
 Runtime data must never be written back into a `.tres` definition or shared by
 two instances created from the same definition.
+
+## Profession versus job
+
+A profession is long-term character specialization/build identity (for
+example Guardian or Pathfinder). A job is an economic employment role (for
+example Blacksmith or Courier). One actor may therefore have
+`profession_id = guardian` and `job_id = job:blacksmith`; the concepts and
+resources are deliberately separate.
 
 ## Event and intent semantics
 

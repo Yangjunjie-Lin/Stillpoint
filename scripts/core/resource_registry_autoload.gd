@@ -9,6 +9,8 @@ var _professions: Dictionary = {}
 var _skills: Dictionary = {}
 var _items: Dictionary = {}
 var _shops: Dictionary = {}
+var _jobs: Dictionary = {}
+var _worksites: Dictionary = {}
 var _forge_recipes: Dictionary = {}
 var _dialogues: Dictionary = {}
 var _quests: Dictionary = {}
@@ -70,6 +72,14 @@ func register_item(def: ItemDefinition) -> void:
 
 func register_shop(def: ShopDefinition) -> void:
 	_put(_shops, def.id if def else &"", def, "shop")
+
+
+func register_job(def: JobDefinition) -> void:
+	_put(_jobs, def.id if def else &"", def, "job")
+
+
+func register_worksite(def: WorkSiteDefinition) -> void:
+	_put(_worksites, def.id if def else &"", def, "worksite")
 
 
 func register_forge_recipe(def: ForgeRecipeDefinition) -> void:
@@ -309,6 +319,32 @@ func get_all_shops() -> Array[ShopDefinition]:
 	return result
 
 
+func get_job(id: StringName) -> JobDefinition:
+	return _jobs.get(id) as JobDefinition
+
+
+func get_all_jobs() -> Array[JobDefinition]:
+	var result: Array[JobDefinition] = []
+	for id in _sorted_keys(_jobs):
+		var definition := _jobs[id] as JobDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_worksite(id: StringName) -> WorkSiteDefinition:
+	return _worksites.get(id) as WorkSiteDefinition
+
+
+func get_all_worksites() -> Array[WorkSiteDefinition]:
+	var result: Array[WorkSiteDefinition] = []
+	for id in _sorted_keys(_worksites):
+		var definition := _worksites[id] as WorkSiteDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
 func get_forge_recipe(id: StringName) -> ForgeRecipeDefinition:
 	return _forge_recipes.get(id) as ForgeRecipeDefinition
 
@@ -461,6 +497,8 @@ func load_defaults() -> void:
 	_register_dir("res://resources/skills/", register_skill)
 	_register_dir("res://resources/items/", register_item, true)
 	_register_dir("res://resources/shops/", register_shop, true)
+	_register_dir("res://resources/jobs/", register_job, true)
+	_register_dir("res://resources/worksites/", register_worksite, true)
 	_register_dir("res://resources/forge_recipes/", register_forge_recipe, true)
 	_register_dir("res://resources/dialogues/", register_dialogue)
 	_register_dir("res://resources/quests/", register_quest)
@@ -491,6 +529,8 @@ func clear_all() -> void:
 	_skills.clear()
 	_items.clear()
 	_shops.clear()
+	_jobs.clear()
+	_worksites.clear()
 	_forge_recipes.clear()
 	_dialogues.clear()
 	_quests.clear()
@@ -522,6 +562,8 @@ func clear_test_registrations() -> void:
 		"skills": _skills,
 		"items": _items,
 		"shops": _shops,
+		"jobs": _jobs,
+		"worksites": _worksites,
 		"forge_recipes": _forge_recipes,
 		"dialogues": _dialogues,
 		"quests": _quests,
@@ -558,6 +600,8 @@ func _capture_default_keys() -> void:
 		"skills": _skills.duplicate(false),
 		"items": _items.duplicate(false),
 		"shops": _shops.duplicate(false),
+		"jobs": _jobs.duplicate(false),
+		"worksites": _worksites.duplicate(false),
 		"forge_recipes": _forge_recipes.duplicate(false),
 		"dialogues": _dialogues.duplicate(false),
 		"quests": _quests.duplicate(false),

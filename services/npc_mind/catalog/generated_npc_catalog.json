@@ -3188,6 +3188,15 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/improved_forge_hammer",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/iron_bracers",
         "predicate": "OFFERS",
         "source_id": "shop:stillpoint_blacksmith_equipment",
@@ -3270,6 +3279,15 @@
       {
         "confidence": 1.0,
         "object_node_id": "item:field_pick",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:improved_forge_hammer",
         "predicate": "SELLS",
         "source_id": "shop:stillpoint_blacksmith_equipment",
         "source_type": "world_catalog",
@@ -3382,6 +3400,15 @@
         "source_id": "shop:stillpoint_blacksmith_equipment",
         "source_type": "world_catalog",
         "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/field_pick",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:improved_forge_hammer",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/improved_forge_hammer",
         "visibility": "public"
       },
       {
@@ -4450,6 +4477,51 @@
         "confidence": 1.0,
         "object_node_id": "concept:skill_domain_life",
         "predicate": "BELONGS_TO",
+        "source_id": "smithing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:smithing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_action_smithing_work",
+        "predicate": "PRACTICED_BY",
+        "source_id": "smithing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:smithing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:practice_recovery_2_days",
+        "predicate": "RECOVERS_AFTER",
+        "source_id": "smithing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:smithing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:appraisal",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "smithing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:smithing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "skill:mining",
+        "predicate": "SYNERGIZES_WITH",
+        "source_id": "smithing",
+        "source_type": "world_catalog",
+        "subject_node_id": "skill:smithing",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "concept:skill_domain_life",
+        "predicate": "BELONGS_TO",
         "source_id": "soilworking",
         "source_type": "world_catalog",
         "subject_node_id": "skill:soilworking",
@@ -5174,6 +5246,14 @@
         "visibility": "public"
       },
       {
+        "label": "Smithing Work",
+        "metadata": {},
+        "node_id": "concept:practice_action_smithing_work",
+        "node_type": "concept",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Successful Guard",
         "metadata": {},
         "node_id": "concept:practice_action_successful_guard",
@@ -5469,6 +5549,14 @@
         "label": "Greywake Iron Sword",
         "metadata": {},
         "node_id": "item:forged_iron_sword",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Improved Forge Hammer",
+        "metadata": {},
+        "node_id": "item:improved_forge_hammer",
         "node_type": "item",
         "source": "world_catalog",
         "visibility": "public"
@@ -6144,6 +6232,25 @@
         "visibility": "public"
       },
       {
+        "label": "Improved Forge Hammer",
+        "metadata": {
+          "availability_tags": [
+            "tool",
+            "smithing",
+            "smithy_counter"
+          ],
+          "definition_id": "improved_forge_hammer",
+          "item_id": "improved_forge_hammer",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 45
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/improved_forge_hammer",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Iron Bracers",
         "metadata": {
           "availability_tags": [
@@ -6569,6 +6676,22 @@
           "skill_id": "power_strike"
         },
         "node_id": "skill:power_strike",
+        "node_type": "skill",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Smithing",
+        "metadata": {
+          "category": "life",
+          "context_recovery_days": 2,
+          "daily_gain_cap": 20.0,
+          "description": "Professional proficiency in forging, fitting, and metal repair.",
+          "max_proficiency": 100.0,
+          "overtraining_threshold": 24,
+          "skill_id": "smithing"
+        },
+        "node_id": "skill:smithing",
         "node_type": "skill",
         "source": "world_catalog",
         "visibility": "public"

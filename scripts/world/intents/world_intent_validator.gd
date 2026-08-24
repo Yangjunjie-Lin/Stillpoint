@@ -24,25 +24,45 @@ func validate(proposal: IntentProposal) -> IntentValidationResult:
 		return IntentValidationResult.reject(
 			&"actor_scope_mismatch", "A proposer may not impersonate another actor."
 		)
-	if _context == null or _context.world_session == null or _context.player == null \
-			or _context.entity_repository == null:
+	if _context == null or _context.world_session == null or _context.entity_repository == null:
 		return IntentValidationResult.reject(
 			&"simulation_unavailable", "Canonical simulation context is unavailable."
 		)
-	if proposal.source_kind != IntentProposal.SourceKind.PLAYER_INPUT:
-		return IntentValidationResult.reject(
-			&"source_not_authorized",
-			"The 0.9.0 pilot accepts TalkIntent only from verified player input.",
-		)
-	if _persistent_id_for(_context.player) != proposal.intent.actor_id:
-		return IntentValidationResult.reject(
-			&"actor_not_authorized", "The proposal actor is not the active player."
-		)
 	if proposal.intent is TalkIntent:
+		if proposal.source_kind != IntentProposal.SourceKind.PLAYER_INPUT:
+			return IntentValidationResult.reject(
+				&"source_not_authorized", "TalkIntent requires verified player input."
+			)
+		if _context.player == null or _persistent_id_for(_context.player) != proposal.intent.actor_id:
+			return IntentValidationResult.reject(
+				&"actor_not_authorized", "The proposal actor is not the active player."
+			)
 		return _validate_talk(proposal.intent as TalkIntent)
+	if proposal.intent is WorkIntent or proposal.intent is PurchaseIntent or proposal.intent is EquipIntent:
+		return _validate_economic(proposal)
 	return IntentValidationResult.reject(
-		&"unsupported_intent", "This intent type has no 0.9.0 validator."
+		&"unsupported_intent", "This intent type has no canonical validator."
 	)
+
+
+func _validate_economic(proposal: IntentProposal) -> IntentValidationResult:
+	if proposal.source_kind != IntentProposal.SourceKind.DETERMINISTIC_AI:
+		return IntentValidationResult.reject(
+			&"source_not_authorized", "Canonical NPC economic actions require deterministic AI."
+		)
+	var actor := _context.entity_repository.get_loaded_entity(proposal.intent.actor_id) as NPCController
+	if actor == null or actor.get_persistent_actor_id() != proposal.intent.actor_id:
+		return IntentValidationResult.reject(&"economic_actor_unavailable")
+	if RegionIdUtil.normalize(actor.region_id) != _context.get_current_region_id():
+		return IntentValidationResult.reject(&"actor_not_loaded_here")
+	var session := _context.world_session as WorldSession
+	if session == null or session.actor_economy_service == null:
+		return IntentValidationResult.reject(&"economy_unavailable")
+	if proposal.intent is WorkIntent:
+		return session.actor_economy_service.validate_work(actor, proposal.intent as WorkIntent)
+	if proposal.intent is PurchaseIntent:
+		return session.actor_economy_service.validate_purchase(actor, proposal.intent as PurchaseIntent)
+	return session.actor_economy_service.validate_equip(actor, proposal.intent as EquipIntent)
 
 
 func _validate_talk(intent: TalkIntent) -> IntentValidationResult:

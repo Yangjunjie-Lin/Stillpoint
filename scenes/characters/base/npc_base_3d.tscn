@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scripts/characters/npc_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="2"]
@@ -18,6 +18,11 @@
 [ext_resource type="Resource" path="res://resources/attacks/basic_melee.tres" id="16"]
 [ext_resource type="Script" path="res://scripts/interaction/npc_interactable.gd" id="17"]
 [ext_resource type="Script" path="res://scripts/characters/npc/stylized_npc_model.gd" id="18"]
+[ext_resource type="Script" path="res://scripts/components/wallet_component.gd" id="19"]
+[ext_resource type="Script" path="res://scripts/components/inventory_component.gd" id="20"]
+[ext_resource type="Script" path="res://scripts/components/equipment_component.gd" id="21"]
+[ext_resource type="Script" path="res://scripts/components/actor_attributes_component.gd" id="22"]
+[ext_resource type="Script" path="res://scripts/components/employment_component.gd" id="23"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_npc"]
 radius = 0.4
@@ -64,6 +69,21 @@ attack = ExtResource("16")
 
 [node name="SkillComponent" type="Node" parent="."]
 script = ExtResource("9")
+
+[node name="WalletComponent" type="Node" parent="."]
+script = ExtResource("19")
+
+[node name="InventoryComponent" type="Node" parent="."]
+script = ExtResource("20")
+
+[node name="EquipmentComponent" type="Node" parent="."]
+script = ExtResource("21")
+
+[node name="ActorAttributesComponent" type="Node" parent="."]
+script = ExtResource("22")
+
+[node name="EmploymentComponent" type="Node" parent="."]
+script = ExtResource("23")
 
 [node name="StatusEffectComponent" type="Node" parent="."]
 script = ExtResource("10")

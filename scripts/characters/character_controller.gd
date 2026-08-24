@@ -21,12 +21,27 @@ signal died_permanently(source: Node)
 @onready var hurtbox: Hurtbox3D = $Hurtbox3D
 
 var state := CharacterState.new()
+var wallet: WalletComponent
+var inventory: InventoryComponent
+var equipment: EquipmentComponent
+var attributes: ActorAttributesComponent
+var employment: EmploymentComponent
 var game_time: float = 0.0
 var is_downed: bool = false
 var is_permanently_dead: bool = false
+var _shared_base_combat_damage_bonus: float = 0.0
+var _shared_base_defense: float = 0.0
+var _shared_base_energy_regen: float = 0.0
+var _shared_base_max_health: float = 1.0
+var _shared_base_max_energy: float = 1.0
 
 
 func _ready() -> void:
+	wallet = get_node_or_null("WalletComponent") as WalletComponent
+	inventory = get_node_or_null("InventoryComponent") as InventoryComponent
+	equipment = get_node_or_null("EquipmentComponent") as EquipmentComponent
+	attributes = get_node_or_null("ActorAttributesComponent") as ActorAttributesComponent
+	employment = get_node_or_null("EmploymentComponent") as EmploymentComponent
 	if definition != null:
 		apply_definition(definition)
 	if relationship != null:
@@ -35,6 +50,7 @@ func _ready() -> void:
 		health.damaged.connect(_on_health_damaged)
 	if health != null and not health.died.is_connected(_on_health_died):
 		health.died.connect(_on_health_died)
+	_capture_shared_equipment_baselines()
 
 
 func apply_definition(def: CharacterDefinition) -> void:
@@ -49,7 +65,59 @@ func apply_definition(def: CharacterDefinition) -> void:
 		energy.current_energy = def.max_energy
 	if faction != null:
 		faction.faction_id = def.faction_id
+	if attributes != null:
+		attributes.apply_attributes(def.actor_attributes)
 	RelationshipService.ensure_registered(character_id, def.default_disposition)
+
+
+func get_actor_attribute(attribute_id: StringName, fallback: float = 0.0) -> float:
+	return attributes.get_attribute(attribute_id, fallback) if attributes != null else fallback
+
+
+func get_persistent_actor_id() -> StringName:
+	var identity := get_node_or_null("WorldEntityIdentity") as WorldEntityIdentity
+	return identity.persistent_id if identity != null else &""
+
+
+func apply_shared_equipment_effects() -> void:
+	## NPCs and other non-player actors consume the same authored equipment
+	## bonuses. PlayerController3D layers build/loadout rules on this calculator.
+	var bonuses := EquipmentEffectCalculator.calculate(equipment)
+	if combat != null:
+		combat.damage_bonus = maxf(
+			0.0,
+			_shared_base_combat_damage_bonus + float(bonuses.get("attack_bonus", 0.0)),
+		)
+	if health != null:
+		health.defense = maxf(
+			0.0,
+			_shared_base_defense + float(bonuses.get("defense_bonus", 0.0)),
+		)
+		health.max_health = maxf(
+			1.0,
+			_shared_base_max_health + float(bonuses.get("max_health_bonus", 0.0)),
+		)
+		health.current_health = minf(health.current_health, health.max_health)
+		health.health_changed.emit(health.current_health, health.max_health)
+	if energy != null:
+		energy.regen_per_second = maxf(
+			0.0,
+			_shared_base_energy_regen + float(bonuses.get("energy_regen_bonus", 0.0)),
+		)
+		energy.max_energy = maxf(
+			1.0,
+			_shared_base_max_energy + float(bonuses.get("max_energy_bonus", 0.0)),
+		)
+		energy.current_energy = minf(energy.current_energy, energy.max_energy)
+		energy.energy_changed.emit(energy.current_energy, energy.max_energy)
+
+
+func _capture_shared_equipment_baselines() -> void:
+	_shared_base_combat_damage_bonus = combat.damage_bonus if combat != null else 0.0
+	_shared_base_defense = health.defense if health != null else 0.0
+	_shared_base_energy_regen = energy.regen_per_second if energy != null else 0.0
+	_shared_base_max_health = health.max_health if health != null else 1.0
+	_shared_base_max_energy = energy.max_energy if energy != null else 1.0
 
 
 func set_input_enabled(enabled: bool) -> void:

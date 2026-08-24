@@ -1,5 +1,6 @@
 class_name InventoryComponent
 extends Node
+## Deterministic actor inventory shared by player, NPC, and other embodied actors.
 
 signal inventory_changed
 
@@ -181,6 +182,22 @@ func from_dict(data: Dictionary) -> void:
 		_slots[i].item_id = item_id
 		_slots[i].quantity = quantity
 	_emit_inventory_changed()
+
+
+func get_persistence_key() -> StringName:
+	return &"inventory"
+
+
+func capture_state() -> Dictionary:
+	return to_dict()
+
+
+func restore_state(data: Dictionary) -> void:
+	from_dict(data)
+
+
+func get_state_version() -> int:
+	return 1
 
 
 func _reset_slots() -> void:
