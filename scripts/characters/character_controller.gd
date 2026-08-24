@@ -62,6 +62,8 @@ func receive_damage(amount: float, source: Node, context: Dictionary = {}) -> fl
 		return 0.0
 	if is_downed:
 		return 0.0
+	if hurtbox != null and hurtbox.is_invulnerable() and not bool(context.get("ignore_dodge_iframe", false)):
+		return 0.0
 
 	var final_amount := amount
 	if combat != null:
@@ -99,6 +101,8 @@ func _on_health_died(source: Node) -> void:
 		is_downed = false
 		state.current = CharacterState.State.DISABLED
 		set_input_enabled(false)
+		if combat != null:
+			combat.enter_terminal_state(true)
 		died_permanently.emit(source)
 		_on_permanent_death(source)
 	else:
@@ -111,6 +115,8 @@ func _on_health_died(source: Node) -> void:
 			health.health_changed.emit(health.current_health, health.max_health)
 		state.current = CharacterState.State.DOWNED
 		set_input_enabled(false)
+		if combat != null:
+			combat.enter_terminal_state(false)
 		downed.emit(source)
 		_on_downed(source)
 
@@ -129,6 +135,8 @@ func recover_from_downed(restore_health: float = 20.0) -> void:
 	is_downed = false
 	state.current = CharacterState.State.IDLE
 	set_input_enabled(true)
+	if combat != null:
+		combat.reset_runtime_state()
 	if health != null:
 		health.current_health = clampf(restore_health, 1.0, health.max_health)
 		health.death_recorded = false
@@ -184,6 +192,10 @@ func from_dict(data: Dictionary) -> void:
 		state.current = CharacterState.State.DOWNED
 	elif is_permanently_dead:
 		state.current = CharacterState.State.DISABLED
+	else:
+		state.current = CharacterState.State.IDLE
+	if combat != null:
+		combat.reset_runtime_state()
 
 
 func get_persistence_key() -> StringName:

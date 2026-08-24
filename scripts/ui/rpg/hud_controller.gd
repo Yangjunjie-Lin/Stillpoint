@@ -15,6 +15,7 @@ extends CanvasLayer
 @onready var quest_label: Label = $VBox/QuestLabel
 @onready var hotbar_label: Label = $VBox/HotbarLabel if has_node("VBox/HotbarLabel") else null
 @onready var target_label: Label = $VBox/TargetLabel if has_node("VBox/TargetLabel") else null
+@onready var crosshair: Label = $Crosshair if has_node("Crosshair") else null
 
 var _world: WorldSession
 
@@ -23,6 +24,9 @@ func _ready() -> void:
 	_world = _find_world()
 	WorldTimeService.minute_changed.connect(_on_time_changed)
 	EventBus.dialogue_finished.connect(func() -> void: pass)
+	if crosshair != null:
+		crosshair.set_anchors_preset(Control.PRESET_CENTER)
+		crosshair.position = Vector2(-8.0, -12.0)
 	_on_time_changed(WorldTimeService.day, WorldTimeService.hour, WorldTimeService.minute)
 
 
@@ -73,6 +77,9 @@ func _process(_delta: float) -> void:
 	_update_hotbar(player)
 	_update_quest()
 	_update_target(player)
+	if crosshair != null:
+		var rig := player.get_camera_controller()
+		crosshair.visible = rig != null and rig.get_perspective() == CameraController3D.PerspectiveMode.FIRST_PERSON and not _dialogue_open()
 
 
 func _update_hotbar(player: PlayerController3D) -> void:
@@ -114,6 +121,13 @@ func _update_quest() -> void:
 
 func _update_target(player: PlayerController3D) -> void:
 	if target_label == null:
+		return
+	if player.targeting != null and player.targeting.locked_target != null:
+		var locked := player.targeting.locked_target
+		var locked_name := locked.definition.display_name if locked.definition else String(locked.character_id)
+		var hp := locked.health.current_health if locked.health else 0.0
+		var max_hp := locked.health.max_health if locked.health else 0.0
+		target_label.text = "LOCKED  %s  HP %.0f / %.0f" % [locked_name, hp, max_hp]
 		return
 	var best: NPCController = null
 	var best_dist := 4.0

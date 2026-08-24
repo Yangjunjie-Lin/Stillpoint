@@ -62,11 +62,22 @@ player_scene = ExtResource("2")
 initial_region_id = &"town"
 
 [node name="CameraRig" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 12)
 script = ExtResource("3")
 target_path = NodePath("../Actors/Player3D")
 
-[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+[node name="YawPivot" type="Node3D" parent="CameraRig"]
+
+[node name="PitchPivot" type="Node3D" parent="CameraRig/YawPivot"]
+
+[node name="ThirdPersonSpringArm" type="SpringArm3D" parent="CameraRig/YawPivot/PitchPivot"]
+spring_length = 6.0
+margin = 0.2
+collision_mask = 1
+
+[node name="FirstPersonAnchor" type="Marker3D" parent="CameraRig/YawPivot/PitchPivot"]
+position = Vector3(0, 1.55, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig/YawPivot/PitchPivot"]
 current = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]

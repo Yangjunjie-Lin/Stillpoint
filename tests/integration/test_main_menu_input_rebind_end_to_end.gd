@@ -22,7 +22,7 @@ func run() -> bool:
 		settings_focused
 		and settings_pressed[0] == 1
 		and settings_panel.visible
-		and rows.get_child_count() == 19
+		and rows.get_child_count() == 26
 	)
 	if not ok:
 		push_error("Settings did not expose the complete keybinding UI")
@@ -80,6 +80,29 @@ func run() -> bool:
 	ok = ok and cancelled_text == "Cancelled"
 	ok = ok and display_after_cancel == "Space"
 
+	var original_camera_settings := {
+		"camera_sensitivity": SaveService.settings.get("camera_sensitivity", 0.12),
+		"camera_third_person_fov": SaveService.settings.get("camera_third_person_fov", 68.0),
+		"camera_first_person_fov": SaveService.settings.get("camera_first_person_fov", 78.0),
+		"camera_smoothing": SaveService.settings.get("camera_smoothing", 14.0),
+		"camera_invert_vertical": SaveService.settings.get("camera_invert_vertical", false),
+		"camera_default_perspective": SaveService.settings.get("camera_default_perspective", 0),
+	}
+	var sensitivity := menu.get_node("%CameraSensitivitySlider") as HSlider
+	var third_person_fov := menu.get_node("%ThirdPersonFovSlider") as HSlider
+	var first_person_fov := menu.get_node("%FirstPersonFovSlider") as HSlider
+	var smoothing := menu.get_node("%CameraSmoothingSlider") as HSlider
+	var invert_vertical := menu.get_node("%InvertVerticalCheck") as CheckBox
+	var default_perspective := menu.get_node("%DefaultPerspectiveOption") as OptionButton
+	sensitivity.value = 0.37
+	third_person_fov.value = 73.0
+	first_person_fov.value = 83.0
+	smoothing.value = 9.5
+	invert_vertical.button_pressed = true
+	default_perspective.select(default_perspective.get_item_index(
+		CameraController3D.PerspectiveMode.FIRST_PERSON
+	))
+
 	var close_button := settings_panel.get_node("Panel/SettingsClose") as Button
 	var close_pressed := [0]
 	close_button.pressed.connect(func() -> void: close_pressed[0] += 1)
@@ -90,6 +113,15 @@ func run() -> bool:
 	await WorldTestHelper.await_frames(tree, 1)
 	var closed := not settings_panel.visible
 	ok = ok and close_focused and close_pressed[0] == 1 and closed
+	ok = ok and is_equal_approx(float(SaveService.settings["camera_sensitivity"]), 0.37)
+	ok = ok and is_equal_approx(float(SaveService.settings["camera_third_person_fov"]), 73.0)
+	ok = ok and is_equal_approx(float(SaveService.settings["camera_first_person_fov"]), 83.0)
+	ok = ok and is_equal_approx(float(SaveService.settings["camera_smoothing"]), 9.5)
+	ok = ok and bool(SaveService.settings["camera_invert_vertical"])
+	ok = ok and int(SaveService.settings["camera_default_perspective"]) == 1
+	for key in original_camera_settings:
+		SaveService.settings[key] = original_camera_settings[key]
+	SaveService.save_settings()
 
 	InputBindingService.reset_all()
 	InputBindingService.save_bindings()

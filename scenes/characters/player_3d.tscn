@@ -25,6 +25,9 @@
 [ext_resource type="Script" path="res://scripts/components/experience_component.gd" id="22"]
 [ext_resource type="Resource" path="res://resources/progression/default_experience_curve.tres" id="23"]
 [ext_resource type="Script" path="res://scripts/components/skill_loadout_component.gd" id="24"]
+[ext_resource type="Script" path="res://scripts/combat/targeting_component_3d.gd" id="25"]
+[ext_resource type="Script" path="res://scripts/components/poise_component.gd" id="26"]
+[ext_resource type="Script" path="res://scripts/characters/first_person_presentation_controller.gd" id="27"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -51,6 +54,9 @@ rotation = Vector3(0, 3.1415927, 0)
 [node name="CharacterModel" type="Node3D" parent="VisualRoot"]
 script = ExtResource("21")
 
+[node name="FirstPersonPresentationController" type="Node" parent="."]
+script = ExtResource("27")
+
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2")
 
@@ -74,6 +80,12 @@ script = ExtResource("6")
 script = ExtResource("7")
 attack = ExtResource("19")
 light_attack_ids = Array[StringName]([&"attack_light_1", &"attack_light_2", &"attack_light_3"])
+
+[node name="PoiseComponent" type="Node" parent="."]
+script = ExtResource("26")
+
+[node name="TargetingComponent3D" type="Node" parent="."]
+script = ExtResource("25")
 
 [node name="SkillComponent" type="Node" parent="."]
 script = ExtResource("8")
@@ -103,6 +115,9 @@ shape = SubResource("CapsuleShape3D_2")
 script = ExtResource("15")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CombatAnimationController"]
+
+[node name="AnimationTree" type="AnimationTree" parent="CombatAnimationController"]
+active = false
 
 [node name="KnockbackComponent" type="Node" parent="."]
 script = ExtResource("16")

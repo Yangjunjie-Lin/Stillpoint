@@ -18,6 +18,9 @@
 [ext_resource type="Script" path="res://scripts/components/interaction_component.gd" id="16"]
 [ext_resource type="Script" path="res://scripts/components/skill_component.gd" id="17"]
 [ext_resource type="Script" path="res://scripts/components/status_effect_component.gd" id="18"]
+[ext_resource type="Script" path="res://scripts/components/poise_component.gd" id="19"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox_3d.gd" id="20"]
+[ext_resource type="Resource" path="res://resources/attacks/combat_lab_unparryable.tres" id="21"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(30, 0.2, 30)
@@ -47,6 +50,9 @@ radius = 0.5
 radius = 0.4
 height = 1.8
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_enemy_hitbox"]
+radius = 0.8
+
 [node name="CombatLab" type="Node3D"]
 script = ExtResource("1")
 
@@ -68,8 +74,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 4)
 [node name="CameraRig" type="Node3D" parent="."]
 script = ExtResource("2")
 
-[node name="Camera3D" type="Camera3D" parent="CameraRig"]
-transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 6, 8)
+[node name="YawPivot" type="Node3D" parent="CameraRig"]
+
+[node name="PitchPivot" type="Node3D" parent="CameraRig/YawPivot"]
+
+[node name="ThirdPersonSpringArm" type="SpringArm3D" parent="CameraRig/YawPivot/PitchPivot"]
+spring_length = 6.0
+margin = 0.2
+collision_mask = 1
+
+[node name="FirstPersonAnchor" type="Marker3D" parent="CameraRig/YawPivot/PitchPivot"]
+position = Vector3(0, 1.55, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig/YawPivot/PitchPivot"]
+current = true
 
 [node name="TrainingDummy" type="CharacterBody3D" parent="." groups=["combat_lab_target"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -97,6 +115,9 @@ script = ExtResource("16")
 
 [node name="CombatComponent" type="Node" parent="TrainingDummy"]
 script = ExtResource("11")
+
+[node name="PoiseComponent" type="Node" parent="TrainingDummy"]
+script = ExtResource("19")
 
 [node name="SkillComponent" type="Node" parent="TrainingDummy"]
 script = ExtResource("17")
@@ -160,6 +181,9 @@ script = ExtResource("16")
 script = ExtResource("11")
 attack = ExtResource("12")
 
+[node name="PoiseComponent" type="Node" parent="Bandit"]
+script = ExtResource("19")
+
 [node name="SkillComponent" type="Node" parent="Bandit"]
 script = ExtResource("17")
 
@@ -173,6 +197,71 @@ team = &"npc"
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Bandit/Hurtbox3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_npc")
+
+[node name="HitboxRoot" type="Node3D" parent="Bandit"]
+position = Vector3(0, 0.9, -1.05)
+
+[node name="Hitbox3D" type="Area3D" parent="Bandit/HitboxRoot"]
+script = ExtResource("20")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bandit/HitboxRoot/Hitbox3D"]
+shape = SubResource("SphereShape3D_enemy_hitbox")
+
+[node name="UnparryableBrute" type="CharacterBody3D" parent="." groups=["combat_lab_target"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, -2)
+script = ExtResource("5")
+npc_definition = ExtResource("6")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="UnparryableBrute"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="HealthComponent" type="Node" parent="UnparryableBrute"]
+script = ExtResource("9")
+
+[node name="EnergyComponent" type="Node" parent="UnparryableBrute"]
+script = ExtResource("10")
+
+[node name="FactionComponent" type="Node" parent="UnparryableBrute"]
+script = ExtResource("14")
+
+[node name="RelationshipComponent" type="Node" parent="UnparryableBrute"]
+script = ExtResource("15")
+
+[node name="InteractionComponent" type="Node" parent="UnparryableBrute"]
+script = ExtResource("16")
+
+[node name="CombatComponent" type="Node" parent="UnparryableBrute"]
+script = ExtResource("11")
+attack = ExtResource("21")
+
+[node name="PoiseComponent" type="Node" parent="UnparryableBrute"]
+script = ExtResource("19")
+
+[node name="SkillComponent" type="Node" parent="UnparryableBrute"]
+script = ExtResource("17")
+
+[node name="StatusEffectComponent" type="Node" parent="UnparryableBrute"]
+script = ExtResource("18")
+
+[node name="Hurtbox3D" type="Area3D" parent="UnparryableBrute"]
+script = ExtResource("13")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="UnparryableBrute/Hurtbox3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="HitboxRoot" type="Node3D" parent="UnparryableBrute"]
+position = Vector3(0, 0.9, -1.05)
+
+[node name="Hitbox3D" type="Area3D" parent="UnparryableBrute/HitboxRoot"]
+script = ExtResource("20")
+team = &"npc"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="UnparryableBrute/HitboxRoot/Hitbox3D"]
+shape = SubResource("SphereShape3D_enemy_hitbox")
 
 [node name="CombatFeedback" type="Node" parent="."]
 script = ExtResource("3")

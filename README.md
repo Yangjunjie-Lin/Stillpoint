@@ -4,10 +4,9 @@
 > economies, factions, and territories evolve through systemic simulation.
 
 Stillpoint is a playable Godot prototype aimed at the fantasy: **"I have
-genuinely entered another world."** Version 0.9.0 establishes one product
-identity, one domain language, and a deterministic authority boundary for
-future world simulation. It does not claim that the full living world is
-already complete.
+genuinely entered another world."** Version 0.10.0 extends the accepted 0.9.0
+foundation with an action camera and perspective-independent combat identity.
+It does not claim that the full living world is already complete.
 
 ## Current status
 
@@ -17,8 +16,10 @@ already complete.
   scenes for town, farmland, wilderness, a private home, and a dungeon.
 - Save v4 with validation, backups, per-region chunks, runtime actor snapshots,
   permanent destruction, and Main Menu → Continue restore.
-- 3D movement; animation-event melee combos; guard, skills, hit reactions,
-  knockback, equipment, inventory, character builds, and proficiency.
+- 3D movement; switchable first-person/third-person action camera; free aim and
+  target lock; animation-event melee combos; authored heavy attacks; guard and
+  timing-based parry; deterministic dodge iframes; poise/stagger; skills, hit
+  reactions, knockback, equipment, inventory, character builds, and proficiency.
 - Authored and free-form NPC dialogue, quests, relationships, local schedules,
   persistent scoped memory, bounded knowledge/belief graphs, and deterministic
   offline dialogue fallback.
@@ -48,8 +49,8 @@ already complete.
 
 ### Planned
 
-- First/third-person action camera, lock-on, dodge, parry, poise, heavy attacks,
-  and production animation foundations (0.10.0).
+- Production animation replacement, advanced controller UX, and ranged combat
+  foundations (0.10.x+).
 - Shared per-actor wallets, NPC inventories/equipment, professions, jobs,
   workplaces, wages, and production (0.11.0–0.12.0).
 - Runtime factions, territory, governance, laws, and political offices (0.13.0).
@@ -95,8 +96,14 @@ quests, teleport actors, or set world flags. See
 | Interact | F |
 | Walk/run toggle | Space |
 | Attack / three-hit combo | J |
-| Jump | K |
+| Heavy attack | H |
 | Guard | Shift |
+| Dodge | B |
+| Target lock | R |
+| Cycle locked target left / right | [ / ] |
+| Toggle first/third person | V |
+| Shoulder swap | C |
+| Jump | K |
 | Crouch | Ctrl |
 | Backpack / equipment | Tab |
 | Use or equip selected item | X |
@@ -118,7 +125,7 @@ python tools/python/run_godot_tests.py
 python tools/python/validate_repo.py
 ```
 
-The automated Godot gate discovers 351 unit/integration scripts and rejects
+The automated Godot gate discovers 355 unit/integration scripts and rejects
 unexpected script errors, runtime errors, ObjectDB leaks, and resource leaks.
 Backend tests cover the in-memory service and PostgreSQL/pgvector integration.
 

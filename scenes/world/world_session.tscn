@@ -156,10 +156,21 @@ script = ExtResource("27")
 script = ExtResource("29")
 
 [node name="CameraRig" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 12)
 script = ExtResource("3")
 
-[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+[node name="YawPivot" type="Node3D" parent="CameraRig"]
+
+[node name="PitchPivot" type="Node3D" parent="CameraRig/YawPivot"]
+
+[node name="ThirdPersonSpringArm" type="SpringArm3D" parent="CameraRig/YawPivot/PitchPivot"]
+spring_length = 6.0
+margin = 0.2
+collision_mask = 1
+
+[node name="FirstPersonAnchor" type="Marker3D" parent="CameraRig/YawPivot/PitchPivot"]
+position = Vector3(0, 1.55, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig/YawPivot/PitchPivot"]
 current = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
@@ -168,6 +179,16 @@ transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0
 [node name="WorldUI" type="CanvasLayer" parent="."]
 layer = 10
 script = ExtResource("17")
+
+[node name="Crosshair" type="Label" parent="WorldUI"]
+offset_left = 632.0
+offset_top = 347.0
+offset_right = 648.0
+offset_bottom = 373.0
+theme_override_colors/font_color = Color(0.92, 0.94, 0.86, 0.9)
+theme_override_font_sizes/font_size = 20
+text = "+"
+horizontal_alignment = 1
 
 [node name="VBox" type="VBoxContainer" parent="WorldUI"]
 offset_left = 12.0

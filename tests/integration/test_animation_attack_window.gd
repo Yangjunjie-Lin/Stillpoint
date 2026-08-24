@@ -9,6 +9,8 @@ func run() -> bool:
 	await tree.physics_frame
 	var combat := player.combat
 	var ok := not combat.hitbox_active
+	combat.is_attacking = true
+	combat._current_attack = combat.attack
 	combat.open_attack_window()
 	await tree.process_frame
 	ok = ok and combat.hitbox_active

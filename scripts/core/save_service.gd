@@ -21,6 +21,12 @@ var settings: Dictionary = {
 	"allow_conversation_storage": false,
 	"allow_memory_personalization": false,
 	"pet_proactive_dialogue_enabled": true,
+	"camera_sensitivity": 0.12,
+	"camera_invert_vertical": false,
+	"camera_third_person_fov": 68.0,
+	"camera_first_person_fov": 78.0,
+	"camera_smoothing": 14.0,
+	"camera_default_perspective": 0,
 	"client_install_id": "",
 	"player_profile_id": "",
 }

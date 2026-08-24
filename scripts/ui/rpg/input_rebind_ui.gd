@@ -8,6 +8,8 @@ var _listening_action: StringName = &""
 var _actions: Array[StringName] = [
 	&"move_forward", &"move_backward", &"move_left", &"move_right",
 	&"interact", &"toggle_walk_run", &"normal_attack", &"jump", &"guard", &"crouch",
+	&"toggle_camera_perspective", &"toggle_target_lock", &"cycle_target_left", &"cycle_target_right",
+	&"heavy_attack", &"dodge", &"shoulder_swap",
 	&"hotbar_previous", &"hotbar_next",
 	&"skill_slot_1", &"skill_slot_2", &"skill_slot_3", &"skill_slot_4",
 	&"pause", &"open_menu", &"open_map",

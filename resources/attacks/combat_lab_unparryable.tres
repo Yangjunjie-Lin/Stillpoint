@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AttackDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/attack_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"combat_lab_unparryable"
+display_name = "Brute Breaker"
+animation_name = &"attack_heavy_1"
+animation_speed = 0.78
+damage = 18.0
+energy_cost = 8.0
+poise_damage = 24.0
+guard_damage = 30.0
+knockback_distance = 3.0
+knockback_duration = 0.2
+hitstun_duration = 0.32
+blockstun_duration = 0.28
+hit_stop_duration = 0.07
+blockable = true
+parryable = false
+windup = 0.42
+active = 0.2
+recovery = 0.48
+tags = Array[StringName]([&"heavy", &"unparryable", &"combat_lab"])

@@ -12,7 +12,10 @@ func _ready() -> void:
 	PhysicsSettingsService.verify_physics_backend()
 	_spawn_player()
 	_wire_targets()
-	var camera := get_node_or_null("CameraRig/Camera3D") as Camera3D
+	var camera_rig := get_node_or_null("CameraRig") as CameraController3D
+	if camera_rig != null:
+		camera_rig.set_target(player)
+	var camera := camera_rig.camera if camera_rig != null else null
 	if feedback != null and camera != null:
 		feedback.bind_camera(camera)
 	if debug_overlay != null:

@@ -34,6 +34,18 @@ static func compute_velocity(
 	return Vector3(horizontal.x, current_velocity.y, horizontal.z)
 
 
+static func direction_from_camera(camera_basis: Basis, input_dir: Vector2) -> Vector3:
+	if input_dir.length_squared() <= 0.001:
+		return Vector3.ZERO
+	var forward := -camera_basis.z
+	forward.y = 0.0
+	forward = forward.normalized()
+	var right := camera_basis.x
+	right.y = 0.0
+	right = right.normalized()
+	return (forward * -input_dir.y + right * input_dir.x).normalized()
+
+
 static func clamp_diagonal_speed(velocity: Vector3, max_speed: float) -> Vector3:
 	var horizontal := Vector2(velocity.x, velocity.z)
 	if horizontal.length() > max_speed:

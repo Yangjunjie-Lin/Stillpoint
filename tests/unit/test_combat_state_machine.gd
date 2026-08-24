@@ -4,6 +4,9 @@ extends RefCounted
 func run() -> bool:
 	var combat := CombatComponent.new()
 	var ok := combat.combat_state == CombatComponent.CombatState.READY
+	combat.attack = AttackDefinition.new()
+	combat.is_attacking = true
+	combat._current_attack = combat.attack
 	combat.open_attack_window()
 	ok = ok and combat.hitbox_active
 	combat.close_attack_window()

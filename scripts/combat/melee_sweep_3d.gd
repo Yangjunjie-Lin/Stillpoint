@@ -101,6 +101,8 @@ func _build_context() -> Dictionary:
 	var direction := (_curr_tip - _prev_tip).normalized()
 	if direction.length_squared() < 0.001 and source is Node3D:
 		direction = -(source as Node3D).global_transform.basis.z
+	var attack_definition: AttackDefinition = (source as CharacterController).combat.get_current_attack_definition() \
+		if source is CharacterController and (source as CharacterController).combat != null else null
 	return {
 		"attack_id": String(attack_id),
 		"team": String(team),
@@ -108,6 +110,11 @@ func _build_context() -> Dictionary:
 		"from_player": team == &"player",
 		"direction": direction,
 		"sweep_hit": true,
+		"blockable": true,
+		"attack_definition": attack_definition,
+		"parryable": attack_definition.parryable if attack_definition != null else true,
+		"poise_damage": attack_definition.poise_damage if attack_definition != null else 0.0,
+		"ignore_dodge_iframe": attack_definition.ignores_dodge_iframe if attack_definition != null else false,
 	}
 
 

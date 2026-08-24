@@ -1,4 +1,4 @@
-# Combat Animation Guide (Stillpoint 0.6.0)
+# Combat Animation Guide (Stillpoint 0.10.0)
 
 Placeholder animations ship with the project. Replace clips without changing gameplay code.
 
@@ -11,6 +11,8 @@ Placeholder animations ship with the project. Replace clips without changing gam
 | `jump_start`, `jump_loop`, `fall`, `land` | Airborne |
 | `guard_enter`, `guard_loop`, `guard_exit`, `guard_break` | Guard |
 | `attack_light_1` … `attack_light_3` | Melee combo |
+| `attack_heavy_1` | Authored heavy melee strike |
+| `dodge` | Dodge presentation; gameplay displacement/iframes stay simulation-owned |
 | `hit_*_light`, `hit_heavy` | Hit reactions |
 | `downed`, `get_up`, `death` | Incapacitation |
 
@@ -23,12 +25,18 @@ Placeholder animations ship with the project. Replace clips without changing gam
 - Method tracks must call `CombatAnimationController` events:
   - `attack_started`, `attack_window_open`, `attack_window_close`
   - `combo_window_open`, `combo_window_close`, `attack_finished`
+- Guard press enters a simulation-owned `PARRY_WINDOW`; a future authored clip
+  may call presentation-only parry feedback. Gameplay parry success never
+  depends on a visual callback.
 
 ## Runtime wiring
 
 - `CombatAnimationController` owns AnimationPlayer/AnimationTree parameter paths.
 - `CombatComponent` opens/closes hitboxes from animation events only (timers are watchdog fallback).
 - `AttackDefinition.animation_name` selects the clip; combo chain uses `next_combo_attack_ids`.
+- 0.10.0 root-motion policy: `CharacterBody3D` owns world displacement for
+  locomotion, attacks, and dodge. Animation may suggest motion later, but never
+  silently teleports an actor.
 
 ## Placeholder status
 

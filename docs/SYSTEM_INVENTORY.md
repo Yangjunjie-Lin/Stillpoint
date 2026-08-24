@@ -31,7 +31,7 @@ discovery, backend service/migrations, CI, launch tooling, and legacy paths.
 | Dungeon/exploration | Level gate, authored dungeon, loot caches, boss tracking/respawn, hidden encounter slices | Dungeon/encounter services, repository, Save | Implemented vertical slice |
 | Time/simulation | Authoritative clock, day/hour signals, physical/virtual mode query | `WorldTimeService`, placeholder `WorldSimulationService` | Time implemented; general abstract/regional/strategic simulation planned |
 | Content/data | `.tres` catalogs for actors, minds, factions, origins, professions, skills, items, houses, shops, regions, dungeon, encounters, containers, loot, and spawns | `ResourceRegistry` treats definitions as authored data | Data-driven foundation; broader content pipeline planned |
-| Tooling/tests | 351 Godot unit/integration scripts, backend unit/PostgreSQL tests, cross-process E2E, exporters, hygiene/secret scans, Windows launcher | CI/tool scripts | Strong automated foundation; manual acceptance remains required |
+| Tooling/tests | 355 Godot unit/integration scripts, backend unit/PostgreSQL tests, cross-process E2E, exporters, hygiene/secret scans, Windows launcher | CI/tool scripts | Strong automated foundation; manual acceptance remains required |
 | Legacy survival | Separate 2D shooter scene/controller/hitbox/bullet/save path | Legacy mode only | Preserved compatibility; must not influence living-world domain design |
 
 ## Static definition versus runtime state

@@ -1,6 +1,6 @@
-# Architecture (Godot 0.9.0)
+# Architecture (Godot 0.10.0)
 
-Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the world service split, Save v4, and region dynamic loading. Version 0.9.0 retains those systems and adds the product/domain language and typed-intent authority boundary documented in [SIMULATION_AUTHORITY.md](SIMULATION_AUTHORITY.md).
+Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the world service split, Save v4, and region dynamic loading. Version 0.10.0 retains those systems and adds the action-camera/combat presentation while preserving the product/domain language and typed-intent authority boundary documented in [SIMULATION_AUTHORITY.md](SIMULATION_AUTHORITY.md).
 
 ## Simulation Authority
 
@@ -41,6 +41,19 @@ Hitbox3D (active frames only, per-target once)
 ```
 
 Hurtboxes never call Health directly. Guard applies only for frontal blocked hits with enough energy.
+
+`CameraController3D` is a presentation/control context, not a player entity. A
+single yaw/pitch rig owns one active `Camera3D` and exposes perspective,
+collision, free-aim, and settings APIs. `TargetingComponent3D` owns candidate
+selection and lock invalidation; it does not mutate world state.
+
+`CombatComponent.CombatState` owns detailed timing (`READY`, `WINDUP`, `ACTIVE`,
+`RECOVERY`, `PARRY_WINDOW`, `GUARDING`, `DODGING`, `BLOCKSTUN`, `HITSTUN`,
+`STAGGERED`, `KNOCKED_DOWN`, `DISABLED`). `CharacterState` remains the coarse
+actor availability state. Dodge movement/iframes, guard/parry resolution,
+poise, and stun are simulation-owned; animation is presentation and event
+timing only. The root-motion policy for 0.10.0 is simulation-authoritative
+locomotion and attack displacement.
 
 ## Single-source Relationship Model
 
