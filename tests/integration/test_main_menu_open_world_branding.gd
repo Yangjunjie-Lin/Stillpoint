@@ -52,7 +52,7 @@ func run() -> bool:
 		and world_line != null
 		and "EXPLORE" in world_line.text
 		and version_label != null
-		and version_label.text == "0.10.0  ·  SAVE v4"
+		and version_label.text == "0.11.0  ·  SAVE v4"
 		and explore != null
 		and explore.text.begins_with("  EXPLORE")
 		and build != null

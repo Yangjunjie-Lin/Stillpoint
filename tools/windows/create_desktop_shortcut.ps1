@@ -15,7 +15,7 @@ if (-not (Test-Path -LiteralPath $launcher)) {
 }
 
 $desktop = [Environment]::GetFolderPath("Desktop")
-$shortcutPath = Join-Path $desktop "Stillpoint 0.10.0.lnk"
+$shortcutPath = Join-Path $desktop "Stillpoint 0.11.0.lnk"
 $icon = Join-Path $RepoRoot "assets\ui\stillpoint_emblem.ico"
 if (-not (Test-Path -LiteralPath $icon)) {
     throw "Stillpoint launcher icon was not found: $icon"
