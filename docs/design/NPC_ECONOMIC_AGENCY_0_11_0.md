@@ -187,9 +187,14 @@ job/worksite/item, quantity or money/work amount, world time, proposal, and
 sequence as applicable. Cognition may observe these facts but owns none of the
 underlying state.
 
-The debug-build world panel selects the target-locked or nearest NPC and shows
-persistent ID, wallet, job/worksite, state, smithing, inventory, work tool, last
-work result, and economic sequence.
+The debug-build world panel initially selects the employed blacksmith and can
+cycle loaded NPCs and interactables. It shows persistent ID and definition,
+wallet transaction provenance, energy, job/worksite distance, payroll, state,
+smithing, inventory, work tool, last work result, and economic sequence. Its
+acceptance controls synthesize normal InputMap actions or use the canonical
+region/session services; none can directly mutate actor economy. A debug-only
+ActorFactory sibling action creates a second same-definition actor with a new
+persistent ID so instance isolation can be observed and saved in a real build.
 
 ## Explicit 0.12+ boundary
 
