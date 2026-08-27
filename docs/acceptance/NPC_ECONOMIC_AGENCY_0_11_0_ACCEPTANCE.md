@@ -4,12 +4,25 @@
 
 - Baseline develop: `1a91dda13ad9b4ff2eeeeff5c9d51c45bdce82d4`
 - Feature branch: `feat/0.11.0-npc-economic-agency`
-- Candidate Head: pending final commit
-- Build: real candidate-content Windows Debug export exercised; exact-final-head
-  export and SHA-256 pending
-- Automated Godot result: pending final full gate (369-script floor)
-- Manual result: 28/28 PASS on the real candidate-content Windows Debug
-  build; exact-final-head critical Continue smoke pending
+- Validated runtime/source commit:
+  `267973e40786700d3c175ae8d4dbedd9143acf9e`
+- Acceptance metadata: finalized in a documentation-only follow-up commit; GitHub
+  CI is the authoritative exact-PR-Head gate.
+- Windows Debug export:
+  `builds/stillpoint_windows_0.11.0.exe`
+  - Size: `107256184` bytes
+  - SHA-256:
+    `A86659B5D357D69DCCBF8F363CFBC12AB88820ECA1E9E01156329318C8375E6B`
+  - Exported UTC: `2026-08-27T00:29:54.4754891Z`
+- Automated Godot result: 369 passed / 0 failed; 0 unexpected script
+  errors, 0 unexpected engine errors, 0 ObjectDB leaks, and 0 resource leaks.
+- Manual result: 28/28 PASS on the real Windows Debug build, plus a fresh-slot
+  Save / Main Menu / Continue smoke on the exact runtime/source candidate.
+- Local PostgreSQL note: PostgreSQL/Alembic and cross-process E2E were not
+  claimed locally because Docker Desktop could not create its WSL VM
+  (`Wsl/Service/CreateInstance/CreateVm/HCS/ERROR_FILE_NOT_FOUND`) and native
+  PostgreSQL was unavailable. Their authoritative result is the final GitHub
+  CI run.
 
 Manual PASS must be recorded only from a real exact-head Debug Build. Automated
 tests provide setup confidence but are not manual evidence.
@@ -39,12 +52,12 @@ tests provide setup confidence but are not manual evidence.
 
 | # | Check | Result | Evidence / notes |
 | --- | --- | --- | --- |
-| 17 | Two same-definition instances retain independent state | PASS | Primary `blacksmith_0001`: wallet 465, smithing 20, improved hammer, sequence 22/work 20/income 500. Sibling `blacksmith_debug_01`: wallet 10, smithing 0, starter hammer, sequence/work/income 0. |
+| 17 | Two same-definition instances retain independent state | PASS | Primary `blacksmith_0001`: wallet 465, smithing 20, improved hammer, sequence 22/work 20/income 500. Sibling `blacksmith_debug_01`: wallet 10, smithing 0, starter hammer, sequence/work/income 0. The exact-candidate fresh-slot Continue smoke restored the same separation. |
 | 18 | Leave town and return; all actor economic state remains | PASS | Travelled Town → Wilderness → Town; wallet, inventory, equipped tool, employment, skill, result, and sequence remained exact. |
 | 19 | Worksite payroll remains exact after region reload | PASS | Town Smithy payroll remained 0 after region unload/reload. |
-| 20 | Save → Main Menu → Continue restores wallet/inventory/equipment | PASS | Multiple Save & Main Menu → Continue cycles restored Torren wallet 465, starter hammer inventory x1, and improved hammer equipped. |
-| 21 | Continue restores employment/smithing/result/sequence/payroll | PASS | Final Continue restored `job:blacksmith`, Town Smithy, smithing 20.0, units 17.76/quality 44.41/wage 25, sequence 22, 20 work actions, and payroll 0. |
-| 22 | Previous wage/purchase/equip does not replay | PASS | Final Continue retained sequence 22 and wallet 465 without repeating the prior wage, 45-coin purchase, or equip mutation. |
+| 20 | Save → Main Menu → Continue restores wallet/inventory/equipment | PASS | Multiple Save & Main Menu → Continue cycles restored Torren wallet 465, starter hammer inventory x1, and improved hammer equipped. A fresh adventure created with the exact Windows candidate was also saved, continued, saved again, and exited normally. |
+| 21 | Continue restores employment/smithing/result/sequence/payroll | PASS | Exact-candidate Continue restored `job:blacksmith`, Town Smithy, smithing 20.0, units 17.76/quality 44.41/wage 25, sequence 22, 20 work actions, and payroll 0; the sibling remained at smithing 0, sequence 0, and work actions 0. |
+| 22 | Previous wage/purchase/equip does not replay | PASS | Exact-candidate Continue retained sequence 22 and wallet 465 without repeating the prior wage, 45-coin purchase, or equip mutation. The sibling remained at wallet 10 with its authored seed transaction only. |
 
 ## Player and world regression checklist
 
