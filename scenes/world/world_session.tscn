@@ -415,7 +415,7 @@ text = "Save & Main Menu"
 
 [node name="DebugTools" type="CanvasLayer" parent="."]
 visible = false
-layer = 5
+layer = 20
 script = ExtResource("19")
 
 [node name="Panel" type="PanelContainer" parent="DebugTools"]

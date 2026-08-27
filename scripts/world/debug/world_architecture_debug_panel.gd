@@ -8,6 +8,8 @@ extends CanvasLayer
 ## equipment, employment, skill, payroll, or work results directly.
 
 @onready var label: Label = %Label
+@onready var panel: PanelContainer = $Panel
+@onready var dialogue_panel: Control = $"../WorldUI/DialoguePanel"
 @onready var previous_npc_button: Button = %PreviousNPCButton
 @onready var next_npc_button: Button = %NextNPCButton
 @onready var near_npc_button: Button = %NearNPCButton
@@ -53,7 +55,7 @@ func _ready() -> void:
 	previous_interactable_button.pressed.connect(_cycle_interactable.bind(-1))
 	next_interactable_button.pressed.connect(_cycle_interactable.bind(1))
 	near_interactable_button.pressed.connect(_move_near_selected_interactable)
-	interact_button.pressed.connect(_pulse_action.bind(&"interact"))
+	interact_button.pressed.connect(_interact_selected)
 	step_button.pressed.connect(_hold_action.bind(&"move_forward", 30))
 	camera_button.pressed.connect(_pulse_action.bind(&"toggle_camera_perspective"))
 	target_button.pressed.connect(_pulse_action.bind(&"toggle_target_lock"))
@@ -71,6 +73,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if not visible:
 		return
+	panel.visible = not get_tree().paused and not dialogue_panel.visible
 	if _session == null:
 		_session = _find_session()
 	if _session == null or label == null:
@@ -277,6 +280,14 @@ func _move_near_selected_worksite() -> void:
 
 func _move_near_selected_interactable() -> void:
 	_move_player_near(_selected_interactable())
+
+
+func _interact_selected() -> void:
+	if _action_busy:
+		return
+	_move_near_selected_interactable()
+	await get_tree().process_frame
+	await _pulse_action(&"interact")
 
 
 func _move_player_near(target: Node3D) -> void:
