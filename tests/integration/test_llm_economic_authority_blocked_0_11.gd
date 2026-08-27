@@ -19,7 +19,8 @@ func run() -> bool:
 	var sequence := actor.employment.expected_next_sequence()
 	var wallet_before := actor.wallet.get_balance()
 	var skill_before := actor.skills.get_points(&"smithing")
-	var payroll_before := world.actor_economy_service.get_worksite_state(contract.worksite_id).payroll_balance
+	var business := world.actor_economy_service.get_business_for_worksite(contract.worksite_id)
+	var treasury_before: int = business.get_treasury_balance()
 	var forged := IntentProposal.new(
 		&"llm-forged-wage",
 		IntentProposal.SourceKind.LLM,
@@ -30,7 +31,7 @@ func run() -> bool:
 	var ok: bool = not result.is_valid and result.code == &"source_not_authorized"
 	ok = ok and actor.wallet.get_balance() == wallet_before
 	ok = ok and actor.skills.get_points(&"smithing") == skill_before
-	ok = ok and world.actor_economy_service.get_worksite_state(contract.worksite_id).payroll_balance == payroll_before
+	ok = ok and business.get_treasury_balance() == treasury_before
 	ok = ok and actor.employment.economic_sequence == sequence - 1
 
 	var forged_equip := IntentProposal.new(

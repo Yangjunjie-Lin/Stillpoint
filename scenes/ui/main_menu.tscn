@@ -200,7 +200,7 @@ horizontal_alignment = 2
 [node name="VersionLabel" type="Label" parent="WorldStatus/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.82, 0.78, 1)
-text = "0.11.0  ·  SAVE v4"
+text = "0.12.0  ·  SAVE v4"
 horizontal_alignment = 2
 
 [node name="LeaderboardButton" type="Button" parent="."]

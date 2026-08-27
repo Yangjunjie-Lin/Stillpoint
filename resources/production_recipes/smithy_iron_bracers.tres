@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="ProductionRecipeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/production_recipe_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"production:smithy_iron_bracers"
+display_name = "Forge Iron Bracers"
+business_type = &"smithy"
+worksite_type = &"smithy"
+input_items = {
+"iron_ore": 2
+}
+output_items = {
+"iron_bracers": 1
+}
+required_job_id = &"job:blacksmith"
+required_skill_id = &"smithing"
+required_work_tags = Array[StringName]([&"smithing"])
+base_work_units = 10.0
+energy_cost = 8.0
+work_actions_required = 1
+minimum_skill = 0.0

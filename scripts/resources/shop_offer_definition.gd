@@ -1,7 +1,7 @@
 class_name ShopOfferDefinition
 extends Resource
-## One authored, unlimited-stock offer. Runtime stock can be layered on later
-## without making the static catalogue mutable.
+## One immutable catalogue/authorization offer. Sellable quantity always comes
+## from the owning BusinessRuntimeState inventory.
 
 @export var id: StringName = &"offer"
 @export var item_id: StringName = &""

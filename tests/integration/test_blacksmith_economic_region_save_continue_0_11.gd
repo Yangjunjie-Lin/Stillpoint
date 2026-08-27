@@ -17,7 +17,7 @@ func run() -> bool:
 	var planner := NPCEconomicPlanner.new()
 	var ok: bool = true
 	for _step in 10:
-		var proposal := planner.propose_next(actor)
+		var proposal := planner.propose_next(actor, world.actor_economy_service)
 		if proposal == null:
 			ok = false
 			break
@@ -26,7 +26,7 @@ func run() -> bool:
 			ok = false
 			break
 		if actor.equipment.get_equipped_item(ItemDefinition.EquipSlot.WEAPON) == &"improved_forge_hammer" \
-				and proposal.intent is WorkIntent:
+				and proposal.intent is ProductionIntent:
 			break
 	var expected := _state(world, actor)
 
@@ -38,9 +38,9 @@ func run() -> bool:
 		return false
 	region_restored.set_physics_process(false)
 	var region_state := _state(world, region_restored)
-	if region_state != expected:
+	if JSON.stringify(region_state) != JSON.stringify(expected):
 		push_error("region economic mismatch expected=%s actual=%s" % [JSON.stringify(expected), JSON.stringify(region_state)])
-	ok = ok and region_state == expected
+	ok = ok and JSON.stringify(region_state) == JSON.stringify(expected)
 	ok = ok and world.save_world_state()
 	world.free()
 
@@ -53,9 +53,9 @@ func run() -> bool:
 		return false
 	continued_actor.set_physics_process(false)
 	var continued_state := _state(continued, continued_actor)
-	if continued_state != expected:
+	if JSON.stringify(continued_state) != JSON.stringify(expected):
 		push_error("continue economic mismatch expected=%s actual=%s" % [JSON.stringify(expected), JSON.stringify(continued_state)])
-	ok = ok and continued_state == expected
+	ok = ok and JSON.stringify(continued_state) == JSON.stringify(expected)
 	var before_replay := _state(continued, continued_actor)
 	var contract := continued_actor.employment.current_contract
 	var replay := IntentProposal.new(
@@ -71,7 +71,8 @@ func run() -> bool:
 	)
 	var replay_result := continued.submit_intent(replay)
 	ok = ok and not replay_result.is_valid and replay_result.code == &"economic_sequence_replayed"
-	ok = ok and _state(continued, continued_actor) == before_replay
+	ok = ok and JSON.stringify(_state(continued, continued_actor)) \
+		== JSON.stringify(before_replay)
 	continued.free()
 	GameManager.resume_requested = false
 	if not ok:
@@ -81,6 +82,7 @@ func run() -> bool:
 
 func _state(world: WorldSession, actor: NPCController) -> Dictionary:
 	var state := world.actor_economy_service.get_worksite_state(&"worksite:town_smithy")
+	var business := world.actor_economy_service.get_business_state(&"business:stillpoint_smithy")
 	return {
 		"wallet": actor.wallet.get_balance(),
 		"inventory": actor.inventory.to_dict(),
@@ -88,7 +90,7 @@ func _state(world: WorldSession, actor: NPCController) -> Dictionary:
 		"employment": actor.employment.to_dict(),
 		"skills": actor.skills.to_dict(),
 		"energy": actor.energy.to_dict(),
-		"payroll": state.payroll_balance,
+		"business": business.to_dict(),
 		"work_units": state.lifetime_work_units,
 	}
 

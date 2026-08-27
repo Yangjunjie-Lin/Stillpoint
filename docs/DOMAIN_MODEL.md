@@ -13,7 +13,7 @@
 
 ## Core domains
 
-| Domain | Definition / identity | Runtime owner | 0.11.0 status |
+| Domain | Definition / identity | Runtime owner | 0.12.0 status |
 | --- | --- | --- | --- |
 | Actor | Persistent entity with character/pet definition | Controller, components, `WorldEntityIdentity`, `EntitySnapshot` | Implemented foundation |
 | Player | `CharacterDefinition` plus origin/faction/profession choices | `PlayerController3D`, shared components, Save v4 player section | Implemented |
@@ -25,8 +25,9 @@
 | Profession | `ProfessionDefinition` | Player `profession_id` | Long-term build/class identity; distinct from employment |
 | Skill | `SkillDefinition`; cognitive skills are deliberately separate | `SkillComponent` / pet skill state | Implemented proficiency and combat skills |
 | Job | `JobDefinition` | Per-actor `EmploymentContract` / `EmploymentComponent` | Implemented economic employment role |
-| WorkSite | `WorkSiteDefinition` | `WorkSiteRuntimeState` in `ActorEconomyService` | Finite payroll and abstract work units implemented |
-| Business | `ShopDefinition`, offers, forge recipes, authored buildings | Fixed-price services; no business account/stock ledger | Partial |
+| WorkSite | `WorkSiteDefinition` with owning business ID | `WorkSiteRuntimeState` in `ActorEconomyService` | Operational workers/work units; no money ownership |
+| Business | `BusinessDefinition`, shop/offers, production/forge recipes | One `BusinessRuntimeState` inventory/treasury/sequence/price ledger | Persistent finite local economy implemented |
+| Needs | Generic actor satiation plus authored behavior thresholds | NPC `NeedsComponent` | Food/rest/safety world-time slice implemented |
 | Wallet | Personal carried integer currency | Per-actor `WalletComponent`; bank/property accounts remain separate | Shared player/NPC capability implemented |
 | Inventory | `ItemDefinition` describes items | Per-actor/container `InventoryComponent` | Shared actor capability with entity snapshot persistence |
 | Equipment | Item equip/work metadata | Per-actor `EquipmentComponent`; pet runtime equipment | Shared player/NPC rules and effects implemented |
@@ -60,7 +61,8 @@ source, not by a separate economy.
 | --- | --- |
 | `NPCDefinition.display_name`, role, home, economic initialization IDs | Health, region, wallet, inventory, equipment, employment, skill, sequence |
 | `JobDefinition` skill/tags/wage/output policy | Actor contract, last result, sequence, income |
-| `WorkSiteDefinition` type/marker/efficiency/initial payroll | Current payroll, workers, lifetime abstract units |
+| `WorkSiteDefinition` type/marker/efficiency/business ID | Active workers, lifetime work units |
+| `BusinessDefinition` identity/links/initial stock/cash/targets/recipes | Treasury, inventory, demand, prices, sales, actor-independent sequence |
 | `ItemDefinition` stats, equip slots, work tags/efficiency | Owning inventory, quantity, equipped slot, future durability |
 | `FactionDefinition` name, colors, authored relations | Future treasury, leader actor ID, territory, diplomacy, policies |
 | `HouseDefinition` plan, value, capacity | Owner principal, deed status, cash, stored items |

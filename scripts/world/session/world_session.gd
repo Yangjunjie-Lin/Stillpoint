@@ -263,6 +263,7 @@ func capture_player_data() -> Dictionary:
 	var inventory_data := player.inventory.to_dict() if player.inventory else {}
 	var equipment_data := player.equipment.to_dict() if player.equipment else {}
 	var wallet_data := player.wallet.to_dict() if player.wallet else {}
+	var employment_data := player.employment.to_dict() if player.employment else {}
 	var player_data := player.to_dict()
 	player_data.erase("inventory")
 	player_data.erase("equipment")
@@ -272,6 +273,7 @@ func capture_player_data() -> Dictionary:
 		"inventory": inventory_data,
 		"equipment": equipment_data,
 		"wallet": wallet_data,
+		"employment": employment_data,
 	}
 
 
@@ -291,6 +293,9 @@ func restore_player_data(data: Dictionary) -> void:
 	if player.wallet != null and data.get("wallet", {}) is Dictionary \
 			and not (data.get("wallet", {}) as Dictionary).is_empty():
 		player.wallet.from_dict(data.get("wallet", {}) as Dictionary)
+	if player.employment != null and data.get("employment", {}) is Dictionary \
+			and not (data.get("employment", {}) as Dictionary).is_empty():
+		player.employment.from_dict(data.get("employment", {}) as Dictionary)
 	player.apply_equipment_bonuses()
 
 
@@ -961,9 +966,11 @@ func _on_region_changed(_previous: StringName, current: StringName) -> void:
 	event_bus.emit_event(ev)
 
 
-func _on_world_hour_changed(_day: int, _hour: int) -> void:
+func _on_world_hour_changed(day: int, hour: int) -> void:
 	for pet in get_owned_pets():
 		pet.sync_game_clock(not pet.is_present_in_current_region())
+	if actor_economy_service != null:
+		actor_economy_service.advance_loaded_needs(day, hour)
 
 
 func _on_pet_state_changed(_reason: StringName) -> void:

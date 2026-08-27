@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ShopDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/shop_definition.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/shop_offer_definition.gd" id="2"]
+
+[sub_resource type="Resource" id="OfferTrailSnack"]
+script = ExtResource("2")
+id = &"trail_snack"
+item_id = &"trail_snack"
+quantity_per_purchase = 1
+availability_tags = Array[StringName]([&"food", &"provisions"])
+
+[sub_resource type="Resource" id="OfferTurnip"]
+script = ExtResource("2")
+id = &"turnip"
+item_id = &"turnip"
+quantity_per_purchase = 1
+availability_tags = Array[StringName]([&"food", &"produce"])
+
+[resource]
+script = ExtResource("1")
+id = &"shop:stillpoint_provisions"
+display_name = "Stillpoint Provisions"
+shop_type = &"food_vendor"
+building_id = &"building:stillpoint_bank"
+shopkeeper_npc_definition_id = &"bank_clerk"
+public_description = "Finite local provisions sold from retained market stock."
+offers = Array[ShopOfferDefinition]([SubResource("OfferTrailSnack"), SubResource("OfferTurnip")])
+service_tags = Array[StringName]([&"food_sale", &"produce_purchase"])
+buys_from_player = true

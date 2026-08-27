@@ -386,6 +386,15 @@ prompt_text = "Trade equipment or forge with Torren"
 counter_style = &"forge"
 metadata/ontology_id = "shop:stillpoint_blacksmith_equipment"
 
+[node name="ProvisionsCounter" type="Node3D" parent="Interactables"]
+position = Vector3(-4.5, 0, -8.5)
+script = ExtResource("31")
+region_id = &"base:town"
+shop_id = &"shop:stillpoint_provisions"
+prompt_text = "Buy finite local provisions"
+counter_style = &"shop"
+metadata/ontology_id = "shop:stillpoint_provisions"
+
 [node name="PetInteract" type="Node3D" parent="Interactables"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.0, -1)
 script = ExtResource("21")

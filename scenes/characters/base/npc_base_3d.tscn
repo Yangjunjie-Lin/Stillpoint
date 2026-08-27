@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://scripts/characters/npc_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/entities/world_entity_identity.gd" id="2"]
@@ -23,6 +23,7 @@
 [ext_resource type="Script" path="res://scripts/components/equipment_component.gd" id="21"]
 [ext_resource type="Script" path="res://scripts/components/actor_attributes_component.gd" id="22"]
 [ext_resource type="Script" path="res://scripts/components/employment_component.gd" id="23"]
+[ext_resource type="Script" path="res://scripts/components/needs_component.gd" id="24"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_npc"]
 radius = 0.4
@@ -84,6 +85,9 @@ script = ExtResource("22")
 
 [node name="EmploymentComponent" type="Node" parent="."]
 script = ExtResource("23")
+
+[node name="NeedsComponent" type="Node" parent="."]
+script = ExtResource("24")
 
 [node name="StatusEffectComponent" type="Node" parent="."]
 script = ExtResource("10")

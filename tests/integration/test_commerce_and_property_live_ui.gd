@@ -19,6 +19,7 @@ func run() -> bool:
 	var service := world.property_bank_service
 	var sword_before := world.player.inventory.count_item(&"training_sword")
 	var wallet_before := service.wallet_balance
+	var sequence_before := world.player.employment.economic_sequence
 	var sword_price := ResourceRegistry.get_item(&"training_sword").buy_price
 	var ok := menu != null and property_menu != null
 	ok = ok and bank_trade != null and bank_counter != null
@@ -39,6 +40,7 @@ func run() -> bool:
 		buy_button.pressed.emit()
 	ok = ok and world.player.inventory.count_item(&"training_sword") == sword_before + 1
 	ok = ok and service.wallet_balance == wallet_before - sword_price
+	ok = ok and world.player.employment.economic_sequence == sequence_before + 1
 	ok = ok and menu.status_label.text.contains("Purchase completed")
 	menu.close_menu()
 	ok = ok and not menu.is_open() and not tree.paused and world.player.state.input_enabled

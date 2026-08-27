@@ -75,6 +75,8 @@ enum InventoryCategory {
 @export var use_kind: UseKind = UseKind.NONE
 @export var health_restore: float = 0.0
 @export var energy_restore: float = 0.0
+## Generic actor satiation. Pet nutrition remains a separate pet-domain field.
+@export_range(0.0, 1.0, 0.01) var actor_satiation: float = 0.0
 @export var tool_attack_id: StringName = &""
 @export var utility_actions: Array[StringName] = []
 @export var attack_bonus: float = 0.0
@@ -168,6 +170,11 @@ func is_pet_food() -> bool:
 	return item_type in [ItemType.FOOD, ItemType.PET_ITEM] and pet_nutrition > 0.0
 
 
+func is_actor_food() -> bool:
+	return item_type in [ItemType.FOOD, ItemType.CONSUMABLE] \
+		and use_kind == UseKind.CONSUME and actor_satiation > 0.0
+
+
 func is_pet_equipment() -> bool:
 	return item_type == ItemType.PET_ITEM and pet_nutrition <= 0.0 and not pet_tags.is_empty()
 
@@ -222,6 +229,7 @@ func catalog_metadata() -> Dictionary:
 		"visual_archetype": String(resolved_visual_archetype()),
 		"pet_tags": _string_names(pet_tags),
 		"pet_nutrition": pet_nutrition,
+		"actor_satiation": actor_satiation,
 	}
 
 

@@ -9,9 +9,11 @@ var _professions: Dictionary = {}
 var _skills: Dictionary = {}
 var _items: Dictionary = {}
 var _shops: Dictionary = {}
+var _businesses: Dictionary = {}
 var _jobs: Dictionary = {}
 var _worksites: Dictionary = {}
 var _forge_recipes: Dictionary = {}
+var _production_recipes: Dictionary = {}
 var _dialogues: Dictionary = {}
 var _quests: Dictionary = {}
 var _regions: Dictionary = {}
@@ -74,6 +76,10 @@ func register_shop(def: ShopDefinition) -> void:
 	_put(_shops, def.id if def else &"", def, "shop")
 
 
+func register_business(def: BusinessDefinition) -> void:
+	_put(_businesses, def.id if def else &"", def, "business")
+
+
 func register_job(def: JobDefinition) -> void:
 	_put(_jobs, def.id if def else &"", def, "job")
 
@@ -84,6 +90,10 @@ func register_worksite(def: WorkSiteDefinition) -> void:
 
 func register_forge_recipe(def: ForgeRecipeDefinition) -> void:
 	_put(_forge_recipes, def.id if def else &"", def, "forge recipe")
+
+
+func register_production_recipe(def: ProductionRecipeDefinition) -> void:
+	_put(_production_recipes, def.id if def else &"", def, "production recipe")
 
 
 func register_dialogue(def: DialogueDefinition) -> void:
@@ -319,6 +329,33 @@ func get_all_shops() -> Array[ShopDefinition]:
 	return result
 
 
+func get_business(id: StringName) -> BusinessDefinition:
+	return _businesses.get(id) as BusinessDefinition
+
+
+func get_all_businesses() -> Array[BusinessDefinition]:
+	var result: Array[BusinessDefinition] = []
+	for id in _sorted_keys(_businesses):
+		var definition := _businesses[id] as BusinessDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_business_for_shop(shop_id: StringName) -> BusinessDefinition:
+	for definition in get_all_businesses():
+		if definition.shop_id == shop_id:
+			return definition
+	return null
+
+
+func get_business_for_worksite(worksite_id: StringName) -> BusinessDefinition:
+	for definition in get_all_businesses():
+		if definition.worksite_ids.has(worksite_id):
+			return definition
+	return null
+
+
 func get_job(id: StringName) -> JobDefinition:
 	return _jobs.get(id) as JobDefinition
 
@@ -353,6 +390,19 @@ func get_all_forge_recipes() -> Array[ForgeRecipeDefinition]:
 	var result: Array[ForgeRecipeDefinition] = []
 	for id in _sorted_keys(_forge_recipes):
 		var definition := _forge_recipes[id] as ForgeRecipeDefinition
+		if definition != null:
+			result.append(definition)
+	return result
+
+
+func get_production_recipe(id: StringName) -> ProductionRecipeDefinition:
+	return _production_recipes.get(id) as ProductionRecipeDefinition
+
+
+func get_all_production_recipes() -> Array[ProductionRecipeDefinition]:
+	var result: Array[ProductionRecipeDefinition] = []
+	for id in _sorted_keys(_production_recipes):
+		var definition := _production_recipes[id] as ProductionRecipeDefinition
 		if definition != null:
 			result.append(definition)
 	return result
@@ -497,9 +547,11 @@ func load_defaults() -> void:
 	_register_dir("res://resources/skills/", register_skill)
 	_register_dir("res://resources/items/", register_item, true)
 	_register_dir("res://resources/shops/", register_shop, true)
+	_register_dir("res://resources/businesses/", register_business, true)
 	_register_dir("res://resources/jobs/", register_job, true)
 	_register_dir("res://resources/worksites/", register_worksite, true)
 	_register_dir("res://resources/forge_recipes/", register_forge_recipe, true)
+	_register_dir("res://resources/production_recipes/", register_production_recipe, true)
 	_register_dir("res://resources/dialogues/", register_dialogue)
 	_register_dir("res://resources/quests/", register_quest)
 	_register_dir("res://resources/regions/", register_region)
@@ -529,9 +581,11 @@ func clear_all() -> void:
 	_skills.clear()
 	_items.clear()
 	_shops.clear()
+	_businesses.clear()
 	_jobs.clear()
 	_worksites.clear()
 	_forge_recipes.clear()
+	_production_recipes.clear()
 	_dialogues.clear()
 	_quests.clear()
 	_regions.clear()
@@ -562,9 +616,11 @@ func clear_test_registrations() -> void:
 		"skills": _skills,
 		"items": _items,
 		"shops": _shops,
+		"businesses": _businesses,
 		"jobs": _jobs,
 		"worksites": _worksites,
 		"forge_recipes": _forge_recipes,
+		"production_recipes": _production_recipes,
 		"dialogues": _dialogues,
 		"quests": _quests,
 		"regions": _regions,
@@ -600,9 +656,11 @@ func _capture_default_keys() -> void:
 		"skills": _skills.duplicate(false),
 		"items": _items.duplicate(false),
 		"shops": _shops.duplicate(false),
+		"businesses": _businesses.duplicate(false),
 		"jobs": _jobs.duplicate(false),
 		"worksites": _worksites.duplicate(false),
 		"forge_recipes": _forge_recipes.duplicate(false),
+		"production_recipes": _production_recipes.duplicate(false),
 		"dialogues": _dialogues.duplicate(false),
 		"quests": _quests.duplicate(false),
 		"regions": _regions.duplicate(false),

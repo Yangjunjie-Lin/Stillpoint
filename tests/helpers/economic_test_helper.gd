@@ -48,6 +48,9 @@ static func make_blacksmith_actor(
 	actor.employment = EmploymentComponent.new()
 	actor.employment.name = "EmploymentComponent"
 	actor.add_child(actor.employment)
+	actor.needs = NeedsComponent.new()
+	actor.needs.name = "NeedsComponent"
+	actor.add_child(actor.needs)
 	if tool_id != &"":
 		actor.inventory.add_item(tool_id, 1)
 		actor.equipment.equip_from_inventory(actor.inventory, 0)
@@ -65,8 +68,17 @@ static func make_blacksmith_actor(
 	return actor
 
 
-static func worksite_state(payroll: int = 100) -> WorkSiteRuntimeState:
+static func worksite_state(_legacy_payroll: int = 0) -> WorkSiteRuntimeState:
 	var state := WorkSiteRuntimeState.new()
 	state.worksite_id = &"worksite:town_smithy"
-	state.payroll_balance = payroll
+	return state
+
+
+static func business_state(
+	treasury: int = 100,
+	business_id: StringName = &"business:stillpoint_smithy",
+) -> BusinessRuntimeState:
+	var state := BusinessRuntimeState.new()
+	state.initialize(ResourceRegistry.get_business(business_id))
+	state.restore_treasury(treasury)
 	return state

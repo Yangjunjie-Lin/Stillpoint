@@ -20,79 +20,101 @@ func run() -> bool:
 func _buy_success(commerce: CommerceService) -> bool:
 	var inventory := _inventory(4)
 	var funds := _funds(100, 100)
+	var business := _business(&"business:stillpoint_bank_broker")
 	var before_total := funds.get_total_assets()
-	var result := commerce.buy(BANK_SHOP, &"training_sword", 1, inventory, funds)
-	var price := ResourceRegistry.get_item(&"training_sword").buy_price
+	var quote := commerce.quote(BANK_SHOP, &"training_sword", business)
+	var result := commerce.buy(BANK_SHOP, &"training_sword", 1, inventory, funds, business, quote)
+	var price := quote.total_price
 	var ok := bool(result.get("success", false))
 	ok = ok and String(result.get("code", "")) == "purchased"
 	ok = ok and inventory.count_item(&"training_sword") == 1
 	ok = ok and funds.get_total_assets() == before_total - price
 	ok = ok and funds.bank_balance == 0 and funds.wallet_balance == 200 - price
-	_free_pair(inventory, funds)
+	ok = ok and business.get_treasury_balance() == 2000 + price
+	_free_transaction(inventory, funds, business)
 	return ok
 
 
 func _buy_failures_leave_state_unchanged(commerce: CommerceService) -> bool:
 	var inventory := _inventory(2)
 	var funds := _funds(139, 0)
+	var business := _business(&"business:stillpoint_bank_broker")
 	var before := _snapshot(inventory, funds)
-	var result := commerce.buy(BANK_SHOP, &"training_sword", 1, inventory, funds)
+	var business_before := business.to_dict()
+	var result := commerce.buy(BANK_SHOP, &"training_sword", 1, inventory, funds, business)
 	var ok := not bool(result.get("success", true))
 	ok = ok and String(result.get("code", "")) == "insufficient_funds"
 	ok = ok and _snapshot(inventory, funds) == before
-	_free_pair(inventory, funds)
+	ok = ok and business.to_dict() == business_before
+	_free_transaction(inventory, funds, business)
 
 	# A full backpack may not be partially changed and may not be charged.
 	inventory = _inventory(1)
 	funds = _funds(500, 250)
+	business = _business(&"business:stillpoint_bank_broker")
 	ok = inventory.add_item(&"training_sword", 1) == 1 and ok
 	before = _snapshot(inventory, funds)
-	result = commerce.buy(BANK_SHOP, &"padded_vest", 1, inventory, funds)
+	business_before = business.to_dict()
+	result = commerce.buy(BANK_SHOP, &"padded_vest", 1, inventory, funds, business)
 	ok = ok and not bool(result.get("success", true))
 	ok = ok and String(result.get("code", "")) == "inventory_full"
 	ok = ok and _snapshot(inventory, funds) == before
-	_free_pair(inventory, funds)
+	ok = ok and business.to_dict() == business_before
+	_free_transaction(inventory, funds, business)
 	return ok
 
 
 func _sell_permissions_and_success(commerce: CommerceService) -> bool:
 	var inventory := _inventory(3)
 	var funds := _funds(25, 40)
+	var smith_business := _business(&"business:stillpoint_smithy")
+	var bank_business := _business(&"business:stillpoint_bank_broker")
 	var ok := inventory.add_item(&"training_sword", 1) == 1
 	var before := _snapshot(inventory, funds)
-	var rejected := commerce.sell(SMITH_SHOP, &"training_sword", 1, inventory, funds)
+	var rejected := commerce.sell(
+		SMITH_SHOP, &"training_sword", 1, inventory, funds, smith_business
+	)
 	ok = ok and not bool(rejected.get("success", true))
 	ok = ok and String(rejected.get("code", "")) == "shop_does_not_buy"
 	ok = ok and _snapshot(inventory, funds) == before
-	var missing := commerce.sell(BANK_SHOP, &"training_sword", 2, inventory, funds)
+	var missing := commerce.sell(
+		BANK_SHOP, &"training_sword", 2, inventory, funds, bank_business
+	)
 	ok = ok and not bool(missing.get("success", true))
 	ok = ok and String(missing.get("code", "")) == "insufficient_items"
 	ok = ok and _snapshot(inventory, funds) == before
 
-	var sold := commerce.sell(BANK_SHOP, &"training_sword", 1, inventory, funds)
-	var proceeds := ResourceRegistry.get_item(&"training_sword").sell_price
+	var quote := commerce.quote_buyback(BANK_SHOP, &"training_sword", bank_business)
+	var sold := commerce.sell(
+		BANK_SHOP, &"training_sword", 1, inventory, funds, bank_business, quote
+	)
+	var proceeds := quote.total_price
 	ok = ok and bool(sold.get("success", false))
 	ok = ok and String(sold.get("code", "")) == "sold"
 	ok = ok and inventory.count_item(&"training_sword") == 0
 	ok = ok and funds.wallet_balance == 25 + proceeds
 	ok = ok and funds.bank_balance == 40
-	_free_pair(inventory, funds)
+	ok = ok and bank_business.inventory.count_item(&"training_sword") == 5
+	_free_transaction(inventory, funds, bank_business)
+	smith_business.free()
 	return ok
 
 
 func _forge_success(commerce: CommerceService) -> bool:
 	var inventory := _inventory(4)
 	var funds := _funds(100, 50)
+	var business := _business(&"business:stillpoint_smithy")
 	var ok := inventory.add_item(&"iron_ore", 3) == 3
 	ok = inventory.add_item(&"training_sword", 1) == 1 and ok
-	var result := commerce.forge(RECIPE, 1, inventory, funds, 2)
+	var result := commerce.forge(RECIPE, 1, inventory, funds, 2, business)
 	ok = ok and bool(result.get("success", false))
 	ok = ok and String(result.get("code", "")) == "forged"
 	ok = ok and inventory.count_item(&"iron_ore") == 0
 	ok = ok and inventory.count_item(&"training_sword") == 0
 	ok = ok and inventory.count_item(&"forged_iron_sword") == 1
 	ok = ok and funds.bank_balance == 0 and funds.wallet_balance == 65
-	_free_pair(inventory, funds)
+	ok = ok and business.get_treasury_balance() == 585
+	_free_transaction(inventory, funds, business)
 	return ok
 
 
@@ -106,14 +128,17 @@ func _forge_failures_leave_state_unchanged(commerce: CommerceService) -> bool:
 	for failure in failure_cases:
 		var inventory := _inventory(4)
 		var funds := _funds(int(failure["wallet"]), 0)
+		var business := _business(&"business:stillpoint_smithy")
 		ok = inventory.add_item(&"iron_ore", int(failure["ore"])) == int(failure["ore"]) and ok
 		ok = inventory.add_item(&"training_sword", int(failure["sword"])) == int(failure["sword"]) and ok
 		var before := _snapshot(inventory, funds)
-		var result := commerce.forge(RECIPE, 1, inventory, funds, int(failure["level"]))
+		var result := commerce.forge(
+			RECIPE, 1, inventory, funds, int(failure["level"]), business
+		)
 		ok = ok and not bool(result.get("success", true))
 		ok = ok and String(result.get("code", "")) == String(failure["code"])
 		ok = ok and _snapshot(inventory, funds) == before
-		_free_pair(inventory, funds)
+		_free_transaction(inventory, funds, business)
 
 	# A test-only recipe isolates the capacity edge: it consumes three from a
 	# stack of four ore but produces a non-stackable sword. One ore remains in
@@ -130,15 +155,16 @@ func _forge_failures_leave_state_unchanged(commerce: CommerceService) -> bool:
 	ResourceRegistry.register_forge_recipe(capacity_recipe)
 	var full_inventory := _inventory(1)
 	var full_funds := _funds(200, 0)
+	var full_business := _business(&"business:stillpoint_smithy")
 	ok = full_inventory.add_item(&"iron_ore", 4) == 4 and ok
 	var full_before := _snapshot(full_inventory, full_funds)
 	var full_result := commerce.forge(
-		capacity_recipe.id, 1, full_inventory, full_funds, 2
+		capacity_recipe.id, 1, full_inventory, full_funds, 2, full_business
 	)
 	ok = ok and not bool(full_result.get("success", true))
 	ok = ok and String(full_result.get("code", "")) == "inventory_full"
 	ok = ok and _snapshot(full_inventory, full_funds) == full_before
-	_free_pair(full_inventory, full_funds)
+	_free_transaction(full_inventory, full_funds, full_business)
 	return ok
 
 
@@ -167,6 +193,17 @@ func _snapshot(inventory: InventoryComponent, funds: PropertyBankService) -> Dic
 	}
 
 
-func _free_pair(inventory: InventoryComponent, funds: PropertyBankService) -> void:
+func _business(business_id: StringName) -> BusinessRuntimeState:
+	var business := BusinessRuntimeState.new()
+	business.initialize(ResourceRegistry.get_business(business_id))
+	return business
+
+
+func _free_transaction(
+	inventory: InventoryComponent,
+	funds: PropertyBankService,
+	business: BusinessRuntimeState,
+) -> void:
 	inventory.free()
 	funds.free()
+	business.free()

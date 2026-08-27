@@ -174,24 +174,49 @@ func withdraw(amount: int) -> int:
 	return moved
 
 
-func spend_funds(amount: int) -> bool:
+func spend_funds(amount: int, context: Dictionary = {}) -> bool:
 	var cost := maxi(0, amount)
 	if cost <= 0:
 		return true
-	if not _charge(cost):
+	if not _charge(cost, context):
 		return false
 	_emit_changed()
 	return true
 
 
-func credit_wallet(amount: int) -> int:
+func credit_wallet(amount: int, context: Dictionary = {}) -> int:
 	var credited := maxi(0, amount)
 	if credited <= 0:
 		return 0
-	if not _ensure_wallet().credit(credited, {"reason": "sale"}):
+	var transaction_context := context.duplicate(true)
+	if not transaction_context.has("reason"):
+		transaction_context["reason"] = "sale"
+	if not _ensure_wallet().credit(credited, transaction_context):
 		return 0
 	_emit_changed()
 	return credited
+
+
+func can_credit_wallet(amount: int) -> bool:
+	return amount >= 0 and _ensure_wallet().get_balance() <= 1000000000 - amount
+
+
+func capture_transaction_state() -> Dictionary:
+	return {
+		"wallet": _ensure_wallet().to_dict(),
+		"bank_balance": bank_balance,
+	}
+
+
+func restore_transaction_state(data: Dictionary) -> bool:
+	var raw_wallet: Variant = data.get("wallet", {})
+	if not raw_wallet is Dictionary or int(data.get("bank_balance", -1)) < 0:
+		return false
+	if not _ensure_wallet().from_dict(raw_wallet as Dictionary):
+		return false
+	bank_balance = int(data.get("bank_balance", 0))
+	_emit_changed()
+	return true
 
 
 func transfer_wallet_to_home_cash(amount: int) -> int:
@@ -456,16 +481,18 @@ func _repossess_active_house() -> bool:
 	return true
 
 
-func _charge(amount: int) -> bool:
+func _charge(amount: int, context: Dictionary = {}) -> bool:
 	var cost := maxi(0, amount)
 	if get_total_funds() < cost:
 		return false
 	var from_bank := mini(bank_balance, cost)
 	var from_wallet := cost - from_bank
-	if from_wallet > 0 and not _ensure_wallet().debit(
-		from_wallet,
-		{"reason": "combined_funds_purchase", "counterparty_id": "commerce"},
-	):
+	var transaction_context := context.duplicate(true)
+	if not transaction_context.has("reason"):
+		transaction_context["reason"] = "combined_funds_purchase"
+	if not transaction_context.has("counterparty_id"):
+		transaction_context["counterparty_id"] = "commerce"
+	if from_wallet > 0 and not _ensure_wallet().debit(from_wallet, transaction_context):
 		return false
 	bank_balance -= from_bank
 	return true

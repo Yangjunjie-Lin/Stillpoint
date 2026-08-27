@@ -171,8 +171,30 @@ func _handle_aggression_from(attacker: CharacterController, damage: float, _cont
 	react_to_aggression(attacker, damage)
 
 
-func _on_damaged(_amount: float, _source: Node) -> void:
-	pass
+func _on_damaged(amount: float, _source: Node) -> void:
+	if needs == null:
+		return
+	needs.react_to_aggression(clampf(0.25 + amount / 100.0, 0.25, 0.75))
+	var tree := get_tree()
+	var world := tree.get_first_node_in_group("world_manager") as WorldSession \
+		if tree != null else null
+	if world != null and world.entity_repository != null:
+		world.entity_repository.mark_dirty(get_persistent_actor_id())
+	if world != null and world.event_bus != null:
+		world.event_bus.emit_event(GameplayEvent.make(
+			GameplayEventTypes.ACTOR_NEED_CHANGED,
+			get_persistent_actor_id(),
+			&"",
+			&"safety",
+			region_id,
+			needs.safety_need,
+			{
+				"reason": "canonical_aggression",
+				"safety": needs.safety_need,
+				"world_day": WorldTimeService.day,
+				"world_hour": WorldTimeService.hour,
+			},
+		))
 
 
 func _emit_cognition_attack_event(attacker: Node, damage: float) -> void:
@@ -379,7 +401,7 @@ func _process_economic_action() -> void:
 	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
 	if world == null:
 		return
-	var proposal := _economic_planner.propose_next(self)
+	var proposal := _economic_planner.propose_next(self, world.actor_economy_service)
 	if proposal == null:
 		return
 	var result := world.submit_intent(proposal)
