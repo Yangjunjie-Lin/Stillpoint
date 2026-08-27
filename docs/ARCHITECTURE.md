@@ -1,12 +1,12 @@
-# Architecture (Godot 0.11.0)
+# Architecture (Godot 0.12.0)
 
-Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the world service split, Save v4, and region dynamic loading. Version 0.11.0 retains the action-camera/combat foundation and adds shared actor economics while preserving the typed-intent authority boundary documented in [SIMULATION_AUTHORITY.md](SIMULATION_AUTHORITY.md).
+Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the world service split, Save v4, and region dynamic loading. Version 0.12.0 retains the action-camera/combat foundation and extends shared actor economics with persistent businesses, finite production stock, two-party trade, and deterministic social-survival demand while preserving the typed-intent authority boundary documented in [SIMULATION_AUTHORITY.md](SIMULATION_AUTHORITY.md).
 
 ## Simulation Authority
 
 `WorldSession` owns a `WorldIntentValidator` and `WorldIntentExecutor`. Intents
 are data only. `TalkIntent` accepts verified player input. NPC `WorkIntent`,
-`PurchaseIntent`, and `EquipIntent` accept only actor-scoped
+work, production, purchase, sale, consume, and equip intents accept actor-scoped
 `DETERMINISTIC_AI`, validate a durable per-actor next sequence, and commit via
 `ActorEconomyService`. LLM-attributed proposals are rejected and provider
 intent arrays remain unexecuted.
@@ -26,17 +26,26 @@ not a second balance. Property section v3 omits pocket money. Old section v1/v2
 `wallet_balance` imports once into the player wallet; subsequent saves persist
 the wallet in `player.json` while retaining Save major version 4.
 
-`JobDefinition` and `WorkSiteDefinition` are immutable authored resources.
-`EmploymentContract`, `EmploymentComponent`, `WorkSiteRuntimeState`, and
-`WorkResult` are per-instance runtime data. `ActorEconomyService` persists
-finite worksite payroll in the global-world section; actor component state is
-captured by `EntitySnapshot`. `WorkService` uses a deterministic bounded
-formula over skill, attributes, equipped tool metadata, energy, and workplace
-efficiency. Paid work atomically debits payroll and credits the worker wallet.
+`BusinessDefinition`, `ProductionRecipeDefinition`, `JobDefinition`, and
+`WorkSiteDefinition` are immutable authored resources. One
+`BusinessRuntimeState` owns each business's canonical inventory, treasury,
+bounded demand score, price revision, and durable economic sequence. Worksites
+retain operational worker/work-unit state only. Shop offers authorize a
+catalogue item; runtime quantity is always read from business inventory.
 
-The current vertical slice intentionally stops at abstract work units. Business
-inventory, material production, revenue, scarcity, and dynamic prices remain
-0.12.0 scope.
+`EconomicTransactionCoordinator` prepares complete inventory/money next states,
+performs final actor/business sequence and quote-revision authorization, applies
+them without yielding, and restores captured participants on commit failure.
+This is bounded single-process staging, not database ACID. Production consumes
+business inputs before adding authored outputs and paying wages from retained
+business cash. Player and NPC actor sequences persist across Continue alongside
+the business sequence. Prices use deterministic clamped stock/target and bounded demand
+factors. `NeedsComponent` advances food/rest/safety on world-time intervals and
+persists through actor snapshots; no render-frame survival tick exists.
+
+Save v4 remains the container. `actor_economy` section v2 stores business and
+worksite state. A v1 worksite payroll replaces the authored business treasury
+exactly once during restore; v2 re-save omits the legacy money field.
 
 ## Jolt Physics Foundation
 

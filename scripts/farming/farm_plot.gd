@@ -195,6 +195,27 @@ func _harvest(player: PlayerController3D) -> bool:
 	growth_stage = 0
 	watered_days.clear()
 	player.practice_skill(&"harvesting", &"harvest_crop", crop.produce_item_id)
+	var tree := get_tree()
+	var world := tree.get_first_node_in_group("world_manager") as WorldSession \
+		if tree != null else null
+	if world != null and world.event_bus != null:
+		world.event_bus.emit_event(GameplayEvent.make(
+			GameplayEventTypes.ITEM_COLLECTED,
+			player.get_persistent_actor_id(),
+			&"",
+			crop.produce_item_id,
+			region_id,
+			float(crop.harvest_quantity),
+			{
+				"source_type": "crop_harvest",
+				"crop_id": String(crop.id),
+				"item_id": String(crop.produce_item_id),
+				"quantity": crop.harvest_quantity,
+				"actor_id": String(player.get_persistent_actor_id()),
+				"world_day": WorldTimeService.day,
+				"world_hour": WorldTimeService.hour,
+			},
+		))
 	EventBus.notice_requested.emit("Harvested %d %s." % [crop.harvest_quantity, crop.display_name])
 	return true
 

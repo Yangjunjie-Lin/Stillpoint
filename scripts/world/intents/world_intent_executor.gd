@@ -64,7 +64,9 @@ func _execute_authorized(
 		# Dialogue Effects retain their established session-local consumption rule.
 		_remember_session_proposal(proposal.proposal_id)
 		return _execute_talk(proposal, proposal.intent as TalkIntent, effects)
-	if proposal.intent is WorkIntent or proposal.intent is PurchaseIntent or proposal.intent is EquipIntent:
+	if proposal.intent is WorkIntent or proposal.intent is ProductionIntent \
+			or proposal.intent is PurchaseIntent or proposal.intent is ConsumeIntent \
+			or proposal.intent is SellIntent or proposal.intent is EquipIntent:
 		# Economic replay authority is the persisted actor sequence, not an
 		# in-memory UUID collection. The validator rejects an already committed
 		# sequence after region reload and Save/Continue as well as in-session.
@@ -86,9 +88,21 @@ func _execute_economic(proposal: IntentProposal) -> IntentValidationResult:
 		domain_result = session.actor_economy_service.execute_work(
 			actor, proposal.intent as WorkIntent, proposal.proposal_id
 		)
+	elif proposal.intent is ProductionIntent:
+		domain_result = session.actor_economy_service.execute_production(
+			actor, proposal.intent as ProductionIntent, proposal.proposal_id
+		)
 	elif proposal.intent is PurchaseIntent:
 		domain_result = session.actor_economy_service.execute_purchase(
 			actor, proposal.intent as PurchaseIntent, proposal.proposal_id
+		)
+	elif proposal.intent is ConsumeIntent:
+		domain_result = session.actor_economy_service.execute_consume(
+			actor, proposal.intent as ConsumeIntent, proposal.proposal_id
+		)
+	elif proposal.intent is SellIntent:
+		domain_result = session.actor_economy_service.execute_sell(
+			actor, proposal.intent as SellIntent, proposal.proposal_id
 		)
 	else:
 		domain_result = session.actor_economy_service.execute_equip(
@@ -101,7 +115,7 @@ func _execute_economic(proposal: IntentProposal) -> IntentValidationResult:
 		)
 	var event := _economic_event(proposal, actor, domain_result)
 	session.event_bus.emit_event(event)
-	if proposal.intent is WorkIntent:
+	if proposal.intent is WorkIntent or proposal.intent is ProductionIntent:
 		var work := domain_result.get("result") as WorkResult
 		var wage_event := GameplayEvent.make(
 			GameplayEventTypes.ACTOR_EARNED_WAGE,
@@ -132,11 +146,29 @@ func _economic_event(
 		definition_id = work.job_id
 		amount = work.work_units
 		payload = work.to_dict()
+	elif proposal.intent is ProductionIntent:
+		event_type = GameplayEventTypes.BUSINESS_PRODUCED
+		definition_id = (proposal.intent as ProductionIntent).recipe_id
+		amount = float((proposal.intent as ProductionIntent).batch_count)
+		payload["transaction_sequence"] = (
+			proposal.intent as ProductionIntent
+		).transaction_sequence
+		payload["source_type"] = "production_transformation"
 	elif proposal.intent is PurchaseIntent:
-		event_type = GameplayEventTypes.ACTOR_PURCHASED
+		event_type = GameplayEventTypes.BUSINESS_SOLD_ITEM
 		definition_id = StringName(str(domain_result.get("item_id", "")))
 		amount = float(domain_result.get("quantity", 0))
 		payload["transaction_sequence"] = (proposal.intent as PurchaseIntent).transaction_sequence
+	elif proposal.intent is ConsumeIntent:
+		event_type = GameplayEventTypes.ACTOR_CONSUMED_ITEM
+		definition_id = (proposal.intent as ConsumeIntent).item_id
+		amount = float((proposal.intent as ConsumeIntent).quantity)
+		payload["transaction_sequence"] = (proposal.intent as ConsumeIntent).transaction_sequence
+	elif proposal.intent is SellIntent:
+		event_type = GameplayEventTypes.BUSINESS_BOUGHT_ITEM
+		definition_id = (proposal.intent as SellIntent).item_id
+		amount = float((proposal.intent as SellIntent).quantity)
+		payload["transaction_sequence"] = (proposal.intent as SellIntent).transaction_sequence
 	else:
 		definition_id = (proposal.intent as EquipIntent).item_id
 		amount = 1.0

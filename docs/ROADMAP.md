@@ -69,6 +69,17 @@ improved output across region reload and Save/Continue. Design and scope are in
 release evidence belongs in
 [NPC_ECONOMIC_AGENCY_0_11_0_ACCEPTANCE.md](acceptance/NPC_ECONOMIC_AGENCY_0_11_0_ACCEPTANCE.md).
 
-0.12.0 remains responsible for business inventories, production inputs and
-outputs, conserved shop treasuries/revenue, social-survival demand, scarcity,
-and dynamic prices.
+## 0.12.0 implementation notes
+
+The production-economy phase adds immutable business/production definitions,
+one persistent inventory and treasury per business, two-party staged commerce,
+stock/revision quotes, deterministic scarcity and bounded demand memory, smithy
+input/output production, retained forge revenue, and shared NPC food/rest/safety
+needs. Save v4 section migration replaces 0.11 worksite payroll with the owning
+business treasury once. Design and scope are in
+[PRODUCTION_ECONOMY_0_12_0.md](design/PRODUCTION_ECONOMY_0_12_0.md); manual
+release evidence belongs in
+[PRODUCTION_ECONOMY_0_12_0_ACCEPTANCE.md](acceptance/PRODUCTION_ECONOMY_0_12_0_ACCEPTANCE.md).
+
+0.13.0 remains responsible for faction treasuries, taxation, territory,
+government, laws, offices, rulers, and diplomacy. 0.14.0 owns simulation LOD.

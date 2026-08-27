@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://player3d001"]
+[gd_scene load_steps=27 format=3 uid="uid://player3d001"]
 
 [ext_resource type="Script" path="res://scripts/characters/player_controller_3d.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2"]
@@ -30,6 +30,7 @@
 [ext_resource type="Script" path="res://scripts/characters/first_person_presentation_controller.gd" id="27"]
 [ext_resource type="Script" path="res://scripts/components/wallet_component.gd" id="28"]
 [ext_resource type="Script" path="res://scripts/components/actor_attributes_component.gd" id="29"]
+[ext_resource type="Script" path="res://scripts/components/employment_component.gd" id="30"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -107,6 +108,9 @@ starting_balance = 500
 
 [node name="ActorAttributesComponent" type="Node" parent="."]
 script = ExtResource("29")
+
+[node name="EmploymentComponent" type="Node" parent="."]
+script = ExtResource("30")
 
 [node name="EquipmentComponent" type="Node" parent="."]
 script = ExtResource("20")

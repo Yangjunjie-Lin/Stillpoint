@@ -26,6 +26,7 @@ var inventory: InventoryComponent
 var equipment: EquipmentComponent
 var attributes: ActorAttributesComponent
 var employment: EmploymentComponent
+var needs: NeedsComponent
 var game_time: float = 0.0
 var is_downed: bool = false
 var is_permanently_dead: bool = false
@@ -42,6 +43,7 @@ func _ready() -> void:
 	equipment = get_node_or_null("EquipmentComponent") as EquipmentComponent
 	attributes = get_node_or_null("ActorAttributesComponent") as ActorAttributesComponent
 	employment = get_node_or_null("EmploymentComponent") as EmploymentComponent
+	needs = get_node_or_null("NeedsComponent") as NeedsComponent
 	if definition != null:
 		apply_definition(definition)
 	if relationship != null:

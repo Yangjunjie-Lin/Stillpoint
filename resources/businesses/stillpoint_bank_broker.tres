@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="BusinessDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/business_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"business:stillpoint_bank_broker"
+display_name = "Stillpoint Bank Equipment Broker"
+business_type = &"equipment_broker"
+shop_id = &"shop:stillpoint_bank_equipment"
+region_id = &"base:town"
+building_id = &"building:stillpoint_bank"
+initial_treasury = 2000
+inventory_slots = 48
+initial_inventory = {
+"padded_vest": 4,
+"road_boots": 4,
+"training_sword": 4
+}
+stock_targets = {
+"padded_vest": 4,
+"road_boots": 4,
+"training_sword": 4
+}
+buy_categories = Array[StringName]([&"tools", &"weapons", &"wearables", &"materials"])
+sell_categories = Array[StringName]([&"tools", &"weapons", &"wearables"])
+reserve_cash = 500

@@ -3188,6 +3188,15 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/forged_iron_sword",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "shop_offer:stillpoint_blacksmith_equipment/improved_forge_hammer",
         "predicate": "OFFERS",
         "source_id": "shop:stillpoint_blacksmith_equipment",
@@ -3287,6 +3296,15 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "item:forged_iron_sword",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "item:improved_forge_hammer",
         "predicate": "SELLS",
         "source_id": "shop:stillpoint_blacksmith_equipment",
@@ -3337,6 +3355,60 @@
         "source_id": "shop:stillpoint_blacksmith_equipment",
         "source_type": "world_catalog",
         "subject_node_id": "shop:stillpoint_blacksmith_equipment",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "building:stillpoint_bank",
+        "predicate": "LOCATED_IN",
+        "source_id": "shop:stillpoint_provisions",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_provisions",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_provisions/trail_snack",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_provisions",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_provisions",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "shop_offer:stillpoint_provisions/turnip",
+        "predicate": "OFFERS",
+        "source_id": "shop:stillpoint_provisions",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_provisions",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "npc_definition:bank_clerk",
+        "predicate": "OPERATED_BY",
+        "source_id": "shop:stillpoint_provisions",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_provisions",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:trail_snack",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_provisions",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_provisions",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:turnip",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_provisions",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop:stillpoint_provisions",
         "visibility": "public"
       },
       {
@@ -3404,6 +3476,15 @@
       },
       {
         "confidence": 1.0,
+        "object_node_id": "item:forged_iron_sword",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_blacksmith_equipment",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/forged_iron_sword",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
         "object_node_id": "item:improved_forge_hammer",
         "predicate": "SELLS",
         "source_id": "shop:stillpoint_blacksmith_equipment",
@@ -3454,6 +3535,24 @@
         "source_id": "shop:stillpoint_blacksmith_equipment",
         "source_type": "world_catalog",
         "subject_node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_oath_charm",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:trail_snack",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_provisions",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_provisions/trail_snack",
+        "visibility": "public"
+      },
+      {
+        "confidence": 1.0,
+        "object_node_id": "item:turnip",
+        "predicate": "SELLS",
+        "source_id": "shop:stillpoint_provisions",
+        "source_type": "world_catalog",
+        "subject_node_id": "shop_offer:stillpoint_provisions/turnip",
         "visibility": "public"
       },
       {
@@ -5618,6 +5717,14 @@
         "visibility": "public"
       },
       {
+        "label": "Trail Snack",
+        "metadata": {},
+        "node_id": "item:trail_snack",
+        "node_type": "item",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Training Sword",
         "metadata": {},
         "node_id": "item:training_sword",
@@ -6103,6 +6210,25 @@
         "visibility": "public"
       },
       {
+        "label": "Stillpoint Provisions",
+        "metadata": {
+          "building_id": "building:stillpoint_bank",
+          "buys_from_player": true,
+          "definition_id": "shop:stillpoint_provisions",
+          "public_description": "Finite local provisions sold from retained market stock.",
+          "service_tags": [
+            "food_sale",
+            "produce_purchase"
+          ],
+          "shop_type": "food_vendor",
+          "shopkeeper_npc_definition_id": "bank_clerk"
+        },
+        "node_id": "shop:stillpoint_provisions",
+        "node_type": "shop",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Padded Vest",
         "metadata": {
           "availability_tags": [
@@ -6232,6 +6358,25 @@
         "visibility": "public"
       },
       {
+        "label": "Greywake Iron Sword",
+        "metadata": {
+          "availability_tags": [
+            "weapon",
+            "smithy_counter",
+            "forged"
+          ],
+          "definition_id": "forged_iron_sword",
+          "item_id": "forged_iron_sword",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_blacksmith_equipment",
+          "unit_price": 420
+        },
+        "node_id": "shop_offer:stillpoint_blacksmith_equipment/forged_iron_sword",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
         "label": "Improved Forge Hammer",
         "metadata": {
           "availability_tags": [
@@ -6340,6 +6485,42 @@
           "unit_price": 135
         },
         "node_id": "shop_offer:stillpoint_blacksmith_equipment/stonehound_oath_charm",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Trail Snack",
+        "metadata": {
+          "availability_tags": [
+            "food",
+            "provisions"
+          ],
+          "definition_id": "trail_snack",
+          "item_id": "trail_snack",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_provisions",
+          "unit_price": 12
+        },
+        "node_id": "shop_offer:stillpoint_provisions/trail_snack",
+        "node_type": "shop_offer",
+        "source": "world_catalog",
+        "visibility": "public"
+      },
+      {
+        "label": "Turnip",
+        "metadata": {
+          "availability_tags": [
+            "food",
+            "produce"
+          ],
+          "definition_id": "turnip",
+          "item_id": "turnip",
+          "quantity_per_purchase": 1,
+          "shop_id": "shop:stillpoint_provisions",
+          "unit_price": 7
+        },
+        "node_id": "shop_offer:stillpoint_provisions/turnip",
         "node_type": "shop_offer",
         "source": "world_catalog",
         "visibility": "public"

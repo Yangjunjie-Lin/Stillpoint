@@ -38,7 +38,9 @@ func validate(proposal: IntentProposal) -> IntentValidationResult:
 				&"actor_not_authorized", "The proposal actor is not the active player."
 			)
 		return _validate_talk(proposal.intent as TalkIntent)
-	if proposal.intent is WorkIntent or proposal.intent is PurchaseIntent or proposal.intent is EquipIntent:
+	if proposal.intent is WorkIntent or proposal.intent is ProductionIntent \
+			or proposal.intent is PurchaseIntent or proposal.intent is ConsumeIntent \
+			or proposal.intent is SellIntent or proposal.intent is EquipIntent:
 		return _validate_economic(proposal)
 	return IntentValidationResult.reject(
 		&"unsupported_intent", "This intent type has no canonical validator."
@@ -60,8 +62,16 @@ func _validate_economic(proposal: IntentProposal) -> IntentValidationResult:
 		return IntentValidationResult.reject(&"economy_unavailable")
 	if proposal.intent is WorkIntent:
 		return session.actor_economy_service.validate_work(actor, proposal.intent as WorkIntent)
+	if proposal.intent is ProductionIntent:
+		return session.actor_economy_service.validate_production(
+			actor, proposal.intent as ProductionIntent
+		)
 	if proposal.intent is PurchaseIntent:
 		return session.actor_economy_service.validate_purchase(actor, proposal.intent as PurchaseIntent)
+	if proposal.intent is ConsumeIntent:
+		return session.actor_economy_service.validate_consume(actor, proposal.intent as ConsumeIntent)
+	if proposal.intent is SellIntent:
+		return session.actor_economy_service.validate_sell(actor, proposal.intent as SellIntent)
 	return session.actor_economy_service.validate_equip(actor, proposal.intent as EquipIntent)
 
 

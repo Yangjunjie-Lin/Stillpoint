@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ShopDefinition" load_steps=12 format=3]
+[gd_resource type="Resource" script_class="ShopDefinition" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/shop_definition.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/resources/shop_offer_definition.gd" id="2"]
@@ -30,6 +30,13 @@ id = &"iron_ore"
 item_id = &"iron_ore"
 quantity_per_purchase = 1
 availability_tags = Array[StringName]([&"material", &"smithy_counter", &"forging"])
+
+[sub_resource type="Resource" id="OfferForgedIronSword"]
+script = ExtResource("2")
+id = &"forged_iron_sword"
+item_id = &"forged_iron_sword"
+quantity_per_purchase = 1
+availability_tags = Array[StringName]([&"weapon", &"smithy_counter", &"forged"])
 
 [sub_resource type="Resource" id="OfferStonehoundGuardCollar"]
 script = ExtResource("2")
@@ -81,5 +88,5 @@ shop_type = &"blacksmith_equipment"
 building_id = &"building:stillpoint_blacksmith"
 shopkeeper_npc_definition_id = &"blacksmith"
 public_description = "Torren sells tools and forged protection from the smithy's public counter."
-offers = Array[ShopOfferDefinition]([SubResource("OfferFieldPick"), SubResource("OfferImprovedForgeHammer"), SubResource("OfferIronBracers"), SubResource("OfferIronOre"), SubResource("OfferStonehoundGuardCollar"), SubResource("OfferStonehoundBackGuard"), SubResource("OfferStonehoundOathCharm"), SubResource("OfferCloudowlFlightBand"), SubResource("OfferCloudowlWingHarness"), SubResource("OfferCloudowlTalonCharm")])
+offers = Array[ShopOfferDefinition]([SubResource("OfferFieldPick"), SubResource("OfferImprovedForgeHammer"), SubResource("OfferIronBracers"), SubResource("OfferIronOre"), SubResource("OfferForgedIronSword"), SubResource("OfferStonehoundGuardCollar"), SubResource("OfferStonehoundBackGuard"), SubResource("OfferStonehoundOathCharm"), SubResource("OfferCloudowlFlightBand"), SubResource("OfferCloudowlWingHarness"), SubResource("OfferCloudowlTalonCharm")])
 service_tags = Array[StringName]([&"equipment_sale", &"pet_equipment_sale", &"material_purchase", &"forging"])

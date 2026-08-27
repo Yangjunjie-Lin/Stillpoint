@@ -15,9 +15,12 @@ extends Control
 var _world: WorldSession
 var _player: PlayerController3D
 var _funds: PropertyBankService
-var _commerce := CommerceService.new()
 var _shop_id: StringName = &""
 var _recipe_ids: Array[StringName] = []
+var _offer_quotes: Dictionary = {}
+var _buyback_quotes: Dictionary = {}
+var _expected_actor_sequence: int = -1
+var _expected_business_sequence: int = -1
 var _tree_was_paused := false
 var _player_input_was_enabled := true
 
@@ -94,6 +97,11 @@ func _refresh() -> void:
 		_funds.bank_balance,
 		_funds.get_total_funds(),
 	]
+	var economy := _world.actor_economy_service if _world != null else null
+	var business := economy.get_business_for_shop(shop.id) if economy != null else null
+	_expected_actor_sequence = _player.employment.expected_next_sequence() \
+		if _player.employment != null else -1
+	_expected_business_sequence = business.expected_next_sequence() if business != null else -1
 	_populate_offers(shop)
 	_populate_inventory(shop)
 	_populate_recipes()
@@ -102,17 +110,24 @@ func _refresh() -> void:
 func _populate_offers(shop: ShopDefinition) -> void:
 	var previous := _selected_metadata(offers_list)
 	offers_list.clear()
+	_offer_quotes.clear()
+	var economy := _world.actor_economy_service if _world != null else null
 	for offer in shop.offers:
 		if offer == null:
 			continue
 		var item := ResourceRegistry.get_item(offer.item_id)
 		if item == null:
 			continue
-		var price := offer.resolved_unit_price(item) * offer.quantity_per_purchase
-		var row := offers_list.add_item("%s x%d    %d coin" % [
-			item.display_name, offer.quantity_per_purchase, price,
+		var quote := economy.get_quote(shop.id, offer.id, 1) if economy != null else null
+		if quote == null:
+			continue
+		_offer_quotes[String(offer.id)] = quote
+		var row := offers_list.add_item("%s x%d    %d coin    stock %d" % [
+			item.display_name, offer.quantity_per_purchase, quote.total_price,
+			quote.available_quantity,
 		])
 		offers_list.set_item_metadata(row, String(offer.id))
+		offers_list.set_item_disabled(row, not quote.is_available(offer.quantity_per_purchase))
 		if previous == String(offer.id):
 			offers_list.select(row)
 
@@ -120,6 +135,7 @@ func _populate_offers(shop: ShopDefinition) -> void:
 func _populate_inventory(shop: ShopDefinition) -> void:
 	var previous := _selected_metadata(inventory_list)
 	inventory_list.clear()
+	_buyback_quotes.clear()
 	for slot_index in _player.inventory.slot_count:
 		var stack := _player.inventory.get_slot(slot_index)
 		if stack == null or stack.is_empty():
@@ -127,11 +143,17 @@ func _populate_inventory(shop: ShopDefinition) -> void:
 		var item := ResourceRegistry.get_item(stack.item_id)
 		if item == null:
 			continue
+		var buyback := _world.actor_economy_service.get_buyback_quote(
+			shop.id, item.id, 1
+		) if _world != null and _world.actor_economy_service != null else null
+		var sell_price := buyback.total_price if buyback != null else 0
+		if buyback != null:
+			_buyback_quotes[String(item.id)] = buyback
 		var row := inventory_list.add_item("%s x%d    sell %d" % [
-			item.display_name, stack.quantity, item.sell_price,
+			item.display_name, stack.quantity, sell_price,
 		])
 		inventory_list.set_item_metadata(row, String(stack.item_id))
-		inventory_list.set_item_disabled(row, not shop.buys_from_player or item.sell_price <= 0)
+		inventory_list.set_item_disabled(row, not shop.buys_from_player or sell_price <= 0)
 		if previous == String(stack.item_id):
 			inventory_list.select(row)
 	sell_button.visible = shop.buys_from_player
@@ -166,20 +188,29 @@ func _populate_recipes() -> void:
 
 func _on_buy_pressed() -> void:
 	var offer_id := StringName(_selected_metadata(offers_list))
-	var result := _commerce.buy(_shop_id, offer_id, 1, _player.inventory, _funds)
+	var result := _world.actor_economy_service.execute_player_purchase(
+		_player, _funds, _shop_id, offer_id,
+		_offer_quotes.get(String(offer_id)) as CommerceQuote,
+		_expected_actor_sequence, _expected_business_sequence,
+	)
 	_show_result(result)
 
 
 func _on_sell_pressed() -> void:
 	var item_id := StringName(_selected_metadata(inventory_list))
-	var result := _commerce.sell(_shop_id, item_id, 1, _player.inventory, _funds)
+	var result := _world.actor_economy_service.execute_player_sale(
+		_player, _funds, _shop_id, item_id,
+		_buyback_quotes.get(String(item_id)) as CommerceQuote,
+		_expected_actor_sequence, _expected_business_sequence,
+	)
 	_show_result(result)
 
 
 func _on_forge_pressed() -> void:
 	var recipe_id := StringName(_selected_metadata(recipes_list))
-	var result := _commerce.forge(
-		recipe_id, 1, _player.inventory, _funds, _player.get_combat_level()
+	var result := _world.actor_economy_service.execute_player_forge(
+		_player, _funds, _shop_id, recipe_id,
+		_expected_actor_sequence, _expected_business_sequence,
 	)
 	_show_result(result)
 
@@ -197,6 +228,10 @@ func _show_result(result: Dictionary) -> void:
 			"invalid_request": "Select an available entry first.",
 			"insufficient_funds": "Insufficient wallet and bank funds.",
 			"inventory_full": "Your backpack has no room for this transaction.",
+			"business_inventory_full": "This business has no stock space for the item.",
+			"out_of_stock": "That item is out of stock.",
+			"stale_quote": "Stock or price changed; review the refreshed quote.",
+			"business_insufficient_funds": "The business cannot fund this purchase.",
 			"insufficient_items": "You do not have enough of that item.",
 			"insufficient_materials": "Required forging materials are missing.",
 			"level_too_low": "Your combat level is too low for this recipe.",

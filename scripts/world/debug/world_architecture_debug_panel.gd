@@ -5,7 +5,7 @@ extends CanvasLayer
 ## host cannot deliver physical keyboard input. Action buttons synthesize the
 ## same InputMap actions as a player keyboard; navigation still goes through the
 ## normal region/session services. No control mutates wallet, inventory,
-## equipment, employment, skill, payroll, or work results directly.
+## equipment, employment, skill, business stock/treasury, or work results directly.
 
 @onready var label: Label = %Label
 @onready var panel: PanelContainer = $Panel
@@ -127,13 +127,18 @@ func _append_economic_actor_lines(lines: PackedStringArray, npc: NPCController) 
 		String(contract.job_id) if contract != null else "-",
 		String(contract.worksite_id) if contract != null else "-",
 	])
-	var worksite_state := _session.actor_economy_service.get_worksite_state(contract.worksite_id) \
-		if contract != null and _session.actor_economy_service != null else null
-	lines.append("Payroll: %d · State: %s · Site distance: %s" % [
-		worksite_state.payroll_balance if worksite_state != null else 0,
+	var business := _session.actor_economy_service.get_business_for_worksite(
+		contract.worksite_id
+	) if contract != null and _session.actor_economy_service != null else null
+	lines.append("Business Treasury: %d · State: %s · Site distance: %s" % [
+		business.get_treasury_balance() if business != null else 0,
 		NPCController.NPCState.keys()[npc.npc_state],
 		_worksite_distance_text(npc, contract),
 	])
+	if npc.needs != null:
+		lines.append("Needs · food %.2f · rest %.2f · safety %.2f" % [
+			npc.needs.food_need, npc.needs.rest_need, npc.needs.safety_need,
+		])
 	lines.append("Smithing: %.1f · Inventory: %s" % [
 		npc.skills.get_points(&"smithing") if npc.skills != null else 0.0,
 		_inventory_summary(npc.inventory),
@@ -149,6 +154,42 @@ func _append_economic_actor_lines(lines: PackedStringArray, npc: NPCController) 
 		])
 		lines.append("Last Work: %s" % _work_result_summary(npc.employment.last_work_result))
 	lines.append("Last Wallet Tx: %s" % _last_wallet_transaction(npc.wallet))
+	if business != null:
+		_append_business_lines(lines, business)
+	var provisions := _session.actor_economy_service.get_business_state(
+		&"business:stillpoint_provisions"
+	) if _session.actor_economy_service != null else null
+	if provisions != null and provisions != business:
+		_append_business_lines(lines, provisions)
+
+
+func _append_business_lines(lines: PackedStringArray, business: BusinessRuntimeState) -> void:
+	var definition := ResourceRegistry.get_business(business.business_id)
+	lines.append("--- Business · %s ---" % (
+		definition.display_name if definition != null else String(business.business_id)
+	))
+	lines.append("ID: %s · Treasury: %d · Sequence: %d · Price revision: %d" % [
+		String(business.business_id), business.get_treasury_balance(),
+		business.economic_sequence, business.price_revision,
+	])
+	lines.append("Stock: %s · Demand: %.3f · Revenue: %d · Expenses: %d" % [
+		_inventory_summary(business.inventory), business.recent_demand_score,
+		business.lifetime_revenue, business.lifetime_expenses,
+	])
+	if definition != null:
+		var quotes: Array[String] = []
+		var shop := ResourceRegistry.get_shop(definition.shop_id)
+		if shop != null:
+			for offer in shop.offers:
+				var quote := _session.actor_economy_service.get_quote(shop.id, offer.id, 1)
+				quotes.append("%s=%d(%d)" % [
+					String(offer.item_id), quote.unit_price, quote.available_quantity,
+				])
+				if quotes.size() >= 5:
+					break
+		lines.append("Targets: %s · Quotes: %s" % [
+			str(definition.stock_targets), ", ".join(quotes),
+		])
 
 
 func _find_session() -> WorldSession:

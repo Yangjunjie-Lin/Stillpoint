@@ -12,4 +12,4 @@ allowed_job_ids = Array[StringName]([&"job:blacksmith"])
 work_marker_id = &"TownSmithyWorkMarker"
 capacity = 2
 workplace_efficiency = 1.1
-initial_payroll_funds = 500
+business_id = &"business:stillpoint_smithy"

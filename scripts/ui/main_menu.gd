@@ -8,6 +8,7 @@ extends Control
 @onready var confirm_panel: Control = %ConfirmPanel
 @onready var settings_panel: Control = %SettingsPanel
 @onready var leaderboard_panel: Control = %LeaderboardPanel
+@onready var version_label: Label = $WorldStatus/Margin/VBox/VersionLabel
 @onready var master_slider: HSlider = %MasterSlider
 @onready var music_slider: HSlider = %MusicSlider
 @onready var sfx_slider: HSlider = %SfxSlider
@@ -31,6 +32,9 @@ extends Control
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	version_label.text = "%s  ·  SAVE v4" % str(
+		ProjectSettings.get_setting("application/config/version", "unknown")
+	)
 	_apply_open_world_theme()
 	confirm_panel.visible = false
 	settings_panel.visible = false

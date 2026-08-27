@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="BusinessDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/business_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"business:stillpoint_provisions"
+display_name = "Stillpoint Provisions"
+business_type = &"food_vendor"
+shop_id = &"shop:stillpoint_provisions"
+region_id = &"base:town"
+building_id = &"building:stillpoint_bank"
+initial_treasury = 250
+inventory_slots = 20
+initial_inventory = {
+"trail_snack": 8,
+"turnip": 12
+}
+stock_targets = {
+"trail_snack": 8,
+"turnip": 12
+}
+buy_categories = Array[StringName]([&"consumables"])
+sell_categories = Array[StringName]([&"consumables"])
+reserve_cash = 50

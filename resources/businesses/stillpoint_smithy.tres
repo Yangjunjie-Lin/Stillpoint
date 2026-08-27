@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="BusinessDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/business_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"business:stillpoint_smithy"
+display_name = "Stillpoint Smithy"
+business_type = &"smithy"
+shop_id = &"shop:stillpoint_blacksmith_equipment"
+worksite_ids = Array[StringName]([&"worksite:town_smithy"])
+region_id = &"base:town"
+building_id = &"building:stillpoint_blacksmith"
+initial_treasury = 500
+inventory_slots = 32
+initial_inventory = {
+"cloudowl_flight_band": 2,
+"cloudowl_talon_charm": 2,
+"cloudowl_wing_harness": 2,
+"field_pick": 3,
+"improved_forge_hammer": 2,
+"iron_ore": 12,
+"stonehound_back_guard": 2,
+"stonehound_guard_collar": 2,
+"stonehound_oath_charm": 2
+}
+stock_targets = {
+"field_pick": 3,
+"forged_iron_sword": 2,
+"improved_forge_hammer": 2,
+"iron_bracers": 4,
+"iron_ore": 12
+}
+buy_categories = Array[StringName]([&"materials", &"tools", &"weapons", &"wearables"])
+sell_categories = Array[StringName]([&"materials", &"tools", &"weapons", &"wearables"])
+reserve_cash = 100
+production_recipe_ids = Array[StringName]([&"production:smithy_iron_bracers"])

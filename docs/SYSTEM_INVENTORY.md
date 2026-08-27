@@ -1,7 +1,7 @@
-# Existing System Inventory (0.11.0 Audit)
+# Existing System Inventory (0.12.0 Audit)
 
 Baseline audited after fetch: `develop` at
-`1a91dda13ad9b4ff2eeeeff5c9d51c45bdce82d4`.
+`aa37fee05456b6a2ba840d37be00dcc7be2567fe`.
 
 The audit covered tracked scripts, scenes, resources, documentation, test
 discovery, backend service/migrations, CI, launch tooling, and legacy paths.
@@ -16,7 +16,7 @@ discovery, backend service/migrations, CI, launch tooling, and legacy paths.
 | Identity/entities | Definition ID, persistent ID, region ID, policy, snapshots, runtime spawn/destruction | `WorldEntityIdentity`, `WorldEntityRepository`, `ActorFactory` | Implemented and tested at 100/500 snapshot scale |
 | Save | Save v4 manifest, critical/global sections, region chunks, backups, v3 migration, dirty tracking | `WorldSaveCoordinator`, `SaveSlotService`, providers | Implemented canonical local persistence |
 | Events/quests | Typed `GameplayEvent`; Conditions; required/retryable Effects; objective/event routing | Coordinators plus `QuestManager` state | Implemented; Effects are trusted authored commands |
-| Typed intents | Data-only talk/work/purchase/equip plus attributed proposal/result/validator/executor | `WorldSession`-owned validator/executor | Player talk and deterministic NPC economics implemented; no LLM execution |
+| Typed intents | Data-only talk/work/production/purchase/sale/consume/equip plus proposal/result | `WorldSession`-owned validator/executor | Player talk and deterministic NPC economics; no LLM execution |
 | Combat | Animation-event hit windows, combo, skills, guard, energy, damage, hit stop, reaction, knockback, death/downed, Combat Lab | Components and actor controllers | Implemented prototype; camera/heavy/dodge/parry/poise planned |
 | Character build | Origin, faction, profession, appearance, balanced stat allocation, starter kits | Definitions plus player Save state | Implemented for player; NPC career state absent |
 | Inventory/equipment | Atomic inventory slots/transfers, 16 equipment slots, requirements, shared effects/work metadata | Per-actor components and snapshots | Shared player/NPC capability; containers also reuse inventory |
@@ -26,13 +26,14 @@ discovery, backend service/migrations, CI, launch tooling, and legacy paths.
 | Cognition backend | FastAPI, PostgreSQL/pgvector, Alembic, auth, profile catalog, memory, beliefs, graph visibility, provider abstraction, privacy, sync/outbox | Backend cognitive repository only | Experimental production-oriented service; not gameplay authority |
 | Pets/mount | Three companion definitions, per-instance runtime, equipment, skills, routines, needs, combat support, off-screen updates; rideable mount | Pet runtime/controller, Save companions | Implemented pet vertical slice; provider movement output advisory only |
 | Farming | Turnip definition, plots, till/seed/water/growth/harvest, rest/day advance, proficiency | `FarmPlot`, player inventory/energy, world time, region snapshots | Implemented coherent narrow loop |
-| Commerce/forging | Shop/offers/recipes, actor-generic buy/sell/forge transaction core | `CommerceService`, actor inventory/funds capability | Player and NPC fixed-price use; no business stock/account/supply/demand |
+| Commerce/forging | Static offers plus finite stock, quote revisions, player/NPC buy/sell, retained forge fees | `BusinessRuntimeState`, `CommerceService`, staged coordinator | Two-party conserved local commerce implemented |
 | Housing/banking | House definitions, deed, storage, bank/home cash, investment, repossession/rebuild | `PropertyBankService`, Save global world | Player slice; pocket money delegated to player `WalletComponent` |
-| Employment/work | Job/worksite definitions, contracts, deterministic work result, finite payroll, planner | Actor components plus `ActorEconomyService` | Blacksmith vertical slice; abstract units only |
+| Employment/production | Jobs/worksites/contracts, recipes, deterministic results and planner | Actor components, business/worksite runtime, `ActorEconomyService` | Smithy input/output/wage/revenue loop implemented |
+| Social survival | Generic food metadata, deterministic world-time need cadence and priorities | NPC `NeedsComponent` | Food purchase/consume, rest, safety, stockout slice implemented |
 | Dungeon/exploration | Level gate, authored dungeon, loot caches, boss tracking/respawn, hidden encounter slices | Dungeon/encounter services, repository, Save | Implemented vertical slice |
 | Time/simulation | Authoritative clock, day/hour signals, physical/virtual mode query | `WorldTimeService`, placeholder `WorldSimulationService` | Time implemented; general abstract/regional/strategic simulation planned |
 | Content/data | `.tres` catalogs for actors, minds, factions, origins, professions, skills, items, houses, shops, regions, dungeon, encounters, containers, loot, and spawns | `ResourceRegistry` treats definitions as authored data | Data-driven foundation; broader content pipeline planned |
-| Tooling/tests | 369 Godot unit/integration scripts, backend unit/PostgreSQL tests, cross-process E2E, exporters, hygiene/secret scans, Windows launcher | CI/tool scripts | Strong automated foundation; manual acceptance remains required |
+| Tooling/tests | 380 Godot unit/integration scripts, backend unit/PostgreSQL tests, cross-process E2E, exporters, hygiene/secret scans, Windows launcher | CI/tool scripts | Strong automated foundation; manual acceptance remains required |
 | Legacy survival | Separate 2D shooter scene/controller/hitbox/bullet/save path | Legacy mode only | Preserved compatibility; must not influence living-world domain design |
 
 ## Static definition versus runtime state
@@ -96,11 +97,9 @@ property, territory, spawn/destruction, teleport, or world flags.
 
 1. Canonical mutators are distributed across components, interactables, Effects,
    and services; source policy is not yet uniformly expressed as intents.
-2. Fixed-price NPC purchasing has no business inventory or conserved shop
-   treasury. Owner: 0.12.0 production economy.
-3. The implemented blacksmith produces abstract work units only; material
-   inputs, artifacts, revenue, and supply chains are deferred to 0.12.0.
-4. Factions have definitions but no runtime treasury, leader, offices, policy,
+2. The local economy simulates loaded actors/businesses on bounded cadence;
+   regional/off-screen economic LOD remains 0.14.0 scope.
+3. Factions have definitions but no runtime treasury, leader, offices, policy,
    territory, or diplomacy state. Owner: 0.13.0 faction runtime/governance.
 5. General virtual simulation and bounded catch-up are placeholders. Owner:
    0.14.0 simulation LOD.
@@ -108,5 +107,5 @@ property, territory, spawn/destruction, teleport, or world flags.
    multi-world/test isolation may require session scoping.
 7. Talk proposals retain session-local consumption; transactional economics use
    a persisted per-actor monotonic high-water sequence.
-8. Current fixed-price commerce and investment yield use prototype sources and
-   sinks, not a closed living economy. Owner: 0.12.0 production economy.
+8. Property investment remains an authored player-finance subsystem outside the
+   closed ordinary business-trade proof; taxation/public finance is 0.13+.
