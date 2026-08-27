@@ -252,7 +252,7 @@ func _is_valid_global_world_section(value: Variant) -> bool:
 		if not _is_finite_number(property_version):
 			return false
 		var version_number := float(property_version)
-		if version_number < 0.0 or version_number > 2.0 or version_number != floorf(version_number):
+		if version_number < 0.0 or version_number > 3.0 or version_number != floorf(version_number):
 			return false
 		if int(version_number) >= 2:
 			for required_money_field in [

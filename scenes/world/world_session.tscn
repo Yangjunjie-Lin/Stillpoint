@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://worldsession001"]
+[gd_scene load_steps=36 format=3 uid="uid://worldsession001"]
 
 [ext_resource type="Script" path="res://scripts/world/session/world_session.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/characters/player_3d.tscn" id="2"]
@@ -34,6 +34,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/rpg/pet_companion_menu.tscn" id="32"]
 [ext_resource type="Script" path="res://scripts/interaction/pet_interactable.gd" id="33"]
 [ext_resource type="Script" path="res://scripts/pets/pet_hurtbox_3d.gd" id="34"]
+[ext_resource type="Script" path="res://scripts/economy/actor_economy_service.gd" id="35"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_companion"]
 radius = 0.4
@@ -154,6 +155,9 @@ script = ExtResource("27")
 
 [node name="HiddenEncounterService" type="Node" parent="WorldServices"]
 script = ExtResource("29")
+
+[node name="ActorEconomyService" type="Node" parent="WorldServices"]
+script = ExtResource("35")
 
 [node name="CameraRig" type="Node3D" parent="."]
 script = ExtResource("3")
@@ -411,15 +415,154 @@ text = "Save & Main Menu"
 
 [node name="DebugTools" type="CanvasLayer" parent="."]
 visible = false
-layer = 5
+layer = 20
 script = ExtResource("19")
 
 [node name="Panel" type="PanelContainer" parent="DebugTools"]
-offset_left = 500.0
-offset_top = 12.0
-offset_right = 900.0
-offset_bottom = 300.0
+offset_left = 690.0
+offset_top = 8.0
+offset_right = 1272.0
+offset_bottom = 558.0
 
-[node name="Label" type="Label" parent="DebugTools/Panel"]
+[node name="Margin" type="MarginContainer" parent="DebugTools/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="DebugTools/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Label" type="Label" parent="DebugTools/Panel/Margin/VBox"]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+autowrap_mode = 2
 text = "World Debug"
+
+[node name="ActorControls" type="HBoxContainer" parent="DebugTools/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PreviousNPCButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActorControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "< NPC"
+
+[node name="NextNPCButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActorControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "NPC >"
+
+[node name="NearNPCButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActorControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Near NPC"
+
+[node name="NearWorksiteButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActorControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Near Site"
+
+[node name="SpawnSiblingButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActorControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Spawn Sibling"
+
+[node name="InteractableControls" type="HBoxContainer" parent="DebugTools/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PreviousInteractableButton" type="Button" parent="DebugTools/Panel/Margin/VBox/InteractableControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "< Use"
+
+[node name="NextInteractableButton" type="Button" parent="DebugTools/Panel/Margin/VBox/InteractableControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Use >"
+
+[node name="NearInteractableButton" type="Button" parent="DebugTools/Panel/Margin/VBox/InteractableControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Near Use"
+
+[node name="InteractButton" type="Button" parent="DebugTools/Panel/Margin/VBox/InteractableControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Interact"
+
+[node name="InventoryButton" type="Button" parent="DebugTools/Panel/Margin/VBox/InteractableControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Inventory"
+
+[node name="PauseButton" type="Button" parent="DebugTools/Panel/Margin/VBox/InteractableControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pause"
+
+[node name="ActionControls" type="HBoxContainer" parent="DebugTools/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="StepButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Step"
+
+[node name="CameraButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Camera"
+
+[node name="TargetButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Target"
+
+[node name="AttackButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Attack"
+
+[node name="DodgeButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Dodge"
+
+[node name="GuardButton" type="Button" parent="DebugTools/Panel/Margin/VBox/ActionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Guard"
+
+[node name="RegionControls" type="HBoxContainer" parent="DebugTools/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TownButton" type="Button" parent="DebugTools/Panel/Margin/VBox/RegionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Town"
+
+[node name="FarmButton" type="Button" parent="DebugTools/Panel/Margin/VBox/RegionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Farm"
+
+[node name="WildernessButton" type="Button" parent="DebugTools/Panel/Margin/VBox/RegionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Wilderness"
+
+[node name="DungeonButton" type="Button" parent="DebugTools/Panel/Margin/VBox/RegionControls"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Dungeon"

@@ -5,15 +5,19 @@ extends RefCounted
 signal intent_executed(proposal: IntentProposal, event: GameplayEvent)
 signal intent_rejected(proposal: IntentProposal, result: IntentValidationResult)
 
+const MAX_SESSION_PROPOSAL_HISTORY := 256
+
 var _context: WorldSessionContext
 var _validator: WorldIntentValidator
 var _consumed_proposal_ids: Dictionary = {}
+var _consumed_proposal_order: Array[String] = []
 
 
 func setup(context: WorldSessionContext, validator: WorldIntentValidator) -> void:
 	_context = context
 	_validator = validator
 	_consumed_proposal_ids.clear()
+	_consumed_proposal_order.clear()
 
 
 func execute(proposal: IntentProposal) -> IntentValidationResult:
@@ -56,17 +60,114 @@ func _execute_authorized(
 			intent_rejected.emit(proposal, condition_failure)
 			return condition_failure
 
-	# Final authorization. From this point forward the transaction must not run
-	# the ordinary validator again. Consuming the session-local proposal ID before
-	# Effects also prevents a re-entrant or explicit replay from repeating them.
-	_consumed_proposal_ids[String(proposal.proposal_id)] = true
 	if proposal.intent is TalkIntent:
+		# Dialogue Effects retain their established session-local consumption rule.
+		_remember_session_proposal(proposal.proposal_id)
 		return _execute_talk(proposal, proposal.intent as TalkIntent, effects)
+	if proposal.intent is WorkIntent or proposal.intent is PurchaseIntent or proposal.intent is EquipIntent:
+		# Economic replay authority is the persisted actor sequence, not an
+		# in-memory UUID collection. The validator rejects an already committed
+		# sequence after region reload and Save/Continue as well as in-session.
+		return _execute_economic(proposal)
 	var unsupported := IntentValidationResult.reject(
 		&"unsupported_intent", "Validated intent has no executor."
 	)
 	intent_rejected.emit(proposal, unsupported)
 	return unsupported
+
+
+func _execute_economic(proposal: IntentProposal) -> IntentValidationResult:
+	var session := _context.world_session as WorldSession
+	var actor := _context.entity_repository.get_loaded_entity(proposal.intent.actor_id) as NPCController
+	if session == null or actor == null or session.actor_economy_service == null:
+		return _reject_execution(proposal, &"economy_unavailable")
+	var domain_result: Dictionary = {}
+	if proposal.intent is WorkIntent:
+		domain_result = session.actor_economy_service.execute_work(
+			actor, proposal.intent as WorkIntent, proposal.proposal_id
+		)
+	elif proposal.intent is PurchaseIntent:
+		domain_result = session.actor_economy_service.execute_purchase(
+			actor, proposal.intent as PurchaseIntent, proposal.proposal_id
+		)
+	else:
+		domain_result = session.actor_economy_service.execute_equip(
+			actor, proposal.intent as EquipIntent
+		)
+	if not bool(domain_result.get("success", false)):
+		return _reject_execution(
+			proposal,
+			StringName(str(domain_result.get("code", "economic_commit_failed"))),
+		)
+	var event := _economic_event(proposal, actor, domain_result)
+	session.event_bus.emit_event(event)
+	if proposal.intent is WorkIntent:
+		var work := domain_result.get("result") as WorkResult
+		var wage_event := GameplayEvent.make(
+			GameplayEventTypes.ACTOR_EARNED_WAGE,
+			work.worksite_id,
+			work.actor_id,
+			work.job_id,
+			actor.region_id,
+			float(work.wage),
+			work.to_dict(),
+		)
+		session.event_bus.emit_event(wage_event)
+	intent_executed.emit(proposal, event)
+	return IntentValidationResult.allow(&"executed")
+
+
+func _economic_event(
+	proposal: IntentProposal,
+	actor: NPCController,
+	domain_result: Dictionary,
+) -> GameplayEvent:
+	var event_type := GameplayEventTypes.ACTOR_EQUIPPED_ITEM
+	var definition_id := &""
+	var amount := 0.0
+	var payload := domain_result.duplicate(true)
+	if proposal.intent is WorkIntent:
+		event_type = GameplayEventTypes.NPC_WORKED
+		var work := domain_result.get("result") as WorkResult
+		definition_id = work.job_id
+		amount = work.work_units
+		payload = work.to_dict()
+	elif proposal.intent is PurchaseIntent:
+		event_type = GameplayEventTypes.ACTOR_PURCHASED
+		definition_id = StringName(str(domain_result.get("item_id", "")))
+		amount = float(domain_result.get("quantity", 0))
+		payload["transaction_sequence"] = (proposal.intent as PurchaseIntent).transaction_sequence
+	else:
+		definition_id = (proposal.intent as EquipIntent).item_id
+		amount = 1.0
+		payload["transaction_sequence"] = (proposal.intent as EquipIntent).transaction_sequence
+	payload["proposal_id"] = String(proposal.proposal_id)
+	payload["proposal_source"] = String(IntentProposal.source_name(proposal.source_kind))
+	return GameplayEvent.make(
+		event_type,
+		proposal.intent.actor_id,
+		&"",
+		definition_id,
+		actor.region_id,
+		amount,
+		payload,
+	)
+
+
+func _reject_execution(proposal: IntentProposal, code: StringName) -> IntentValidationResult:
+	var failure := IntentValidationResult.reject(code)
+	intent_rejected.emit(proposal, failure)
+	return failure
+
+
+func _remember_session_proposal(proposal_id: StringName) -> void:
+	var key := String(proposal_id)
+	if key.is_empty() or _consumed_proposal_ids.has(key):
+		return
+	_consumed_proposal_ids[key] = true
+	_consumed_proposal_order.append(key)
+	while _consumed_proposal_order.size() > MAX_SESSION_PROPOSAL_HISTORY:
+		_consumed_proposal_ids.erase(_consumed_proposal_order.pop_front())
 
 
 func _execute_talk(

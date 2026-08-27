@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SkillDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/skill_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"smithing"
+display_name = "Smithing"
+category = &"life"
+description = "Professional proficiency in forging, fitting, and metal repair."
+ontology_node_id = &"skill:smithing"
+parent_skill_ids = Array[StringName]([&"crafting"])
+related_skill_ids = Array[StringName]([&"mining", &"appraisal"])
+practice_action_ids = Array[StringName]([&"smithing_work"])
+practice_gain = 2.0
+daily_gain_cap = 20.0
+repetition_soft_limit = 12
+overtraining_threshold = 24

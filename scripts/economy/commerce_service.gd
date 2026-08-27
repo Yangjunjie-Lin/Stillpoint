@@ -1,6 +1,7 @@
 class_name CommerceService
 extends RefCounted
-## Stateless transactional shop and forge operations.
+## Stateless transactional shop and forge operations for any actor inventory and
+## funds capability (personal WalletComponent or player bank-plus-wallet adapter).
 ##
 ## Every inventory mutation is first completed on a private simulation. Funds
 ## are changed only after that simulation succeeds, so insufficient currency,
@@ -16,7 +17,8 @@ func buy(
 	offer_id: StringName,
 	purchase_count: int,
 	inventory: InventoryComponent,
-	funds_service: PropertyBankService,
+	funds_service: Object,
+	transaction_context: Dictionary = {},
 ) -> Dictionary:
 	if purchase_count <= 0 or inventory == null or funds_service == null:
 		return _result(false, &"invalid_request")
@@ -41,7 +43,10 @@ func buy(
 		return _result(false, &"inventory_full")
 	var next_inventory := simulation.to_dict()
 	simulation.free()
-	if not _spend_funds(funds_service, total_price):
+	var context := transaction_context.duplicate(true)
+	context["reason"] = "purchase"
+	context["shop_id"] = String(shop.id)
+	if not _spend_funds(funds_service, total_price, context):
 		return _result(false, &"insufficient_funds")
 	inventory.from_dict(next_inventory)
 	return _result(true, CODE_PURCHASED, {
@@ -58,7 +63,8 @@ func sell(
 	item_id: StringName,
 	quantity: int,
 	inventory: InventoryComponent,
-	funds_service: PropertyBankService,
+	funds_service: Object,
+	transaction_context: Dictionary = {},
 ) -> Dictionary:
 	if quantity <= 0 or inventory == null or funds_service == null:
 		return _result(false, &"invalid_request")
@@ -79,7 +85,10 @@ func sell(
 	var next_inventory := simulation.to_dict()
 	simulation.free()
 	var proceeds := item.sell_price * quantity
-	if not _credit_wallet(funds_service, proceeds):
+	var context := transaction_context.duplicate(true)
+	context["reason"] = "sale"
+	context["shop_id"] = String(shop.id)
+	if not _credit_wallet(funds_service, proceeds, context):
 		return _result(false, &"funds_service_unavailable")
 	inventory.from_dict(next_inventory)
 	return _result(true, CODE_SOLD, {
@@ -94,8 +103,9 @@ func forge(
 	recipe_id: StringName,
 	craft_count: int,
 	inventory: InventoryComponent,
-	funds_service: PropertyBankService,
+	funds_service: Object,
 	player_level: int = 1,
+	transaction_context: Dictionary = {},
 ) -> Dictionary:
 	if craft_count <= 0 or inventory == null or funds_service == null:
 		return _result(false, &"invalid_request")
@@ -126,7 +136,9 @@ func forge(
 		return _result(false, &"inventory_full")
 	var next_inventory := simulation.to_dict()
 	simulation.free()
-	if total_fee > 0 and not _spend_funds(funds_service, total_fee):
+	var context := transaction_context.duplicate(true)
+	context["reason"] = "forge_fee"
+	if total_fee > 0 and not _spend_funds(funds_service, total_fee, context):
 		return _result(false, &"insufficient_funds")
 	inventory.from_dict(next_inventory)
 	return _result(true, CODE_FORGED, {
@@ -144,17 +156,21 @@ func _duplicate_inventory(inventory: InventoryComponent) -> InventoryComponent:
 	return duplicate
 
 
-func _spend_funds(service: PropertyBankService, amount: int) -> bool:
+func _spend_funds(service: Object, amount: int, context: Dictionary = {}) -> bool:
 	if amount <= 0:
 		return true
+	if service is WalletComponent:
+		return (service as WalletComponent).debit(amount, context)
 	if not service.has_method(&"spend_funds"):
 		return false
 	return _transaction_result_succeeded(service.call(&"spend_funds", amount), amount)
 
 
-func _credit_wallet(service: PropertyBankService, amount: int) -> bool:
+func _credit_wallet(service: Object, amount: int, context: Dictionary = {}) -> bool:
 	if amount <= 0:
 		return true
+	if service is WalletComponent:
+		return (service as WalletComponent).credit(amount, context)
 	if not service.has_method(&"credit_wallet"):
 		return false
 	return _transaction_result_succeeded(service.call(&"credit_wallet", amount), amount)

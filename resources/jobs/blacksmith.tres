@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="JobDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/job_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"job:blacksmith"
+display_name = "Blacksmith"
+description = "Shapes and repairs metal at an equipped smithy."
+work_skill_id = &"smithing"
+preferred_attribute_ids = Array[StringName]([&"strength", &"intelligence"])
+required_work_tags = Array[StringName]([&"smithing"])
+optional_tool_tags = Array[StringName]([&"metalworking"])
+worksite_types = Array[StringName]([&"smithy"])
+base_wage = 25
+shift_duration = 4.0
+energy_cost = 8.0
+base_output = 10.0
+work_action_id = &"smithing_work"
+shift_start_hour = 8
+shift_end_hour = 19

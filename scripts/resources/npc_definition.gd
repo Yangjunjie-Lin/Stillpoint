@@ -6,6 +6,14 @@ extends CharacterDefinition
 @export var home_marker_id: StringName = &"home"
 @export var shop_id: StringName = &""
 @export var witness_radius: float = 12.0
+@export_group("Economic Actor Setup")
+## Authored initialization only; mutable runtime state lives on actor components.
+@export var job_id: StringName = &""
+@export var worksite_id: StringName = &""
+@export_range(0, 1000000, 1) var starting_wallet_balance: int = 0
+@export var starting_inventory_item_ids: Array[StringName] = []
+@export var starting_equipment_item_ids: Array[StringName] = []
+@export_range(0, 1000000, 1) var minimum_wallet_reserve: int = 0
 @export_group("Combat Rewards")
 @export_range(0, 100000, 1) var experience_reward: int = 0
 @export var loot_table: LootTableDefinition

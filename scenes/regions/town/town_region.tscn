@@ -137,6 +137,11 @@ behavior_tags = Array[StringName]([&"rest", &"sheltered", &"perch"])
 [node name="from_farmland" type="Marker3D" parent="SpawnPoints"]
 position = Vector3(15, 1.2, 0)
 
+[node name="WorkSites" type="Node3D" parent="."]
+
+[node name="TownSmithyWorkMarker" type="Marker3D" parent="WorkSites"]
+position = Vector3(6.5, 1, -9.3)
+
 [node name="EntitySpawns" type="Node3D" parent="."]
 
 [node name="BankClerkSpawn" type="Marker3D" parent="EntitySpawns"]

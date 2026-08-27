@@ -27,6 +27,8 @@ var _schedule_paused: bool = false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
 var _knowledge_action_motion: StringName = &""
 var _knowledge_action_remaining: float = 0.0
+var _economic_planner := NPCEconomicPlanner.new()
+var _economic_action_cooldown: float = 0.0
 
 
 func _ready() -> void:
@@ -38,6 +40,13 @@ func _ready() -> void:
 
 	if npc_definition != null:
 		apply_definition(npc_definition)
+		_initialize_authored_economy()
+		if _schedule != null and npc_definition.schedule != null:
+			_schedule.schedule = npc_definition.schedule
+	if equipment != null:
+		if not equipment.equipment_changed.is_connected(apply_shared_equipment_effects):
+			equipment.equipment_changed.connect(apply_shared_equipment_effects)
+		apply_shared_equipment_effects()
 
 	if combat != null:
 		var hb := get_node_or_null("HitboxRoot/Hitbox3D") as Hitbox3D
@@ -80,6 +89,9 @@ func _physics_process(delta: float) -> void:
 		return
 
 	game_time += delta
+	if energy != null and employment != null and employment.current_contract != null:
+		energy.tick(delta)
+	_economic_action_cooldown = maxf(0.0, _economic_action_cooldown - delta)
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 
@@ -264,9 +276,16 @@ func _process_schedule_or_wander(_delta: float) -> void:
 			var marker := _find_marker(_schedule.current_marker_id)
 			if marker != null:
 				_wander_target = marker.global_position
-				npc_state = NPCState.FOLLOW_SCHEDULE
+				npc_state = NPCState.WORK if (
+					_schedule.current_activity == &"work"
+					and global_position.distance_to(_wander_target) < 0.8
+				) else NPCState.FOLLOW_SCHEDULE
 	var target := _wander_target
 	if global_position.distance_to(target) < 0.6:
+		if npc_state == NPCState.WORK:
+			velocity = Vector3.ZERO
+			_process_economic_action()
+			return
 		if npc_state != NPCState.FOLLOW_SCHEDULE:
 			_pick_wander_target()
 			target = _wander_target
@@ -276,6 +295,8 @@ func _process_schedule_or_wander(_delta: float) -> void:
 	var dir := target - global_position
 	dir.y = 0.0
 	if dir.length_squared() > 0.01:
+		if _nav != null:
+			_nav.target_position = target
 		velocity = dir.normalized() * (definition.walk_speed if definition else 3.0)
 	else:
 		velocity = Vector3.ZERO
@@ -304,13 +325,69 @@ func _find_marker(marker_id: StringName) -> Node3D:
 	var world := tree.get_first_node_in_group("world_manager")
 	if world == null:
 		return null
-	var regions := world.get_node_or_null("Regions")
-	if regions == null:
+	var session := world as WorldSession
+	if session == null or session.region_service == null:
 		return null
-	var region := regions.get_node_or_null(String(region_id))
+	var region := session.region_service.get_current_region_root()
 	if region == null:
 		return null
-	return region.get_node_or_null(String(marker_id)) as Node3D
+	var direct := region.get_node_or_null(String(marker_id)) as Node3D
+	return direct if direct != null else region.find_child(String(marker_id), true, false) as Node3D
+
+
+func _initialize_authored_economy() -> void:
+	if npc_definition == null:
+		return
+	if wallet != null:
+		wallet.restore_balance(npc_definition.starting_wallet_balance, {
+			"actor_id": String(get_persistent_actor_id()),
+			"reason": "authored_seed",
+		})
+	if inventory != null:
+		for item_id in npc_definition.starting_inventory_item_ids:
+			inventory.add_item(item_id, 1)
+		for item_id in npc_definition.starting_equipment_item_ids:
+			if inventory.count_item(item_id) <= 0:
+				inventory.add_item(item_id, 1)
+	if equipment != null and inventory != null:
+		for item_id in npc_definition.starting_equipment_item_ids:
+			for index in inventory.slot_count:
+				var stack := inventory.get_slot(index)
+				if stack != null and stack.item_id == item_id and stack.quantity > 0:
+					equipment.equip_from_inventory(inventory, index)
+					break
+	if employment == null or npc_definition.job_id == &"" or npc_definition.worksite_id == &"":
+		return
+	var job := ResourceRegistry.get_job(npc_definition.job_id)
+	if job == null:
+		return
+	var contract := EmploymentContract.new()
+	contract.actor_id = get_persistent_actor_id()
+	contract.job_id = job.id
+	contract.worksite_id = npc_definition.worksite_id
+	contract.status = EmploymentContract.STATUS_ACTIVE
+	contract.start_day = WorldTimeService.day
+	contract.wage_per_shift = job.base_wage
+	contract.shift_start_hour = job.shift_start_hour
+	contract.shift_end_hour = job.shift_end_hour
+	employment.initialize_contract(contract)
+
+
+func _process_economic_action() -> void:
+	if _economic_action_cooldown > 0.0 or employment == null:
+		return
+	var world := get_tree().get_first_node_in_group("world_manager") as WorldSession
+	if world == null:
+		return
+	var proposal := _economic_planner.propose_next(self)
+	if proposal == null:
+		return
+	var result := world.submit_intent(proposal)
+	if result.is_valid:
+		play_knowledge_action(&"work", 1.5)
+	var job := ResourceRegistry.get_job(employment.current_contract.job_id) \
+		if employment.current_contract != null else null
+	_economic_action_cooldown = maxf(1.0, job.shift_duration if job != null else 6.0)
 
 
 func to_dict() -> Dictionary:

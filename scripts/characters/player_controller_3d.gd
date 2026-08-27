@@ -10,8 +10,6 @@ const CHARACTER_BUILD_SECTION_VERSION: int = CharacterBuildCalculator.BUILD_SECT
 @export var deceleration: float = 22.0
 
 var hotbar := HotbarController.new()
-var inventory: InventoryComponent
-var equipment: EquipmentComponent
 var experience: ExperienceComponent
 var skill_loadout: SkillLoadoutComponent
 var targeting: TargetingComponent3D
@@ -530,22 +528,13 @@ func apply_equipment_bonuses() -> void:
 	var health_bonus := 0.0
 	var energy_bonus := 0.0
 	var speed_bonus := float(_character_build_bonuses.get(&"move_speed_bonus", 0.0))
-	if equipment != null:
-		for slot in EquipmentComponent.EQUIP_SLOTS:
-			var item_definition := equipment.get_equipped_definition(slot)
-			if item_definition == null:
-				continue
-			# Decorative equipment contributes only through the charisma path in
-			# EquipmentComponent.get_load_state(). Authored combat values on a
-			# decorative resource are deliberately ignored.
-			if item_definition.is_decorative_equipment():
-				continue
-			attack_bonus += item_definition.attack_bonus
-			defense_bonus += item_definition.defense_bonus
-			regen_bonus += item_definition.energy_regen_bonus
-			health_bonus += item_definition.max_health_bonus
-			energy_bonus += item_definition.max_energy_bonus
-			speed_bonus += item_definition.move_speed_bonus
+	var equipment_bonuses := EquipmentEffectCalculator.calculate(equipment)
+	attack_bonus += float(equipment_bonuses.get("attack_bonus", 0.0))
+	defense_bonus += float(equipment_bonuses.get("defense_bonus", 0.0))
+	regen_bonus += float(equipment_bonuses.get("energy_regen_bonus", 0.0))
+	health_bonus += float(equipment_bonuses.get("max_health_bonus", 0.0))
+	energy_bonus += float(equipment_bonuses.get("max_energy_bonus", 0.0))
+	speed_bonus += float(equipment_bonuses.get("move_speed_bonus", 0.0))
 	var active_hand_item := get_off_hand_item_definition()
 	if active_hand_item == null:
 		active_hand_item = get_single_held_item_definition()
@@ -699,6 +688,9 @@ func apply_character_build(build_data: Dictionary, restore_to_full: bool = false
 		profession,
 		attribute_points,
 	)
+	if attributes != null:
+		attributes.set_attribute(&"strength", get_physical_strength())
+		attributes.set_attribute(&"vitality", get_physical_vitality())
 	_recompute_character_build_stats(restore_to_full)
 	if faction != null:
 		faction.faction_id = selected_faction_id

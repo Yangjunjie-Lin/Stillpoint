@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://resources/items/rpg/icons/field_pick.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"improved_forge_hammer"
+display_name = "Improved Forge Hammer"
+item_type = 1
+max_stack = 1
+description = "A balanced hardened hammer that transfers force cleanly at the anvil."
+icon = ExtResource("2")
+buy_price = 45
+sell_price = 18
+equip_slot = 1
+use_kind = 2
+tool_attack_id = &"attack_light_1"
+utility_actions = Array[StringName]([&"smithing_work", &"repair_item"])
+attack_bonus = 2.0
+equipment_weight = 3.5
+required_strength = 7
+work_tags = Array[StringName]([&"smithing", &"metalworking"])
+work_efficiency = 1.35
+visual_archetype = &"field_pick"
+hand_form = &"field_pick"

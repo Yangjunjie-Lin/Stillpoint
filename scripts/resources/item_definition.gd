@@ -89,6 +89,10 @@ enum InventoryCategory {
 @export_range(0, 100, 1) var required_vitality: int = 0
 @export var rarity: StringName = &"common"
 @export_range(0, 100, 1) var starter_balance_value: int = 0
+@export_group("Work")
+## Generic authored capabilities used by deterministic job/tool evaluation.
+@export var work_tags: Array[StringName] = []
+@export_range(0.1, 10.0, 0.05) var work_efficiency: float = 1.0
 @export_group("Pet Care")
 ## Bounded tags used by authored pet equipment slots and food preferences.
 @export var pet_tags: Array[StringName] = []
@@ -213,6 +217,8 @@ func catalog_metadata() -> Dictionary:
 		"equipment_weight": equipment_weight,
 		"required_strength": required_strength,
 		"required_vitality": required_vitality,
+		"work_tags": _string_names(work_tags),
+		"work_efficiency": work_efficiency,
 		"visual_archetype": String(resolved_visual_archetype()),
 		"pet_tags": _string_names(pet_tags),
 		"pet_nutrition": pet_nutrition,
@@ -230,6 +236,17 @@ func to_catalog_dict() -> Dictionary:
 
 func supports_utility_action(action_id: StringName) -> bool:
 	return action_id != &"" and utility_actions.has(action_id)
+
+
+func supports_work_tag(tag: StringName) -> bool:
+	return tag != &"" and work_tags.has(tag)
+
+
+func supports_all_work_tags(required_tags: Array[StringName]) -> bool:
+	for tag in required_tags:
+		if not supports_work_tag(tag):
+			return false
+	return true
 
 
 func resolved_visual_archetype() -> StringName:

@@ -1,14 +1,42 @@
-# Architecture (Godot 0.10.0)
+# Architecture (Godot 0.11.0)
 
-Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the world service split, Save v4, and region dynamic loading. Version 0.10.0 retains those systems and adds the action-camera/combat presentation while preserving the product/domain language and typed-intent authority boundary documented in [SIMULATION_AUTHORITY.md](SIMULATION_AUTHORITY.md).
+Runnable **Vertical Slice** via **WorldSession** + **Combat Lab** on **Jolt Physics**. See [WORLD_ARCHITECTURE.md](WORLD_ARCHITECTURE.md) for the world service split, Save v4, and region dynamic loading. Version 0.11.0 retains the action-camera/combat foundation and adds shared actor economics while preserving the typed-intent authority boundary documented in [SIMULATION_AUTHORITY.md](SIMULATION_AUTHORITY.md).
 
 ## Simulation Authority
 
 `WorldSession` owns a `WorldIntentValidator` and `WorldIntentExecutor`. Intents
-are data only. The 0.9.0 `TalkIntent` pilot accepts verified player input after
-identity, target, region, distance, and policy checks; the executor starts
-dialogue and emits the completed `NPC_TALKED` fact. LLM-attributed proposals
-are rejected and provider intent arrays remain unexecuted.
+are data only. `TalkIntent` accepts verified player input. NPC `WorkIntent`,
+`PurchaseIntent`, and `EquipIntent` accept only actor-scoped
+`DETERMINISTIC_AI`, validate a durable per-actor next sequence, and commit via
+`ActorEconomyService`. LLM-attributed proposals are rejected and provider
+intent arrays remain unexecuted.
+
+## Shared Actor Economy
+
+`CharacterController` exposes shared `WalletComponent`, `InventoryComponent`,
+`EquipmentComponent`, `SkillComponent`, `EnergyComponent`,
+`ActorAttributesComponent`, and optional `EmploymentComponent` capabilities.
+The player and NPCs use the same wallet, inventory, equipment, item metadata,
+and commerce transaction core.
+
+`PropertyBankService` owns bank deposits, home cash, investments, property, and
+custodial storage. It delegates carried money to the player's
+`WalletComponent`; its `wallet_balance` property is a compatibility adapter,
+not a second balance. Property section v3 omits pocket money. Old section v1/v2
+`wallet_balance` imports once into the player wallet; subsequent saves persist
+the wallet in `player.json` while retaining Save major version 4.
+
+`JobDefinition` and `WorkSiteDefinition` are immutable authored resources.
+`EmploymentContract`, `EmploymentComponent`, `WorkSiteRuntimeState`, and
+`WorkResult` are per-instance runtime data. `ActorEconomyService` persists
+finite worksite payroll in the global-world section; actor component state is
+captured by `EntitySnapshot`. `WorkService` uses a deterministic bounded
+formula over skill, attributes, equipped tool metadata, energy, and workplace
+efficiency. Paid work atomically debits payroll and credits the worker wallet.
+
+The current vertical slice intentionally stops at abstract work units. Business
+inventory, material production, revenue, scarcity, and dynamic prices remain
+0.12.0 scope.
 
 ## Jolt Physics Foundation
 

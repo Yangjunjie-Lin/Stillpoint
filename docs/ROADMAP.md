@@ -56,3 +56,19 @@ controller and one damage pipeline. The audit and runtime design are recorded
 in [ACTION_CAMERA_COMBAT_0_10_0.md](design/ACTION_CAMERA_COMBAT_0_10_0.md).
 Manual Debug Build acceptance remains a release gate; see
 [ACTION_CAMERA_COMBAT_0_10_0_ACCEPTANCE.md](acceptance/ACTION_CAMERA_COMBAT_0_10_0_ACCEPTANCE.md).
+
+## 0.11.0 implementation notes
+
+The embodied NPC economy phase adds shared actor wallet/inventory/equipment and
+attribute capabilities, one-time Save v4 property-wallet migration, jobs,
+worksites, finite payroll, employment, deterministic work results, professional
+skill progress, transactional economic intents, and durable replay protection.
+The blacksmith vertical slice proves work → wage → tool purchase → equip →
+improved output across region reload and Save/Continue. Design and scope are in
+[NPC_ECONOMIC_AGENCY_0_11_0.md](design/NPC_ECONOMIC_AGENCY_0_11_0.md); manual
+release evidence belongs in
+[NPC_ECONOMIC_AGENCY_0_11_0_ACCEPTANCE.md](acceptance/NPC_ECONOMIC_AGENCY_0_11_0_ACCEPTANCE.md).
+
+0.12.0 remains responsible for business inventories, production inputs and
+outputs, conserved shop treasuries/revenue, social-survival demand, scarcity,
+and dynamic prices.

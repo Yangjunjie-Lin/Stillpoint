@@ -4,8 +4,9 @@
 > economies, factions, and territories evolve through systemic simulation.
 
 Stillpoint is a playable Godot prototype aimed at the fantasy: **"I have
-genuinely entered another world."** Version 0.10.0 extends the accepted 0.9.0
-foundation with an action camera and perspective-independent combat identity.
+genuinely entered another world."** Version 0.11.0 extends the accepted 0.10.0
+foundation with persistent embodied NPC wallets, equipment, employment, work,
+professional skill progression, finite wages, and bounded economic decisions.
 It does not claim that the full living world is already complete.
 
 ## Current status
@@ -24,14 +25,20 @@ It does not claim that the full living world is already complete.
   persistent scoped memory, bounded knowledge/belief graphs, and deterministic
   offline dialogue fallback.
 - Farming with till/plant/water/harvest/rest; private housing and storage;
-  wallet/bank/home cash; fixed-price trade, equipment commerce, and forging;
+  actor wallets plus player bank/home cash; fixed-price trade, equipment
+  commerce, and forging;
   dungeon gating, loot, bosses, and respawn progression.
 - Persistent pet companions with per-instance state, equipment, routines,
   autonomous local/off-screen behavior, and optional LLM movement advice that
   cannot choose coordinates or execute gameplay.
-- A typed-intent boundary. The 0.9.0 pilot routes player-initiated `TalkIntent`
-  through `IntentProposal` → `WorldIntentValidator` →
-  `WorldIntentExecutor` → `GameplayEvent`.
+- A typed-intent boundary. Player `TalkIntent` and deterministic NPC
+  `WorkIntent`, `PurchaseIntent`, and `EquipIntent` route through
+  `IntentProposal` → `WorldIntentValidator` → `WorldIntentExecutor` → domain
+  service → `GameplayEvent`. LLM-attributed economic proposals are rejected.
+- A blacksmith vertical slice: a uniquely identified NPC travels to the town
+  smithy, works on a bounded cadence, consumes energy, improves smithing, earns
+  conserved wages from finite payroll, buys/equips a better hammer, improves
+  future output, and survives region reload plus Save/Continue.
 
 ### Experimental or partial
 
@@ -40,7 +47,7 @@ It does not claim that the full living world is already complete.
   in-memory test repository. Provider output remains advisory.
 - Farming is a coherent single-crop loop, not a broad agriculture simulation.
 - Commerce and banking are real and persistent, but prices are fixed and there
-  is no conserved multi-business supply/demand economy yet.
+  is no business stock, production chain, or dynamic supply/demand economy yet.
 - Housing supports deeds, custody, storage, reconstruction, and repossession,
   but not settlement-scale property markets.
 - `WorldSimulationService` is a virtual-simulation hook; full regional and
@@ -51,8 +58,8 @@ It does not claim that the full living world is already complete.
 
 - Production animation replacement, advanced controller UX, and ranged combat
   foundations (0.10.x+).
-- Shared per-actor wallets, NPC inventories/equipment, professions, jobs,
-  workplaces, wages, and production (0.11.0–0.12.0).
+- Production inputs/outputs, business stock, social-survival demand, and market
+  pricing (0.12.0).
 - Runtime factions, territory, governance, laws, and political offices (0.13.0).
 - Simulation LOD, bounded catch-up, regional economy/conflict, multi-origin
   content, broader life systems, emergent history, and production visuals
@@ -125,7 +132,7 @@ python tools/python/run_godot_tests.py
 python tools/python/validate_repo.py
 ```
 
-The automated Godot gate discovers 355 unit/integration scripts and rejects
+The automated Godot gate discovers 369 unit/integration scripts and rejects
 unexpected script errors, runtime errors, ObjectDB leaks, and resource leaks.
 Backend tests cover the in-memory service and PostgreSQL/pgvector integration.
 

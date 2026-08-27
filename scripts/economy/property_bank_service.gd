@@ -1,12 +1,13 @@
 class_name PropertyBankService
 extends Node
-## Owns the player's private-home deed, wallet, bank account, and custodial stores.
+## Owns the player's bank, private-home deed, investments, and custodial stores.
+## Personal carried currency is delegated to the bound actor WalletComponent.
 ## Runtime ownership is scoped by principal ID; authored HouseDefinition resources
 ## describe plans and values but never hold mutable ownership or inventory state.
 
 signal property_state_changed
 
-const SECTION_VERSION := 2
+const SECTION_VERSION := 3
 const OWNER_PRINCIPAL_ID := &"base:player/main"
 const DEFAULT_HOUSE_ID := &"building:player_farmhouse"
 const STATUS_OWNED := &"owned"
@@ -23,7 +24,12 @@ const BASIS_POINTS_SCALE := 10_000
 @export_range(86400, 31536000, 86400) var offline_reclaim_seconds: int = 30 * 86400
 
 var owner_principal_id: StringName = OWNER_PRINCIPAL_ID
-var wallet_balance: int = DEFAULT_WALLET_BALANCE
+var wallet_balance: int:
+	get:
+		return _ensure_wallet().get_balance()
+	set(value):
+		# Compatibility setup surface. The WalletComponent remains the sole owner.
+		_ensure_wallet().restore_balance(maxi(0, value))
 var bank_balance: int = 0
 var home_cash_balance: int = 0
 var investment_principal: int = 0
@@ -38,6 +44,8 @@ var repossession_count: int = 0
 var home_storage: InventoryComponent
 var bank_storage: InventoryComponent
 var _session: WorldSession
+var _wallet: WalletComponent
+var _owns_fallback_wallet: bool = false
 
 
 func _ready() -> void:
@@ -47,14 +55,35 @@ func _ready() -> void:
 func setup(session: WorldSession) -> void:
 	_session = session
 	_ensure_stores()
+	if session != null and session.player != null:
+		bind_wallet(session.player.wallet)
 	if not WorldTimeService.day_changed.is_connected(_on_day_changed):
 		WorldTimeService.day_changed.connect(_on_day_changed)
+
+
+func bind_wallet(actor_wallet: WalletComponent) -> bool:
+	if actor_wallet == null:
+		return false
+	if _wallet == actor_wallet:
+		return true
+	var previous_balance := _wallet.get_balance() if _wallet != null else DEFAULT_WALLET_BALANCE
+	if _owns_fallback_wallet and _wallet != null:
+		if _wallet.get_parent() == self:
+			remove_child(_wallet)
+		_wallet.free()
+	_wallet = actor_wallet
+	_owns_fallback_wallet = false
+	# Fresh player wallets already carry the authored default. Only preserve a
+	# non-default fallback used before the player was spawned.
+	if previous_balance != DEFAULT_WALLET_BALANCE and actor_wallet.get_balance() == DEFAULT_WALLET_BALANCE:
+		actor_wallet.restore_balance(previous_balance, {"reason": "wallet_binding"})
+	return true
 
 
 func reset_defaults() -> void:
 	_ensure_stores()
 	owner_principal_id = OWNER_PRINCIPAL_ID
-	wallet_balance = DEFAULT_WALLET_BALANCE
+	_ensure_wallet().restore_balance(DEFAULT_WALLET_BALANCE)
 	bank_balance = 0
 	home_cash_balance = 0
 	investment_principal = 0
@@ -122,10 +151,12 @@ func withdraw_to_player(
 
 
 func deposit(amount: int) -> int:
-	var moved := clampi(amount, 0, wallet_balance)
+	var wallet := _ensure_wallet()
+	var moved := clampi(amount, 0, wallet.get_balance())
 	if moved <= 0:
 		return 0
-	wallet_balance -= moved
+	if not wallet.debit(moved, {"reason": "bank_deposit", "counterparty_id": "player_bank"}):
+		return 0
 	bank_balance += moved
 	_emit_changed()
 	return moved
@@ -135,8 +166,10 @@ func withdraw(amount: int) -> int:
 	var moved := clampi(amount, 0, bank_balance)
 	if moved <= 0:
 		return 0
+	var wallet := _ensure_wallet()
+	if not wallet.credit(moved, {"reason": "bank_withdrawal", "counterparty_id": "player_bank"}):
+		return 0
 	bank_balance -= moved
-	wallet_balance += moved
 	_emit_changed()
 	return moved
 
@@ -155,7 +188,8 @@ func credit_wallet(amount: int) -> int:
 	var credited := maxi(0, amount)
 	if credited <= 0:
 		return 0
-	wallet_balance += credited
+	if not _ensure_wallet().credit(credited, {"reason": "sale"}):
+		return 0
 	_emit_changed()
 	return credited
 
@@ -163,10 +197,12 @@ func credit_wallet(amount: int) -> int:
 func transfer_wallet_to_home_cash(amount: int) -> int:
 	if not has_active_house():
 		return 0
-	var moved := clampi(amount, 0, wallet_balance)
+	var wallet := _ensure_wallet()
+	var moved := clampi(amount, 0, wallet.get_balance())
 	if moved <= 0:
 		return 0
-	wallet_balance -= moved
+	if not wallet.debit(moved, {"reason": "home_cash_deposit", "counterparty_id": "home_cash"}):
+		return 0
 	home_cash_balance += moved
 	_emit_changed()
 	return moved
@@ -178,8 +214,9 @@ func transfer_home_cash_to_wallet(amount: int) -> int:
 	var moved := clampi(amount, 0, home_cash_balance)
 	if moved <= 0:
 		return 0
+	if not _ensure_wallet().credit(moved, {"reason": "home_cash_withdrawal", "counterparty_id": "home_cash"}):
+		return 0
 	home_cash_balance -= moved
-	wallet_balance += moved
 	_emit_changed()
 	return moved
 
@@ -307,7 +344,6 @@ func capture_save_data(now_unix: int = -1) -> Dictionary:
 	return {
 		"section_version": SECTION_VERSION,
 		"owner_principal_id": String(owner_principal_id),
-		"wallet_balance": wallet_balance,
 		"bank_balance": bank_balance,
 		"home_cash_balance": home_cash_balance,
 		"investment_principal": investment_principal,
@@ -336,7 +372,13 @@ func restore_save_data(data: Dictionary, now_unix: int = -1) -> bool:
 		return false
 	# Save data cannot redirect this single-player account to another principal.
 	owner_principal_id = OWNER_PRINCIPAL_ID
-	wallet_balance = maxi(0, int(data.get("wallet_balance", DEFAULT_WALLET_BALANCE)))
+	if version <= 2:
+		# Save v4 / 0.10 stored pocket money in this section. Import it into the
+		# actor wallet; v3 captures omit this field, so it cannot migrate twice.
+		_ensure_wallet().restore_balance(
+			maxi(0, int(data.get("wallet_balance", DEFAULT_WALLET_BALANCE))),
+			{"reason": "migration", "actor_id": String(OWNER_PRINCIPAL_ID)},
+		)
 	bank_balance = maxi(0, int(data.get("bank_balance", 0)))
 	home_cash_balance = maxi(0, int(data.get("home_cash_balance", 0))) if version >= 2 else 0
 	investment_principal = maxi(0, int(data.get("investment_principal", 0))) if version >= 2 else 0
@@ -378,12 +420,12 @@ func get_status_summary() -> String:
 
 
 func get_total_funds() -> int:
-	return wallet_balance + bank_balance
+	return _ensure_wallet().get_balance() + bank_balance
 
 
 func get_total_assets() -> int:
 	return (
-		wallet_balance
+		_ensure_wallet().get_balance()
 		+ bank_balance
 		+ home_cash_balance
 		+ investment_principal
@@ -419,8 +461,13 @@ func _charge(amount: int) -> bool:
 	if get_total_funds() < cost:
 		return false
 	var from_bank := mini(bank_balance, cost)
+	var from_wallet := cost - from_bank
+	if from_wallet > 0 and not _ensure_wallet().debit(
+		from_wallet,
+		{"reason": "combined_funds_purchase", "counterparty_id": "commerce"},
+	):
+		return false
 	bank_balance -= from_bank
-	wallet_balance -= cost - from_bank
 	return true
 
 
@@ -466,6 +513,18 @@ func _ensure_stores() -> void:
 	bank_storage.slot_count = maxi(DEFAULT_BANK_SLOTS, bank_storage.slot_count)
 	home_storage.get_slot(home_storage.slot_count - 1)
 	bank_storage.get_slot(bank_storage.slot_count - 1)
+
+
+func _ensure_wallet() -> WalletComponent:
+	if _wallet != null:
+		return _wallet
+	_wallet = WalletComponent.new()
+	_wallet.name = "FallbackWallet"
+	_wallet.starting_balance = DEFAULT_WALLET_BALANCE
+	_wallet.restore_balance(DEFAULT_WALLET_BALANCE)
+	add_child(_wallet)
+	_owns_fallback_wallet = true
+	return _wallet
 
 
 func _emit_changed() -> void:
